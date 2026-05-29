@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Lecturer Settings</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="lecturer-settings.css">
+</head>
+<body>
+    <div class="settings-container">
+        <!-- Header -->
+        <div class="settings-header">
+            <div class="header-left">
+                <a href="lecturer-dashboard.html" class="back-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+            <div>
+                <h1 class="settings-title">Settings</h1>
+                <p class="settings-subtitle">Manage your account preferences</p>
+            </div>
+        </div>
+
+        <!-- Settings Menu Grid -->
+        <div class="settings-menu-grid">
+            <!-- Profile Information -->
+            <a href="lecturer-profile.html" class="settings-menu-card">
+                <div class="menu-icon" style="background: #e8f5e9;">
+                    <i class="fa-solid fa-user-circle" style="color: #2a7a4b;"></i>
+                </div>
+                <div class="menu-content">
+                    <h3>Profile Information</h3>
+                    <p>Update your personal details and contact information</p>
+                </div>
+                <i class="fa-solid fa-chevron-right menu-arrow"></i>
+            </a>
+
+            <!-- Security -->
+            <a href="lecturer-security.html" class="settings-menu-card">
+                <div class="menu-icon" style="background: #fff3e0;">
+                    <i class="fa-solid fa-lock" style="color: #f59e0b;"></i>
+                </div>
+                <div class="menu-content">
+                    <h3>Password & Security</h3>
+                    <p>Change password and manage security settings</p>
+                </div>
+                <i class="fa-solid fa-chevron-right menu-arrow"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="lecturer-settings.js"></script>
+</body>
+</html>

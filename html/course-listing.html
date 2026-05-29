@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Courses Â· Course Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="course-listing.css">
+</head>
+<body>
+
+    <!-- Sticky header -->
+    <div class="header sticky-header">
+        <div class="logo">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <h2>Federal University Portal</h2>
+        </div>
+        <button class="menu-btn" id="menuBtn">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="courses-header">
+            <h1>Course Registration</h1>
+            <button class="btn-add-more" id="addMoreCourseBtn">
+                <i class="fa-solid fa-arrow-left"></i> Change Session
+            </button>
+        </div>
+
+        <div class="info-banner">
+            <i class="fa-solid fa-info-circle"></i>
+            <span id="sessionInfo">Loading session info...</span>
+        </div>
+
+        <div class="card">
+            <h3>Available Courses</h3>
+
+            <div class="table-wrapper">
+                <table id="coursesTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">Register</th>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th style="width: 80px;">Unit</th>
+                            <th style="width: 100px;">Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coursesTableBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Loading courses...
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary Section -->
+            <div class="summary-section">
+                <div class="summary-box">
+                    <div class="summary-item">
+                        <span>Total Units:</span>
+                        <strong id="totalUnits">0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Selected Units:</span>
+                        <strong id="selectedUnits">0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Selected Courses:</span>
+                        <strong id="selectedCount">0</strong>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn-secondary" id="backBtn">
+                        <i class="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                    <button class="btn-primary" id="registerSelectedBtn">
+                        <i class="fa-solid fa-check"></i> Register Selected Courses
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="course-listing.js"></script>
+</body>
+</html>

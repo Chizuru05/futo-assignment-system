@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· AI Grade Submissions</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="lecturer-submission.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=50" alt="profile">
+                </div>
+                <div class="profile-info">
+                    <h4>Dr. Ifeanyi Okonkwo</h4>
+                    <p>Senior Lecturer Â· CS Dept</p>
+                    <span class="badge-level">Staff ID: CS/0012</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="lecturer-dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lecturer-assignments.html" class="nav-item">
+                    <i class="fa-solid fa-pencil"></i>
+                    <span>Assignments</span>
+                    <span class="badge-nav">8</span>
+                </a>
+                <a href="lecturer-submissions.html" class="nav-item active">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>AI Grade Submissions</span>
+                    <span class="badge-nav warning">23</span>
+                </a>
+                <a href="lecturer-courses.html" class="nav-item">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>My Courses</span>
+                </a>
+                <a href="lecturer-students.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="lecturer-settings.html" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="logout.html" class="logout-link">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="header-search">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" placeholder="Search students...">
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    
+                    <div class="notif-wrapper">
+                        <button class="notif-btn" id="notifBtn">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="notif-badge" id="notifCount">23</span>
+                        </button>
+                        <div class="notif-panel" id="notifPanel">
+                            <div class="notif-header">
+                                <h4>Notifications</h4>
+                                <span>Mark all as read</span>
+                            </div>
+                            <div class="notif-item unread">
+                                <i class="fa-regular fa-file-pdf" style="color: #2a7a4b;"></i>
+                                <div>
+                                    <p><strong>5 new submissions</strong> Â· CSC 401</p>
+                                    <small>2 min ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="lecturer-profile.html" class="header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-wrapper">
+                <!-- Breadcrumb -->
+                <div class="breadcrumb">
+                    <a href="lecturer-dashboard.html">Dashboard</a>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>AI Grade Submissions</span>
+                </div>
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">AI Grade Submissions</h1>
+                        <p class="page-subtitle">Review and grade student submissions with AI assistance</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-outline" onclick="downloadAllSubmissions()">
+                            <i class="fa-solid fa-download"></i> Download All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="submission-stats">
+                    <div class="stat-card small">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-file-export" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalSubmissions">0</h3>
+                            <p>Total Submissions</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card small">
+                        <div class="stat-icon" style="background: #fff3e0;">
+                            <i class="fa-regular fa-clock" style="color: #f59e0b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="pendingSubmissions">0</h3>
+                            <p>To Grade</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card small">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-check-circle" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="gradedSubmissions">0</h3>
+                            <p>Graded</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card small">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-percent" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="completionRate">0%</h3>
+                            <p>Completion Rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Action Bar -->
+                <div class="ai-action-bar">
+                    <div class="ai-info">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>AI Grading uses Google Gemini to automatically evaluate submissions based on rubric criteria</span>
+                    </div>
+                    <button class="btn-ai" id="aiGradeAllBtn" onclick="aiGradeAllPending()">
+                        <i class="fa-solid fa-robot"></i> AI Grade All Pending
+                    </button>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="assignmentFilter">Assignment:</label>
+                        <select id="assignmentFilter" class="filter-select">
+                            <option value="all">All Assignments</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="gradeStatusFilter">Grade Status:</label>
+                        <select id="gradeStatusFilter" class="filter-select">
+                            <option value="all">All</option>
+                            <option value="pending">Pending Grading</option>
+                            <option value="graded">Graded</option>
+                        </select>
+                    </div>
+                    
+                    <button class="filter-btn" onclick="applyFilters()">
+                        <i class="fa-solid fa-filter"></i> Apply Filters
+                    </button>
+                    <button class="filter-btn clear" onclick="clearFilters()">
+                        <i class="fa-solid fa-times"></i> Clear
+                    </button>
+                </div>
+
+                <!-- Submissions Container -->
+                <div id="submissionsContainer" class="submissions-list">
+                    <div class="loading-message">Loading submissions...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Grading Modal -->
+    <div class="modal" id="gradingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Grade Release</h3>
+                <button class="modal-close" onclick="closeGradingModal()"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="gradingModalBody">
+                <p>Are you sure you want to release this grade?</p>
+                <p>The student will be notified and can view their grade.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeGradingModal()">Cancel</button>
+                <button class="btn-primary" id="confirmReleaseBtn">Release Grade</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Summary Modal -->
+    <div class="modal" id="aiSummaryModal">
+        <div class="modal-content ai-summary-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-robot"></i> AI Grading Summary</h3>
+                <button class="modal-close" onclick="closeAISummaryModal()"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="aiSummaryModalBody">
+                <div class="loading-message">Loading AI analysis...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAISummaryModal()">Close</button>
+                <button class="btn-primary" id="acceptAIGradesBtn">Accept & Release Grade</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="lecturer-submission.js"></script>
+</body>
+</html>

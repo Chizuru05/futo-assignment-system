@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Registration Â· FUTO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="session.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <h2>Federal University Portal</h2>
+        </div>
+        <div class="header-right">
+            <button class="menu-btn" id="menuBtn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="top-section">
+            <h1>Course Registration</h1>
+            <div class="breadcrumb">Dashboard / Course Registration</div>
+        </div>
+
+        <div class="card">
+            <div class="info-box" id="activeSessionInfo">
+                <i class="fa-solid fa-info-circle"></i>
+                <p>Loading active session information...</p>
+            </div>
+
+            <form id="sessionForm">
+                <div class="form-group">
+                    <label for="level">Select Level <span class="required">*</span></label>
+                    <select id="level" required>
+                        <option value="" disabled selected>-- Select Level --</option>
+                        <option value="100">100 LEVEL</option>
+                        <option value="200">200 LEVEL</option>
+                        <option value="300">300 LEVEL</option>
+                        <option value="400">400 LEVEL</option>
+                        <option value="500">500 LEVEL</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary submit-btn" id="continueBtn">
+                    <i class="fa-solid fa-arrow-right"></i> Continue to Course Selection
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="session.js"></script>
+</body>
+</html>

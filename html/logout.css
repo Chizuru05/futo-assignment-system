@@ -1,0 +1,252 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+:root {
+    --primary: #2a7a4b;
+    --primary-light: #e8f5e9;
+    --primary-dark: #1e5a38;
+    --secondary: #f8fafc;
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+    --white: #ffffff;
+    --border: #e2e8f0;
+    --shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    --shadow-lg: 0 20px 40px -15px rgba(42, 122, 75, 0.3);
+    --danger: #ef4444;
+    --bg-body: #f0f7f2;
+}
+
+body {
+    background: linear-gradient(135deg, #f0f7f2 0%, #e2efe5 100%);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+/* Container */
+.logout-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease;
+}
+
+/* Logout Card */
+.logout-card {
+    background: var(--white);
+    border-radius: 32px;
+    padding: 3rem 2.5rem;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+/* Logo */
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 2rem;
+}
+
+.logo i {
+    font-size: 2.2rem;
+}
+
+/* Icon */
+.logout-icon {
+    width: 100px;
+    height: 100px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 3rem;
+    color: var(--primary);
+    animation: scaleIn 0.5s ease 0.2s both;
+}
+
+/* Typography */
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.8rem;
+}
+
+.message {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+/* Redirect Info */
+.redirect-info {
+    background: var(--primary-light);
+    padding: 1rem 1.5rem;
+    border-radius: 60px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.redirect-info i {
+    font-size: 1.2rem;
+}
+
+.redirect-info #countdown {
+    font-weight: 700;
+    font-size: 1.2rem;
+    min-width: 24px;
+    display: inline-block;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-primary {
+    flex: 1;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(42, 122, 75, 0.2);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(42, 122, 75, 0.3);
+}
+
+.btn-secondary {
+    flex: 1;
+    background: var(--secondary);
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+    transform: translateY(-2px);
+}
+
+/* Help Text */
+.help-text {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.help-text a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.help-text a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .logout-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    h1 {
+        font-size: 1.6rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .logo {
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .logout-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .redirect-info {
+        flex-direction: column;
+        text-align: center;
+        padding: 1rem;
+        width: 100%;
+    }
+}

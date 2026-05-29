@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Lecturer Course Registration</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="lecturer-course-registration.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=50" alt="profile">
+                </div>
+                <div class="profile-info">
+                    <h4>Dr. Ifeanyi Okonkwo</h4>
+                    <p>Senior Lecturer Â· CS Dept</p>
+                    <span class="badge-level">Staff ID: CS/0012</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="lecturer-dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lecturer-course-registration.html" class="nav-item active">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Course Registration</span>
+                </a>
+                <a href="lecturer-assignments.html" class="nav-item">
+                    <i class="fa-solid fa-pencil"></i>
+                    <span>Assignments</span>
+                    <span class="badge-nav">8</span>
+                </a>
+                <a href="lecturer-courses.html" class="nav-item">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>My Courses</span>
+                </a>
+                <a href="lecturer-submissions.html" class="nav-item">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span>Submissions</span>
+                    <span class="badge-nav warning">23</span>
+                </a>
+                <a href="lecturer-settings.html" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-link" id="logoutBtn">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="header-search">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" placeholder="Search courses...">
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    
+                    <div class="notif-wrapper">
+                        <button class="notif-btn" id="notifBtn">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="notif-badge">3</span>
+                        </button>
+                        <div class="notif-panel" id="notifPanel">
+                            <div class="notif-header">
+                                <h4>Notifications</h4>
+                                <span>Mark all as read</span>
+                            </div>
+                            <div class="notif-item unread">
+                                <i class="fa-regular fa-file-pdf" style="color: #2a7a4b;"></i>
+                                <div>
+                                    <p><strong>5 new submissions</strong> Â· CSC 401</p>
+                                    <small>2 min ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="lecturer-profile.html" class="header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-wrapper">
+                <!-- Breadcrumb -->
+                <div class="breadcrumb">
+                    <a href="lecturer-dashboard.html">Dashboard</a>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>Course Registration</span>
+                </div>
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Course Registration</h1>
+                        <p class="page-subtitle">Select the courses you're teaching for the current session</p>
+                    </div>
+                </div>
+
+                <!-- Session Selection Card -->
+                <div class="session-card">
+                    <h3 class="session-title">
+                        <i class="fa-regular fa-calendar"></i>
+                        Select Academic Session
+                    </h3>
+                    
+                    <div class="session-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="academicSession">Academic Session</label>
+                                <select id="academicSession" class="form-control">
+                                    <option value="">Select Session</option>
+                                    <option value="2025-2026">2025-2026</option>
+                                    <option value="2024-2025">2024-2025</option>
+                                    <option value="2023-2024">2023-2024</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="semester">Semester</label>
+                                <select id="semester" class="form-control">
+                                    <option value="">Select Semester</option>
+                                    <option value="Harmattan">Harmattan Semester</option>
+                                    <option value="Rain">Rain Semester</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="levelFilter">Level</label>
+                                <select id="levelFilter" class="form-control">
+                                    <option value="all">All Levels</option>
+                                    <option value="100">100 Level</option>
+                                    <option value="200">200 Level</option>
+                                    <option value="300">300 Level</option>
+                                    <option value="400">400 Level</option>
+                                    <option value="500">500 Level</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="session-info" id="sessionInfo">
+                            <i class="fa-regular fa-circle-info"></i>
+                            <span>Loading session information...</span>
+                        </div>
+                        
+                        <button class="btn-primary" id="loadCoursesBtn">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Load Available Courses
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Available Courses Card -->
+                <div class="courses-card" id="coursesCard" style="display: none;">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fa-solid fa-list-check"></i>
+                            Available Courses
+                        </h3>
+                        <span class="badge" id="selectedCount">0 selected</span>
+                    </div>
+                    
+                    <div class="info-message">
+                        <i class="fa-regular fa-circle-info"></i>
+                        <span>Check the boxes next to the courses you'll be teaching this semester.</span>
+                    </div>
+                    
+                    <div class="course-list" id="courseList"></div>
+                    
+                    <div class="selected-summary" id="selectedSummary" style="display: none;">
+                        <h4>Selected Courses</h4>
+                        <div class="summary-list" id="summaryList"></div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn-secondary" id="cancelBtn">
+                            <i class="fa-regular fa-times"></i>
+                            Cancel
+                        </button>
+                        <button class="btn-primary" id="submitBtn" disabled>
+                            <i class="fa-regular fa-floppy-disk"></i>
+                            Register Selected Courses
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registration Successful</h3>
+                <button class="modal-close" onclick="closeSuccessModal()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <i class="fa-regular fa-circle-check" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;"></i>
+                <h4>Your courses have been registered successfully!</h4>
+                <p>You have registered for <span id="registeredCount">0</span> courses.</p>
+                <p style="color: var(--text-light); margin-top: 1rem;">You can now access these courses from the "My Courses" page.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="goToMyCourses()">
+                    Go to My Courses
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="lecturer-course-registration.js"></script>
+</body>
+</html>

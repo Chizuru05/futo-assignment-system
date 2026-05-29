@@ -1,0 +1,291 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Student Profile</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="student-profile.css">
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Header with Back Navigation -->
+        <div class="profile-header">
+            <div class="header-left">
+                <a href="student-dashboard.html" class="back-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+            <div class="header-title">
+                <h1 class="profile-title">My Profile</h1>
+                <p class="profile-subtitle">View and manage your personal information</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-edit" id="editProfileBtn">
+                    <i class="fa-regular fa-pen-to-square"></i> Edit Profile
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <!-- Profile Header Section -->
+            <div class="profile-header-section">
+                <div class="avatar-section">
+                    <div class="avatar-wrapper">
+                        <img src="https://ui-avatars.com/api/?name=Ada+Eze&background=2a7a4b&color=fff&size=120" alt="profile" id="profileImage">
+                        <button class="avatar-edit-btn" id="avatarEditBtn">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="displayName">Ada Eze</h2>
+                        <p class="matric-number"><i class="fa-regular fa-id-card"></i> Matric Number: <span id="displayMatric">2021/IT/001</span></p>
+                        <p class="department"><i class="fa-regular fa-building"></i> Department: <span id="displayDepartment">Information Technology</span></p>
+                        <p class="level"><i class="fa-regular fa-layer-group"></i> Level: <span id="displayLevel">500</span></p>
+                        <span class="status-badge active"><i class="fa-solid fa-circle"></i> Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="profile-content">
+                <!-- Personal Information -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-solid fa-user"></i>
+                        Personal Information
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value" id="fullName">Ada Eze</span>
+                            <input type="text" class="edit-input" id="editFullName" value="Ada Eze" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Matric Number</span>
+                            <span class="info-value" id="matricNumber">2021/IT/001</span>
+                            <input type="text" class="edit-input" id="editMatricNumber" value="2021/IT/001" readonly disabled style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Date of Birth</span>
+                            <span class="info-value" id="dob">January 15, 2000</span>
+                            <input type="date" class="edit-input" id="editDob" value="2000-01-15" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Gender</span>
+                            <span class="info-value" id="gender">Female</span>
+                            <select class="edit-input" id="editGender" style="display: none;">
+                                <option value="Female" selected>Female</option>
+                                <option value="Male">Male</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Nationality</span>
+                            <span class="info-value" id="nationality">Nigerian</span>
+                            <input type="text" class="edit-input" id="editNationality" value="Nigerian" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">State of Origin</span>
+                            <span class="info-value" id="stateOfOrigin">Imo State</span>
+                            <input type="text" class="edit-input" id="editStateOfOrigin" value="Imo State" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">LGA</span>
+                            <span class="info-value" id="lga">Owerri Municipal</span>
+                            <input type="text" class="edit-input" id="editLga" value="Owerri Municipal" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-solid fa-address-book"></i>
+                        Contact Information
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">University Email</span>
+                            <span class="info-value" id="email">ada.eze@futo.edu.ng</span>
+                            <input type="email" class="edit-input" id="editEmail" value="ada.eze@futo.edu.ng" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Personal Email</span>
+                            <span class="info-value" id="personalEmail">ada.eze@gmail.com</span>
+                            <input type="email" class="edit-input" id="editPersonalEmail" value="ada.eze@gmail.com" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Phone Number</span>
+                            <span class="info-value" id="phone">+234 801 234 5678</span>
+                            <input type="tel" class="edit-input" id="editPhone" value="+2348012345678" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Address</span>
+                            <span class="info-value" id="address">Hostel A, FUTO Campus, Owerri</span>
+                            <input type="text" class="edit-input" id="editAddress" value="Hostel A, FUTO Campus, Owerri" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Information -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        Academic Information
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Department</span>
+                            <span class="info-value" id="department">Information Technology</span>
+                            <select class="edit-input" id="editDepartment" style="display: none;">
+                                <option value="Information Technology" selected>Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Software Engineering">Software Engineering</option>
+                                <option value="Cyber Security">Cyber Security</option>
+                            </select>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Faculty</span>
+                            <span class="info-value" id="faculty">SICT</span>
+                            <input type="text" class="edit-input" id="editFaculty" value="Computing" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Current Level</span>
+                            <span class="info-value" id="level">500</span>
+                            <select class="edit-input" id="editLevel" style="display: none;">
+                                <option value="100">100 Level</option>
+                                <option value="200">200 Level</option>
+                                <option value="300">300 Level</option>
+                                <option value="400">400 Level</option>
+                                <option value="500" selected>500 Level</option>
+                            </select>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Session of Admission</span>
+                            <span class="info-value" id="admissionSession">2021/2022</span>
+                            <input type="text" class="edit-input" id="editAdmissionSession" value="2021/2022" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Current Session</span>
+                            <span class="info-value" id="currentSession">2025/2026</span>
+                            <input type="text" class="edit-input" id="editCurrentSession" value="2025/2026" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Semester</span>
+                            <span class="info-value" id="semester">Harmattan</span>
+                            <select class="edit-input" id="editSemester" style="display: none;">
+                                <option value="Harmattan" selected>Harmattan</option>
+                                <option value="Rain">Rain</option>
+                            </select>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Current Courses</span>
+                            <span class="info-value" id="currentCourses">7</span>
+                            <input type="text" class="edit-input" id="editCurrentCourses" value="7" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guardian Information -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-solid fa-family"></i>
+                        Guardian Information
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Guardian Name</span>
+                            <span class="info-value" id="guardianName">Mr. Chukwu Eze</span>
+                            <input type="text" class="edit-input" id="editGuardianName" value="Mr. Chukwu Eze" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Relationship</span>
+                            <span class="info-value" id="guardianRelation">Father</span>
+                            <input type="text" class="edit-input" id="editGuardianRelation" value="Father" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Guardian Phone</span>
+                            <span class="info-value" id="guardianPhone">+234 802 345 6789</span>
+                            <input type="tel" class="edit-input" id="editGuardianPhone" value="+2348023456789" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Guardian Email</span>
+                            <span class="info-value" id="guardianEmail">chukwu.eze@email.com</span>
+                            <input type="email" class="edit-input" id="editGuardianEmail" value="chukwu.eze@email.com" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item full-width">
+                            <span class="info-label">Guardian Address</span>
+                            <span class="info-value" id="guardianAddress">15 Ikwerre Road, Port Harcourt</span>
+                            <input type="text" class="edit-input" id="editGuardianAddress" value="15 Ikwerre Road, Port Harcourt" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions" id="formActions" style="display: none;">
+                <button class="btn-secondary" id="cancelEditBtn">Cancel</button>
+                <button class="btn-primary" id="saveProfileBtn">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirm Action</h3>
+                <button class="modal-close" onclick="closeConfirm()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="confirmMessage">
+                Are you sure you want to proceed?
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeConfirm()">Cancel</button>
+                <button class="btn-primary" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="student-profile.js"></script>
+</body>
+</html>

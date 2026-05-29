@@ -1,0 +1,235 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Lecturer Dashboard</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="lecturer-dashboard.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img id="profileImg" src="https://ui-avatars.com/api/?name=Dr.+Lecturer&background=2a7a4b&color=fff&size=50" alt="profile">
+                </div>
+                <div class="profile-info">
+                    <h4 id="lecturerName">Dr. Lecturer</h4>
+                    <p id="lecturerRank">Senior Lecturer</p>
+                    <span class="badge-level" id="staffId">STAFF/2024/001</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="lecturer-dashboard.html" class="nav-item active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lecturer-course-registration.html" class="nav-item">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Course Registration</span>
+                </a>
+                <a href="lecturer-assignments.html" class="nav-item">
+                    <i class="fa-solid fa-pencil"></i>
+                    <span>Assignments</span>
+                </a>
+                <a href="lecturer-submissions.html" class="nav-item">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span>Submissions</span>
+                    <span class="badge-nav warning" id="pendingBadge">0</span>
+                </a>
+                <a href="lecturer-courses.html" class="nav-item">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>My Courses</span>
+                </a>
+                <a href="lecturer-students.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="lecturer-settings.html" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="semester-info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <div>
+                        <small>Current Session</small>
+                        <p id="currentSession">2025-2026 Harmattan</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-link" id="logoutBtn">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2>Dashboard</h2>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    <div class="header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Dr.+Lecturer&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-wrapper">
+                <!-- Welcome Section -->
+                <div class="welcome-section">
+                    <div>
+                        <h1 class="welcome-title">Welcome back, <span id="welcomeName">Dr. Lecturer</span>!</h1>
+                        <p class="welcome-subtitle">Here's your assignment overview for today</p>
+                    </div>
+                    <div class="current-date" id="currentDate"></div>
+                </div>
+
+                <!-- Quick Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-pencil" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalAssignments">0</h3>
+                            <p>Assignments</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fff3e0;">
+                            <i class="fa-regular fa-clock" style="color: #f59e0b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="pendingSubmissions">0</h3>
+                            <p>Pending</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-check-circle" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalCourses">0</h3>
+                            <p>Active Courses</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-users" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalStudents">0</h3>
+                            <p>Students</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <a href="lecturer-assignments.html" class="action-btn">
+                            <i class="fa-solid fa-plus"></i> Create Assignment
+                        </a>
+                        <a href="lecturer-submissions.html" class="action-btn">
+                            <i class="fa-regular fa-eye"></i> View Submissions
+                        </a>
+                        <a href="lecturer-courses.html" class="action-btn">
+                            <i class="fa-solid fa-book-open"></i> My Courses
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="dashboard-grid">
+                    <!-- Left Column -->
+                    <div class="left-column">
+                        <!-- Recent Submissions -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-regular fa-clock"></i> Recent Submissions</h3>
+                                <a href="lecturer-submissions.html" class="view-link">View All â†’</a>
+                            </div>
+                            <div class="recent-list" id="recentSubmissions">
+                                <div class="loading-spinner">Loading submissions...</div>
+                            </div>
+                        </div>
+
+                        <!-- Active Assignments -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-pencil"></i> Active Assignments</h3>
+                                <a href="lecturer-assignments.html" class="view-link">View All â†’</a>
+                            </div>
+                            <div class="assignments-list" id="activeAssignments">
+                                <div class="loading-spinner">Loading assignments...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="right-column">
+                        <!-- My Courses -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-book-open"></i> My Courses</h3>
+                                <a href="lecturer-courses.html" class="view-link">View All â†’</a>
+                            </div>
+                            <div class="courses-list" id="myCoursesList">
+                                <div class="loading-spinner">Loading courses...</div>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Deadlines -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-regular fa-calendar"></i> Upcoming Deadlines</h3>
+                                <a href="lecturer-submissions.html" class="view-link">Manage â†’</a>
+                            </div>
+                            <div class="deadlines-list" id="upcomingDeadlines">
+                                <div class="loading-spinner">Loading deadlines...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="lecturer-dashboard.js"></script>
+</body>
+</html>

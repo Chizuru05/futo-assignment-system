@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Logout</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="logout.css">
+</head>
+<body>
+    <div class="logout-container">
+        <div class="logout-card">
+            <!-- Logo -->
+            <div class="logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>FUTO</span>
+            </div>
+
+            <!-- Icon -->
+            <div class="logout-icon">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </div>
+
+            <!-- Message -->
+            <h1>Logged Out Successfully</h1>
+            <p class="message">You have been securely logged out of your account.</p>
+            
+            <!-- Timer/Redirect Info -->
+            <div class="redirect-info">
+                <i class="fa-regular fa-clock"></i>
+                <span>Redirecting to login page in <span id="countdown">5</span> seconds</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="login.html" class="btn-primary">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    Login Again
+                </a>
+                <a href="index.html" class="btn-secondary">
+                    <i class="fa-solid fa-house"></i>
+                    Go to Homepage
+                </a>
+            </div>
+
+            <!-- Help Text -->
+            <p class="help-text">
+                Having trouble? <a href="mailto:support@futo.edu.ng">Contact Support</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="logout.js"></script>
+</body>
+</html>

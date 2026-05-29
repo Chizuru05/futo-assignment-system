@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Assignments & Grades</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assgnment.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo"><i class="fa-solid fa-graduation-cap"></i><span>FUTO</span></div>
+                <button class="sidebar-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></button>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-image"><img id="profileImage" src="https://ui-avatars.com/api/?name=Student&background=2a7a4b&color=fff&size=50" alt="student"></div>
+                <div class="profile-info">
+                    <h4 id="profileName">Test Student</h4>
+                    <p id="profileMatric">20211263362</p>
+                    <span class="badge-level" id="profileLevel">500 Level</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="student-dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+                <a href="select-session.html" class="nav-item"><i class="fa-solid fa-book"></i><span>Course Registration</span><span class="badge-nav">New</span></a>
+                <a href="assgnment.html" class="nav-item active"><i class="fa-solid fa-pencil"></i><span>Assignments</span><span id="pendingBadge" class="badge-nav">0</span></a>
+                <a href="student-settings.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="semester-info"><i class="fa-regular fa-calendar"></i><div><small>Current Session</small><p>2025-2026 Harmattan</p></div></div>
+                <a href="#" onclick="logout()" class="logout-link"><i class="fa-solid fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left"><button class="menu-btn" id="menuBtn"><i class="fa-solid fa-bars"></i></button><div class="header-search"><i class="fa-solid fa-search"></i><input type="text" id="searchInput" placeholder="Search assignments..."></div></div>
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle"><i class="fa-regular fa-sun"></i><i class="fa-regular fa-moon"></i></div>
+                    <div class="notif-wrapper"><button class="notif-btn" id="notifBtn"><i class="fa-regular fa-bell"></i><span class="notif-badge" id="notifCount">0</span></button></div>
+                    <div class="header-profile"><img src="https://ui-avatars.com/api/?name=Student&background=2a7a4b&color=fff&size=40" alt="profile"></div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <div><h1 class="page-title">Assignments & Grades</h1><p class="page-subtitle">Track your assignments, deadlines, and course performance</p></div>
+                    <div class="header-actions"><button class="btn-outline" onclick="exportGrades()"><i class="fa-solid fa-download"></i> Export Grades</button></div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-pencil"></i></div><div class="stat-details"><h3 id="totalAssignments">0</h3><p>Total Assignments</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-details"><h3 id="pendingAssignments">0</h3><p>Pending</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-check-circle"></i></div><div class="stat-details"><h3 id="submittedAssignments">0</h3><p>Submitted</p></div></div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-tabs">
+                    <button class="filter-btn active" data-filter="all">All Assignments</button>
+                    <button class="filter-btn" data-filter="pending">Pending</button>
+                    <button class="filter-btn" data-filter="submitted">Submitted</button>
+                    <button class="filter-btn" data-filter="graded">Graded</button>
+                    <button class="filter-btn" data-filter="thisweek">This Week</button>
+                </div>
+
+                <div class="assignment-grade-grid">
+                    <div class="assignments-column">
+                        <h2 class="column-title"><i class="fa-solid fa-list-check"></i> Course Assignments <span class="deadline-badge" id="deadlineBadge">0 This Week</span></h2>
+                        <div class="course-filter-section"><select class="course-filter" id="courseFilter"><option value="all">All Courses</option></select></div>
+                        <div class="assignment-list-container" id="assignmentList"><div class="loading-spinner">Loading assignments...</div></div>
+                    </div>
+                    <div class="grades-column">
+                        <div class="deadlines-card"><h3 class="card-title"><i class="fa-regular fa-calendar-clock"></i> Upcoming Deadlines</h3><div class="deadline-list" id="deadlineList"><div class="loading-spinner">Loading deadlines...</div></div><a href="#" class="view-all-link" onclick="viewAllDeadlines(); return false;">View All Deadlines <i class="fa-solid fa-arrow-right"></i></a></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== ASSIGNMENT DETAILS MODAL ========== -->
+    <div class="modal" id="assignmentModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fa-regular fa-file-lines"></i> Assignment Details</h3>
+                <button class="modal-close" onclick="closeAssignmentModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="loading-spinner">Loading assignment details...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAssignmentModal()">Close</button>
+                <button class="btn-primary" id="modalSubmitBtn" onclick="submitFromModal()">
+                    <i class="fa-regular fa-paper-plane"></i> Submit Assignment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SUBMISSION MODAL ========== -->
+    <div class="modal" id="submissionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-upload"></i> Submit Assignment</h3>
+                <button class="modal-close" onclick="closeSubmissionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="submissionAssignmentInfo"></div>
+                <div class="form-group">
+                    <label>Upload Files</label>
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fa-solid fa-cloud-upload-alt"></i>
+                        <p>Drag & drop files or <span>browse</span></p>
+                        <small>PDF, DOC, DOCX, ZIP up to 50MB</small>
+                        <input type="file" id="submissionFiles" class="file-input" multiple>
+                    </div>
+                    <div class="file-list" id="submissionFileList"></div>
+                </div>
+                <div class="form-group">
+                    <label>Comments (Optional)</label>
+                    <textarea id="submissionComments" rows="3" placeholder="Add any comments for the lecturer..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeSubmissionModal()">Cancel</button>
+                <button class="btn-primary" id="uploadBtn" onclick="uploadAssignment()">
+                    <i class="fa-solid fa-paper-plane"></i> Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== GRADE VIEW MODAL ========== -->
+    <div class="modal" id="gradeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chart-line"></i> Grade Details</h3>
+                <button class="modal-close" onclick="closeGradeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="gradeModalBody"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeGradeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="assgnment.js"></script>
+</body>
+</html>

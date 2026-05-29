@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Create Assignment</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="lecturer-assignments.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=50" alt="profile">
+                </div>
+                <div class="profile-info">
+                    <h4 id="lecturerName">Dr. Ifeanyi Okonkwo</h4>
+                    <p id="lecturerTitle">Senior Lecturer Â· CS Dept</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="lecturer-dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lecturer-course-registration.html" class="nav-item">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Course Registration</span>
+                </a>
+                <a href="lecturer-assignments.html" class="nav-item active">
+                    <i class="fa-solid fa-pencil"></i>
+                    <span>Assignments</span>
+                </a>
+                <a href="lecturer-submissions.html" class="nav-item">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span>Grade Submissions</span>
+                    <span class="badge-nav warning" id="pendingBadge">0</span>
+                </a>
+                <a href="lecturer-courses.html" class="nav-item">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>My Courses</span>
+                </a>
+                <a href="lecturer-students.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="lecturer-settings.html" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-link" id="logoutBtn">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2>Create Assignment</h2>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    
+                    <div class="header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-wrapper">
+                <!-- Breadcrumb -->
+                <div class="breadcrumb">
+                    <a href="lecturer-dashboard.html">Dashboard</a>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>Create Assignment</span>
+                </div>
+
+                <!-- Create Assignment Form Card -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h2><i class="fa-solid fa-pencil"></i> Create New Assignment</h2>
+                        <p>Fill in the details to create a new assignment for your course</p>
+                    </div>
+                    
+                    <form id="assignmentForm">
+                        <!-- Course Selection -->
+                        <div class="form-group">
+                            <label for="course">
+                                Course <span class="required">*</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="course" required>
+                                    <option value="">-- Select a course --</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div id="courseLoadingMsg" class="course-loading" style="display: none;">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Loading your courses...
+                            </div>
+                        </div>
+
+                        <!-- Assignment Title -->
+                        <div class="form-group">
+                            <label for="title">
+                                Assignment Title <span class="required">*</span>
+                            </label>
+                            <input type="text" id="title" placeholder="e.g., Network Security Assessment Report" required>
+                        </div>
+
+                        <!-- Due Date and Time -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dueDate">
+                                    Due Date <span class="required">*</span>
+                                </label>
+                                <input type="date" id="dueDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dueTime">
+                                    Due Time <span class="required">*</span>
+                                </label>
+                                <input type="time" id="dueTime" value="23:59" required>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="description">Description / Instructions</label>
+                            <textarea id="description" rows="6" placeholder="Provide detailed instructions for students..."></textarea>
+                        </div>
+
+                        <!-- Total Marks Section -->
+                        <div class="total-marks-section">
+                            <div class="form-group">
+                                <label for="totalMarks">
+                                    Total Assignment Marks <span class="required">*</span>
+                                </label>
+                                <input type="number" id="totalMarks" class="total-marks-input" value="100" min="1" max="100" step="1" required>
+                                <small class="input-hint">Set the total points for this assignment (max 100)</small>
+                            </div>
+                        </div>
+
+                        <!-- Rubric Criteria Section -->
+                        <div class="rubric-section">
+                            <div class="section-header">
+                                <h4><i class="fa-solid fa-table-list"></i> Grading Rubric Criteria</h4>
+                                <button type="button" class="btn-add" id="addCriterionBtn">
+                                    <i class="fa-solid fa-plus"></i> Add Criterion
+                                </button>
+                            </div>
+                            
+                            <div class="rubric-info-message">
+                                <i class="fa-regular fa-circle-info"></i>
+                                <span>Set criteria and their maximum points. Total must equal the assignment marks above.</span>
+                            </div>
+                            
+                            <div class="rubric-list" id="rubricList">
+                                <div class="rubric-item">
+                                    <div class="rubric-criterion">
+                                        <input type="text" class="criterion-name" placeholder="Criterion name" value="Criterion 1">
+                                        <div class="criterion-score">
+                                            <input type="number" class="criterion-max" placeholder="Max" value="50" min="1" max="100" step="1">
+                                            <span>pts</span>
+                                        </div>
+                                        <button type="button" class="remove-criterion" title="Remove criterion">
+                                            <i class="fa-solid fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="rubric-item">
+                                    <div class="rubric-criterion">
+                                        <input type="text" class="criterion-name" placeholder="Criterion name" value="Criterion 2">
+                                        <div class="criterion-score">
+                                            <input type="number" class="criterion-max" placeholder="Max" value="30" min="1" max="100" step="1">
+                                            <span>pts</span>
+                                        </div>
+                                        <button type="button" class="remove-criterion" title="Remove criterion">
+                                            <i class="fa-solid fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="rubric-item">
+                                    <div class="rubric-criterion">
+                                        <input type="text" class="criterion-name" placeholder="Criterion name" value="Criterion 3">
+                                        <div class="criterion-score">
+                                            <input type="number" class="criterion-max" placeholder="Max" value="20" min="1" max="100" step="1">
+                                            <span>pts</span>
+                                        </div>
+                                        <button type="button" class="remove-criterion" title="Remove criterion">
+                                            <i class="fa-solid fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="rubric-total">
+                                <span>Rubric Total:</span>
+                                <strong id="rubricTotal">100</strong>
+                                <span>points</span>
+                                <span id="totalMatchStatus" class="status-badge success">âœ“ Matches total marks</span>
+                            </div>
+                        </div>
+
+                        <!-- Attachment -->
+                        <div class="form-group">
+                            <label>Attachment (Optional)</label>
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fa-solid fa-cloud-upload-alt"></i>
+                                <p>Drag & drop files or <span>browse</span></p>
+                                <small>PDF, DOC, DOCX, ZIP up to 50MB</small>
+                                <input type="file" id="fileInput" class="file-input" multiple>
+                            </div>
+                            <div class="file-list" id="fileList"></div>
+                        </div>
+
+                        <!-- Submission Settings -->
+                        <div class="form-group">
+                            <label>Submission Settings</label>
+                            <div class="settings-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="allowMultiple" checked>
+                                    <span class="checkbox-custom"></span>
+                                    Allow multiple files
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="allowLate" checked>
+                                    <span class="checkbox-custom"></span>
+                                    Allow late submissions
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                            <button type="submit" class="btn-primary" id="submitBtn">
+                                <i class="fa-solid fa-save"></i> Create Assignment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Existing Assignments Section -->
+                <div class="existing-assignments-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-list-check"></i> Your Assignments</h3>
+                        <p>Manage your created assignments - edit or delete as needed</p>
+                    </div>
+                    <div id="existingAssignments" class="existing-assignments-list">
+                        <div class="loading-spinner">Loading your assignments...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="lecturer-assignments.js"></script>
+</body>
+</html>

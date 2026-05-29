@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Login</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-panel">
+            <div class="login-wrapper">
+                <!-- Header -->
+                <div class="login-header">
+                    <div class="logo">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>FUTO</span>
+                    </div>
+                    <h2>Welcome Back</h2>
+                    <p>Department of Information Technology</p>
+                </div>
+
+                <!-- Role Selector -->
+                <div class="role-selector">
+                    <button class="role-btn active" type="button" id="studentRoleBtn">
+                        <i class="fa-regular fa-user"></i>
+                        <span>Student</span>
+                    </button>
+                    <button class="role-btn" type="button" id="lecturerRoleBtn">
+                        <i class="fa-regular fa-chalkboard-user"></i>
+                        <span>Lecturer</span>
+                    </button>
+                    <button class="role-btn" type="button" id="adminRoleBtn">
+                        <i class="fa-solid fa-shield-haltered"></i>
+                        <span>Admin</span>
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="input-field">
+                        <label for="identifier">
+                            <i class="fa-regular fa-id-card"></i>
+                            <span id="identifierLabel">Matric Number</span> <span class="required">*</span>
+                        </label>
+                        <input type="text" id="identifier" placeholder="Enter your matric number / email / staff ID" autocomplete="off">
+                        <div class="input-hint" id="identifierHint">Enter your matric number (e.g., 20211263362)</div>
+                        <div class="error-message" id="identifierError"></div>
+                    </div>
+
+                    <div class="input-field">
+                        <label for="password">
+                            <i class="fa-solid fa-lock"></i>
+                            Password <span class="required">*</span>
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" placeholder="Enter your password">
+                            <button type="button" class="password-toggle" id="passwordToggle">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            <span>Remember me</span>
+                        </label>
+                        <a href="forgot-password.html" class="forgot-link">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="login-btn" id="loginBtn">
+                        <span id="loginBtnText">Login as Student</span>
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </button>
+                </form>
+
+                <!-- Sign Up Link -->
+                <div class="signup-link">
+                    <p>Don't have an account? <a href="signup.html">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="login.js"></script>
+</body>
+</html>

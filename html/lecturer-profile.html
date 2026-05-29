@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Lecturer Profile</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="lecturer-profile.css">
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Header with Back Navigation -->
+        <div class="profile-header">
+            <div class="header-left">
+                <a href="lecturer-settings.html" class="back-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Settings</span>
+                </a>
+            </div>
+            <div class="header-title">
+                <h1 class="profile-title">My Profile</h1>
+                <p class="profile-subtitle">View and manage your personal information</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-edit" id="editProfileBtn">
+                    <i class="fa-regular fa-pen-to-square"></i> Edit Profile
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <!-- Profile Header Section -->
+            <div class="profile-header-section">
+                <div class="avatar-section">
+                    <div class="avatar-wrapper">
+                        <img src="https://ui-avatars.com/api/?name=Dr+Lecturer&background=2a7a4b&color=fff&size=120" alt="profile" id="profileImage">
+                        <button class="avatar-edit-btn" id="avatarEditBtn">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="displayName">Loading...</h2>
+                        <p class="staff-id"><i class="fa-regular fa-id-card"></i> Staff ID: <span id="displayStaffId">---</span></p>
+                        <p class="department"><i class="fa-regular fa-building"></i> Department: <span id="displayDepartment">---</span></p>
+                        <span class="status-badge active"><i class="fa-solid fa-circle"></i> Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="profile-content">
+                <!-- Personal Information -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-solid fa-user"></i>
+                        Personal Information
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value" id="fullName">---</span>
+                            <input type="text" class="edit-input" id="editFullName" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Staff ID</span>
+                            <span class="info-value" id="staffId">---</span>
+                            <input type="text" class="edit-input" id="editStaffId" readonly disabled style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Date of Birth</span>
+                            <span class="info-value" id="dob">Not set</span>
+                            <input type="date" class="edit-input" id="editDob" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Gender</span>
+                            <span class="info-value" id="gender">Not set</span>
+                            <select class="edit-input" id="editGender" style="display: none;">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Nationality</span>
+                            <span class="info-value" id="nationality">Nigerian</span>
+                            <input type="text" class="edit-input" id="editNationality" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Marital Status</span>
+                            <span class="info-value" id="maritalStatus">Not set</span>
+                            <select class="edit-input" id="editMaritalStatus" style="display: none;">
+                                <option value="">Select Status</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-solid fa-address-book"></i>
+                        Contact Information
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">University Email</span>
+                            <span class="info-value" id="email">---</span>
+                            <input type="email" class="edit-input" id="editEmail" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Alternative Email</span>
+                            <span class="info-value" id="altEmail">Not set</span>
+                            <input type="email" class="edit-input" id="editAltEmail" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Phone Number</span>
+                            <span class="info-value" id="phone">Not set</span>
+                            <input type="tel" class="edit-input" id="editPhone" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Information -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-solid fa-briefcase"></i>
+                        Professional Information
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Department</span>
+                            <span class="info-value" id="department">Information Technology</span>
+                            <select class="edit-input" id="editDepartment" style="display: none;">
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Software Engineering">Software Engineering</option>
+                                <option value="Cyber Security">Cyber Security</option>
+                            </select>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Faculty</span>
+                            <span class="info-value" id="faculty">Computing</span>
+                            <input type="text" class="edit-input" id="editFaculty" style="display: none;">
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Rank/Title</span>
+                            <span class="info-value" id="rank">Senior Lecturer</span>
+                            <select class="edit-input" id="editRank" style="display: none;">
+                                <option value="Assistant Lecturer">Assistant Lecturer</option>
+                                <option value="Lecturer II">Lecturer II</option>
+                                <option value="Lecturer I">Lecturer I</option>
+                                <option value="Senior Lecturer">Senior Lecturer</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Professor">Professor</option>
+                            </select>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Area of Specialization</span>
+                            <span class="info-value" id="specialization">Not set</span>
+                            <input type="text" class="edit-input" id="editSpecialization" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biography -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fa-regular fa-note-sticky"></i>
+                        Biography & Research Interests
+                    </h3>
+                    
+                    <div class="info-item full-width">
+                        <span class="info-label">Professional Bio</span>
+                        <p class="bio-text" id="bio">No bio provided</p>
+                        <textarea class="edit-input" id="editBio" rows="4" style="display: none;" placeholder="Write your professional biography..."></textarea>
+                    </div>
+                    
+                    <div class="info-item full-width">
+                        <span class="info-label">Research Interests</span>
+                        <p class="bio-text" id="research">Not set</p>
+                        <input type="text" class="edit-input" id="editResearch" style="display: none;" placeholder="e.g., Database Systems, Machine Learning, AI">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions" id="formActions" style="display: none;">
+                <button class="btn-secondary" id="cancelEditBtn">Cancel</button>
+                <button class="btn-primary" id="saveProfileBtn">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="lecturer-profile.js"></script>
+</body>
+</html>

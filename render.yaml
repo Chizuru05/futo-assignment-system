@@ -1,0 +1,45 @@
+Set-Content -Path "render.yaml" -Value @'
+services:
+  - type: web
+    name: futo-assignment-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node backend/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        value: https://futo-frontend.onrender.com
+    disks:
+      - name: uploads
+        mountPath: /uploads
+        sizeGB: 1
+
+  - type: web
+    name: futo-frontend
+    runtime: static
+    buildCommand: echo "Static site ready"
+    staticPublishPath: ./
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+'@

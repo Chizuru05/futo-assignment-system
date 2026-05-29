@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Admin Â· System Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-settings.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO Admin</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=50" alt="admin">
+                </div>
+                <div class="profile-info">
+                    <h4 id="adminName">Administrator</h4>
+                    <p>System Admin</p>
+                    <span class="badge-level">Admin</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="admin-dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="admin-dashboard.html#courses" class="nav-item" onclick="event.preventDefault(); localStorage.setItem('adminPage', 'courses'); window.location.href='admin-dashboard.html';">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Courses</span>
+                </a>
+                <a href="admin-dashboard.html#lecturers" class="nav-item" onclick="event.preventDefault(); localStorage.setItem('adminPage', 'lecturers'); window.location.href='admin-dashboard.html';">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Lecturers</span>
+                </a>
+                <a href="admin-dashboard.html#students" class="nav-item" onclick="event.preventDefault(); localStorage.setItem('adminPage', 'students'); window.location.href='admin-dashboard.html';">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="admin-settings.html" class="nav-item active">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="semester-info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <div>
+                        <small>Current Session</small>
+                        <p id="sidebarSession">2025-2026 Harmattan</p>
+                    </div>
+                </div>
+                <a href="#" onclick="logout()" class="logout-link">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">System Settings</h1>
+                    <p class="page-subtitle">Configure academic session and semester settings</p>
+                </div>
+                <button class="menu-btn" id="menuBtn">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-calendar"></i> Current Academic Session</h3>
+                    <p>Set the active session and semester for course registration</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Active Academic Session</label>
+                        <select id="activeSession">
+                            <option value="2023-2024">2023-2024</option>
+                            <option value="2024-2025">2024-2025</option>
+                            <option value="2025-2026">2025-2026</option>
+                            <option value="2026-2027">2026-2027</option>
+                            <option value="2027-2028">2027-2028</option>
+                        </select>
+                        <small>Only courses for this session will be available for registration</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Active Semester</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="semester" value="Harmattan">
+                                <span>Harmattan (First Semester)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="semester" value="Rain">
+                                <span>Rain (Second Semester)</span>
+                            </label>
+                        </div>
+                        <small>Only courses for this semester will be available for registration</small>
+                    </div>
+
+                    <div class="info-box">
+                        <i class="fa-solid fa-info-circle"></i>
+                        <div>
+                            <strong>Important Note:</strong>
+                            <p>When you change the active session or semester, all students and lecturers will immediately see only courses matching these settings for registration.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn-primary" id="saveSettingsBtn">
+                            <i class="fa-solid fa-save"></i> Save Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-clock"></i> Current System Status</h3>
+                </div>
+                <div class="card-body">
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-label">Active Session:</span>
+                            <span class="status-value" id="displaySession">Loading...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Active Semester:</span>
+                            <span class="status-value" id="displaySemester">Loading...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Last Updated:</span>
+                            <span class="status-value" id="lastUpdated">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="admin-settings.js"></script>
+</body>
+</html>

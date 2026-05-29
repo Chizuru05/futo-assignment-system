@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Settings</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <div class="settings-container">
+        <!-- Header with Back Button -->
+        <div class="settings-header">
+            <div class="header-left">
+                <a href="student-dashboard.html" class="back-button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+            <div class="header-title">
+                <h1 class="settings-title">Settings</h1>
+                <p class="settings-subtitle">Manage your account preferences</p>
+            </div>
+            <div class="header-right"></div> <!-- Empty for spacing -->
+        </div>
+
+        <!-- Settings Menu Columns -->
+        <div class="settings-menu-columns">
+            <!-- Left Column -->
+            <div class="settings-column">
+                <!-- Profile Information -->
+                <a href="profile.html" class="settings-menu-card">
+                    <div class="menu-icon" style="background: #e8f5e9;">
+                        <i class="fa-solid fa-user-circle" style="color: #2a7a4b;"></i>
+                    </div>
+                    <div class="menu-content">
+                        <h3>Profile Information</h3>
+                        <p>Update your personal details and contact information</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </a>
+
+                <!-- Security -->
+                <a href="security.html" class="settings-menu-card">
+                    <div class="menu-icon" style="background: #fff3e0;">
+                        <i class="fa-solid fa-lock" style="color: #f59e0b;"></i>
+                    </div>
+                    <div class="menu-content">
+                        <h3>Password & Security</h3>
+                        <p>Change password and manage security settings</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirm Action</h3>
+                <button class="modal-close" onclick="closeConfirm()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="confirmMessage">
+                Are you sure you want to proceed?
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeConfirm()">Cancel</button>
+                <button class="btn-primary" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>

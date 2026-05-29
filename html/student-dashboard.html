@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· Student Dashboard</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="student-dashbaord.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img id="profileImage" src="https://ui-avatars.com/api/?name=Student&background=2a7a4b&color=fff&size=50" alt="student">
+                </div>
+                <div class="profile-info">
+                    <h4 id="profileName">Test Student</h4>
+                    <p id="profileMatric">20211263362</p>
+                    <span class="badge-level" id="profileLevel">500 Level</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="student-dashboard.html" class="nav-item active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="select-session.html" class="nav-item">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Course Registration</span>
+                    <span class="badge-nav">New</span>
+                </a>
+                <a href="assgnment.html" class="nav-item">
+                    <i class="fa-solid fa-pencil"></i>
+                    <span>Assignments</span>
+                    <span id="pendingBadge" class="badge-nav">0</span>
+                </a>
+                <a href="student-settings.html" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="semester-info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <div>
+                        <small>Current Session</small>
+                        <p>2025-2026 Harmattan</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-link" id="logoutBtn">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="header-search">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search assignments...">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    <div class="header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Student&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Welcome Banner -->
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h2 id="welcomeName">Welcome back, Student!</h2>
+                        <p id="bannerText">Track your assignments and course progress</p>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalCourses">0</h3>
+                            <p>Total Courses</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-pencil"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalAssignments">0</h3>
+                            <p>Total Assignments</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="pendingAssignments">0</h3>
+                            <p>Pending</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-check-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="submittedAssignments">0</h3>
+                            <p>Submitted</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="dashboard-grid">
+                    <!-- Left Column - My Courses -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-book-open"></i> My Courses</h3>
+                            <a href="select-session.html" class="view-link">Register Courses â†’</a>
+                        </div>
+                        <div class="courses-list" id="myCoursesList">
+                            <div class="loading-spinner">Loading courses...</div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Pending Assignments -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-clock"></i> Pending Assignments</h3>
+                            <a href="assgnment.html" class="view-link">View All â†’</a>
+                        </div>
+                        <div class="assignments-list" id="pendingList">
+                            <div class="loading-spinner">Loading assignments...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="student-dashboard.js"></script>
+</body>
+</html>

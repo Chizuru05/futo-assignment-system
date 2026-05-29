@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>`n    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Â· My Courses</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="lecturer-courses.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=50" alt="profile">
+                </div>
+                <div class="profile-info">
+                    <h4>Dr. Ifeanyi Okonkwo</h4>
+                    <p>Senior Lecturer Â· CS Dept</p>
+                    <span class="badge-level">Staff ID: CS/0012</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="lecturer-dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lecturer-course-registration.html" class="nav-item">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Course Registration</span>
+                </a>
+                <a href="lecturer-assignments.html" class="nav-item">
+                    <i class="fa-solid fa-pencil"></i>
+                    <span>Assignments</span>
+                    <span class="badge-nav">8</span>
+                </a>
+                <a href="lecturer-submissions.html" class="nav-item">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span>Submissions</span>
+                    <span class="badge-nav warning">23</span>
+                </a>
+                <a href="lecturer-courses.html" class="nav-item active">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>My Courses</span>
+                </a>
+                <a href="lecturer-students.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="lecturer-settings.html" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-link" id="logoutBtn">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="header-search">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search courses...">
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    
+                    <div class="notif-wrapper">
+                        <button class="notif-btn" id="notifBtn">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="notif-badge" id="notifCount">5</span>
+                        </button>
+                        <div class="notif-panel" id="notifPanel">
+                            <div class="notif-header">
+                                <h4>Notifications</h4>
+                                <span>Mark all as read</span>
+                            </div>
+                            <div class="notif-item unread">
+                                <i class="fa-regular fa-file-pdf" style="color: #2a7a4b;"></i>
+                                <div>
+                                    <p><strong>New submission</strong> Â· CSC 401</p>
+                                    <small>10 min ago</small>
+                                </div>
+                            </div>
+                            <div class="notif-item unread">
+                                <i class="fa-regular fa-clock" style="color: #f59e0b;"></i>
+                                <div>
+                                    <p><strong>Assignment due tomorrow</strong> Â· CSC 405</p>
+                                    <small>1 hour ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="lecturer-profile.html" class="header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-wrapper">
+                <!-- Breadcrumb -->
+                <div class="breadcrumb">
+                    <a href="lecturer-dashboard.html">Dashboard</a>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>My Courses</span>
+                </div>
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">My Courses</h1>
+                        <p class="page-subtitle">Manage your courses and view class details</p>
+                    </div>
+                    <div class="header-actions">
+                        <span class="current-semester" id="currentSemesterDisplay">
+                            <i class="fa-regular fa-calendar"></i> Loading...
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="courses-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-book-open" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalCourses">0</h3>
+                            <p>Active Courses</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-users" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalStudents">0</h3>
+                            <p>Total Students</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e8f5e9;">
+                            <i class="fa-solid fa-pencil" style="color: #2a7a4b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalAssignments">0</h3>
+                            <p>Assignments</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fff3e0;">
+                            <i class="fa-regular fa-clock" style="color: #f59e0b;"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="pendingGrading">0</h3>
+                            <p>Pending Grading</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">All Courses</button>
+                    <button class="filter-tab" data-filter="active">Active</button>
+                    <button class="filter-tab" data-filter="completed">Completed</button>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="levelFilter">Level:</label>
+                        <select id="levelFilter" class="filter-select">
+                            <option value="all">All Levels</option>
+                            <option value="500">500 Level</option>
+                            <option value="400">400 Level</option>
+                            <option value="300">300 Level</option>
+                            <option value="200">200 Level</option>
+                            <option value="100">100 Level</option>
+                        </select>
+                    </div>
+                    
+                    <button class="filter-btn clear" id="clearFiltersBtn">
+                        <i class="fa-solid fa-times"></i> Clear Filters
+                    </button>
+                </div>
+
+                <!-- Courses Grid -->
+                <div class="courses-grid" id="coursesGrid">
+                    <div class="loading-spinner">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Loading courses...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trash-can" style="color: #dc2626;"></i> Unregister Course</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to unregister from <strong id="deleteCourseCode"></strong>?</p>
+                <p class="modal-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i> 
+                    This will remove the course from your teaching list. Student submissions and assignments will still be available in the archive.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-danger" id="confirmDeleteBtn">Yes, Unregister Course</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="lecturer-courses.js"></script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+:root {
+    --primary: #2a7a4b;
+    --primary-light: #e8f5e9;
+    --primary-dark: #1e5a38;
+    --secondary: #f8fafc;
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+    --white: #ffffff;
+    --border: #e2e8f0;
+    --shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    --shadow-hover: 0 20px 30px -10px rgba(42,122,75,0.15);
+    --danger: #ef4444;
+    --bg-body: #f0f7f2;
+}
+
+.dark {
+    --primary: #5fb87a;
+    --primary-light: #2b4a33;
+    --primary-dark: #4a9f64;
+    --secondary: #1e293b;
+    --text-dark: #f1f5f9;
+    --text-light: #94a3b8;
+    --white: #0f172a;
+    --border: #334155;
+    --bg-body: #0f172a;
+}
+
+body {
+    background: linear-gradient(135deg, #f0f7f2 0%, #e2efe5 100%);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.dark body {
+    background: linear-gradient(135deg, #0f172a 0%, #1a2635 100%);
+}
+
+/* Container */
+.settings-container {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Header */
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+}
+
+.back-button:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    transform: translateX(-3px);
+}
+
+.back-button i {
+    font-size: 0.9rem;
+}
+
+.settings-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.3rem;
+}
+
+.settings-subtitle {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* Settings Menu Grid */
+.settings-menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* Settings Menu Card */
+.settings-menu-card {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.5rem;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-menu-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 0;
+    background: var(--primary);
+    transition: height 0.3s ease;
+}
+
+.settings-menu-card:hover::before {
+    height: 100%;
+}
+
+.settings-menu-card:hover {
+    transform: translateY(-5px) translateX(5px);
+    box-shadow: 0 20px 30px -10px rgba(42, 122, 75, 0.2);
+    border-color: var(--primary);
+}
+
+.menu-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.settings-menu-card:hover .menu-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.menu-content {
+    flex: 1;
+}
+
+.menu-content h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.menu-content p {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    line-height: 1.4;
+}
+
+.menu-arrow {
+    color: var(--primary);
+    font-size: 1rem;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+}
+
+.settings-menu-card:hover .menu-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Toast Container */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 15px 30px -10px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 8px;
+    animation: slideInRight 0.3s ease;
+    border-left: 4px solid var(--primary);
+    max-width: 350px;
+}
+
+.toast.success {
+    border-left-color: var(--primary);
+}
+
+.toast.warning {
+    border-left-color: #f59e0b;
+}
+
+.toast.danger {
+    border-left-color: #ef4444;
+}
+
+.toast i:first-child {
+    font-size: 1.3rem;
+}
+
+.toast.success i:first-child {
+    color: var(--primary);
+}
+
+.toast.warning i:first-child {
+    color: #f59e0b;
+}
+
+.toast.danger i:first-child {
+    color: #ef4444;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+    color: var(--text-dark);
+}
+
+.toast-message {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.2rem;
+    transition: all 0.2s;
+}
+
+.toast-close:hover {
+    color: var(--text-dark);
+}
+
+/* Animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .settings-menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+    
+    .settings-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .settings-menu-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .settings-title {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-menu-card {
+        padding: 1.2rem;
+    }
+    
+    .menu-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    
+    .toast {
+        min-width: auto;
+        width: calc(100vw - 40px);
+    }
+}
