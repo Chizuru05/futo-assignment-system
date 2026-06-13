@@ -1,5 +1,11 @@
+// API_URL is defined in api-config.js (loaded globally)
+if (typeof API_URL === 'undefined') {
+    console.warn('API_URL not defined in lecturer-submission.js, using fallback');
+    var API_URL = 'https://futo-assignment-system-api.onrender.com';
+}
+console.log('lecturer-submission.js loaded with API_URL:', API_URL);
 // lecturer-submissions.js - FIXED VERSION
-const API_URL = 'http://localhost:5000';
+
 
 // ========== ROLE-SPECIFIC TOKEN FUNCTION ==========
 function getAuthToken() {

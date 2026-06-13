@@ -1,5 +1,11 @@
+// API_URL is defined in api-config.js (loaded globally)
+if (typeof API_URL === 'undefined') {
+    console.warn('API_URL not defined in admin-common.js, using fallback');
+    var API_URL = 'https://futo-assignment-system-api.onrender.com';
+}
+console.log('admin-common.js loaded with API_URL:', API_URL);
 // admin-common.js
-const API_URL = 'http://localhost:5000';
+
 const token = localStorage.getItem('token');
 const userRole = localStorage.getItem('userRole');
 

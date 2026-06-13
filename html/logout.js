@@ -1,3 +1,9 @@
+// API_URL is defined in api-config.js (loaded globally)
+if (typeof API_URL === 'undefined') {
+    console.warn('API_URL not defined in logout.js, using fallback');
+    var API_URL = 'https://futo-assignment-system-api.onrender.com';
+}
+console.log('logout.js loaded with API_URL:', API_URL);
 // Countdown timer
 let countdown = 5;
 const countdownElement = document.getElementById('countdown');

@@ -1,3 +1,9 @@
+// API_URL is defined in api-config.js (loaded globally)
+if (typeof API_URL === 'undefined') {
+    console.warn('API_URL not defined in security.js, using fallback');
+    var API_URL = 'https://futo-assignment-system-api.onrender.com';
+}
+console.log('security.js loaded with API_URL:', API_URL);
 // ===== PASSWORD STRENGTH CHECKER =====
 const newPassword = document.getElementById('newPassword');
 const strengthFill = document.getElementById('strengthFill');
