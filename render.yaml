@@ -1,4 +1,4 @@
-Set-Content -Path "render.yaml" -Value @'
+﻿Set-Content -Path "render.yaml" -Value @'
 services:
   - type: web
     name: futo-assignment-api
@@ -33,7 +33,7 @@ services:
     name: futo-frontend
     runtime: static
     buildCommand: echo "Static site ready"
-    staticPublishPath: ./
+    staticPublishPath: ./html
     routes:
       - type: rewrite
         source: /*
