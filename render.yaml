@@ -33,7 +33,7 @@ services:
     name: futo-frontend
     runtime: static
     buildCommand: echo "Static site ready"
-    staticPublishPath: ./html
+    staticPublishPath: html
     routes:
       - type: rewrite
         source: /*
@@ -43,3 +43,4 @@ services:
         name: Cache-Control
         value: no-cache
 '@
+
