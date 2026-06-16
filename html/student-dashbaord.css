@@ -19,6 +19,7 @@
     --success: #2a7a4b;
     --warning: #f59e0b;
     --danger: #ef4444;
+    --bg-body: #f0f7f2;
 }
 
 .dark {
@@ -30,6 +31,9 @@
     --text-light: #94a3b8;
     --white: #0f172a;
     --border: #334155;
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 20px 30px -10px rgba(95, 184, 122, 0.3);
+    --bg-body: #0f172a;
 }
 
 body {
@@ -44,7 +48,7 @@ body {
     height: 100vh;
 }
 
-/* ========== SIDEBAR ========== */
+/* ========== SIDEBAR - FIXED COLLAPSE ========== */
 .sidebar {
     width: 280px;
     background: var(--white);
@@ -52,20 +56,26 @@ body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease;
+    transition: width 0.3s ease;
+    box-shadow: var(--shadow);
     z-index: 100;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
+/* COLLAPSED STATE - Hide text, keep icons */
 .sidebar.collapsed {
     width: 80px;
+    padding: 1.5rem 0.8rem;
 }
 
 .sidebar.collapsed .logo span,
 .sidebar.collapsed .profile-info,
 .sidebar.collapsed .nav-item span,
 .sidebar.collapsed .semester-info div,
-.sidebar.collapsed .logout-link span {
-    display: none;
+.sidebar.collapsed .logout-link span,
+.sidebar.collapsed .badge-nav {
+    display: none !important;
 }
 
 .sidebar.collapsed .nav-item {
@@ -73,11 +83,44 @@ body {
     padding: 0.8rem;
 }
 
+.sidebar.collapsed .nav-item i {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.sidebar.collapsed .sidebar-profile {
+    justify-content: center;
+    padding: 0.5rem 0;
+}
+
+.sidebar.collapsed .profile-image img {
+    width: 40px;
+    height: 40px;
+}
+
+.sidebar.collapsed .sidebar-toggle i {
+    transform: rotate(180deg);
+}
+
+.sidebar.collapsed .semester-info {
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+.sidebar.collapsed .semester-info i {
+    font-size: 1.2rem;
+}
+
+.sidebar.collapsed .logout-link {
+    justify-content: center;
+}
+
 .sidebar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 2rem;
+    flex-shrink: 0;
 }
 
 .logo {
@@ -87,6 +130,11 @@ body {
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary);
+    white-space: nowrap;
+}
+
+.logo i {
+    font-size: 1.8rem;
 }
 
 .sidebar-toggle {
@@ -101,6 +149,7 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    flex-shrink: 0;
 }
 
 .sidebar-toggle:hover {
@@ -115,6 +164,7 @@ body {
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border);
     margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
 
 .profile-image img {
@@ -127,12 +177,14 @@ body {
 .profile-info h4 {
     font-size: 1rem;
     margin-bottom: 0.2rem;
+    white-space: nowrap;
 }
 
 .profile-info p {
     font-size: 0.75rem;
     color: var(--text-light);
     margin-bottom: 0.2rem;
+    white-space: nowrap;
 }
 
 .badge-level {
@@ -142,6 +194,7 @@ body {
     border-radius: 20px;
     font-size: 0.7rem;
     font-weight: 500;
+    display: inline-block;
 }
 
 .sidebar-nav {
@@ -149,6 +202,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    overflow-y: auto;
 }
 
 .nav-item {
@@ -160,12 +214,14 @@ body {
     color: var(--text-light);
     text-decoration: none;
     transition: all 0.2s;
-    position: relative;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .nav-item i {
     width: 24px;
     font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
 .nav-item:hover {
@@ -191,6 +247,7 @@ body {
 .sidebar-footer {
     padding-top: 1rem;
     border-top: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
 .semester-info {
@@ -206,6 +263,7 @@ body {
 .semester-info i {
     font-size: 1.2rem;
     color: var(--primary);
+    flex-shrink: 0;
 }
 
 .semester-info small {
@@ -240,6 +298,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 0;
 }
 
 .main-header {
@@ -249,12 +308,19 @@ body {
     padding: 1rem 2rem;
     background: var(--white);
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.dark .main-header {
+    background: var(--white);
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    flex: 1;
+    min-width: 0;
 }
 
 .menu-btn {
@@ -272,7 +338,8 @@ body {
     background: var(--secondary);
     padding: 0.5rem 1rem;
     border-radius: 30px;
-    width: 250px;
+    flex: 1;
+    max-width: 300px;
 }
 
 .header-search i {
@@ -292,6 +359,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-shrink: 0;
 }
 
 .theme-toggle {
@@ -300,17 +368,29 @@ body {
     padding: 0.3rem;
     display: flex;
     cursor: pointer;
+    border: 1px solid var(--border);
 }
 
 .theme-toggle i {
     padding: 0.4rem 0.8rem;
     border-radius: 30px;
     color: var(--text-light);
+    font-size: 0.9rem;
 }
 
 .theme-toggle i.active {
     background: var(--primary);
     color: white;
+}
+
+.dark .theme-toggle i:last-child {
+    background: var(--primary);
+    color: white;
+}
+
+.dark .theme-toggle i:first-child {
+    background: none;
+    color: var(--text-light);
 }
 
 .header-profile img {
@@ -381,6 +461,7 @@ body {
     justify-content: center;
     font-size: 1.8rem;
     color: var(--primary);
+    flex-shrink: 0;
 }
 
 .stat-details h3 {
@@ -488,6 +569,7 @@ body {
     justify-content: space-between;
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
 }
 
 .pending-item:hover {
@@ -579,28 +661,66 @@ body {
     }
 }
 
-/* Responsive */
+/* ===== RESPONSIVENESS FIXES ===== */
+
+/* Fix for all screens */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Fix for mobile devices */
 @media (max-width: 1024px) {
     .sidebar {
         position: fixed;
         left: -280px;
+        top: 0;
         height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease, width 0.3s ease;
+        width: 280px;
+        background: var(--white);
+        box-shadow: var(--shadow-hover);
+        overflow: hidden;
     }
     
     .sidebar.show {
         left: 0;
+        width: 280px;
+    }
+
+    /* On mobile, collapsed = hidden (slide out) */
+    .sidebar.collapsed:not(.show) {
+        left: -80px;
+        width: 80px;
+    }
+
+    .sidebar.collapsed.show {
+        left: 0;
+        width: 80px;
     }
     
     .menu-btn {
-        display: block;
+        display: block !important;
+    }
+    
+    .main-content {
+        width: 100%;
+        overflow-x: hidden;
     }
     
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
     }
     
     .dashboard-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 }
 
@@ -609,19 +729,156 @@ body {
         padding: 1rem;
     }
     
-    .stats-grid {
-        grid-template-columns: 1fr;
+    .main-header {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .header-left {
+        width: 100%;
+        justify-content: space-between;
     }
     
     .header-search {
         display: none;
     }
     
+    .header-right {
+        gap: 0.5rem;
+    }
+    
+    .theme-toggle i {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    
+    .header-profile {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .stat-details h3 {
+        font-size: 1.3rem;
+    }
+    
+    .stat-details p {
+        font-size: 0.75rem;
+    }
+    
     .welcome-banner {
         padding: 1rem;
+        border-radius: 12px;
     }
     
     .welcome-text h2 {
         font-size: 1.2rem;
     }
+    
+    .welcome-text p {
+        font-size: 0.85rem;
+    }
+    
+    .course-item {
+        padding: 0.75rem 1rem;
+    }
+    
+    .course-title {
+        font-size: 0.85rem;
+    }
+    
+    .pending-item {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    .stat-card {
+        padding: 0.75rem;
+    }
+    
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    
+    .stat-details h3 {
+        font-size: 1.1rem;
+    }
+    
+    .welcome-text h2 {
+        font-size: 1rem;
+    }
+    
+    .dashboard-grid {
+        gap: 0.75rem;
+    }
+}
+
+/* Fix for mobile menu button */
+@media (min-width: 1025px) {
+    .menu-btn {
+        display: none !important;
+    }
+}
+
+/* Dark Mode Fix for all pages */
+.dark .dashboard-card {
+    background: var(--white);
+}
+
+.dark .card-header {
+    background: var(--secondary);
+}
+
+.dark .stat-card {
+    background: var(--white);
+}
+
+.dark .welcome-banner {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.dark .course-item:hover,
+.dark .pending-item:hover {
+    background: var(--primary-light);
+}
+
+.dark .sidebar {
+    background: var(--white);
+}
+
+.dark .main-header {
+    background: var(--white);
+}
+
+.dark .semester-info {
+    background: var(--primary-light);
+}
+
+.dark .badge-level {
+    background: var(--primary-light);
+    color: var(--primary);
 }

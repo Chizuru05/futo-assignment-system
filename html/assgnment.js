@@ -1029,9 +1029,17 @@ function setupSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const menuBtn = document.getElementById('menuBtn');
+    const toggleIcon = sidebarToggle?.querySelector('i');
     
     if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (toggleIcon) {
+                toggleIcon.style.transform = sidebar.classList.contains('collapsed') 
+                    ? 'rotate(180deg)' 
+                    : 'rotate(0deg)';
+            }
+        });
     }
     if (menuBtn && sidebar) {
         menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));

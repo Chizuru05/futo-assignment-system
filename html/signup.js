@@ -1,43 +1,11 @@
-﻿// signup.js
+﻿// signup.js - Student Only Signup
+console.log('signup.js loaded, API_URL:', API_URL);
 
+// DOM Elements
+const studentForm = document.getElementById('studentForm');
+const studentSubmitBtn = document.getElementById('studentSubmitBtn');
 
-// Role switching
-let currentRole = 'student';
-
-document.getElementById('studentRoleBtn').addEventListener('click', () => {
-    currentRole = 'student';
-    document.getElementById('studentRoleBtn').classList.add('active');
-    document.getElementById('lecturerRoleBtn').classList.remove('active');
-    document.getElementById('adminRoleBtn').classList.remove('active');
-    document.getElementById('studentForm').classList.add('active');
-    document.getElementById('lecturerForm').classList.remove('active');
-    document.getElementById('adminForm').classList.remove('active');
-    resetForm('student');
-});
-
-document.getElementById('lecturerRoleBtn').addEventListener('click', () => {
-    currentRole = 'lecturer';
-    document.getElementById('lecturerRoleBtn').classList.add('active');
-    document.getElementById('studentRoleBtn').classList.remove('active');
-    document.getElementById('adminRoleBtn').classList.remove('active');
-    document.getElementById('lecturerForm').classList.add('active');
-    document.getElementById('studentForm').classList.remove('active');
-    document.getElementById('adminForm').classList.remove('active');
-    resetForm('lecturer');
-});
-
-document.getElementById('adminRoleBtn').addEventListener('click', () => {
-    currentRole = 'admin';
-    document.getElementById('adminRoleBtn').classList.add('active');
-    document.getElementById('studentRoleBtn').classList.remove('active');
-    document.getElementById('lecturerRoleBtn').classList.remove('active');
-    document.getElementById('adminForm').classList.add('active');
-    document.getElementById('studentForm').classList.remove('active');
-    document.getElementById('lecturerForm').classList.remove('active');
-    resetForm('admin');
-});
-
-// Password toggle for all forms
+// Password toggle
 document.querySelectorAll('.password-toggle').forEach(btn => {
     btn.addEventListener('click', function() {
         const targetId = this.getAttribute('data-target');
@@ -55,300 +23,259 @@ document.querySelectorAll('.password-toggle').forEach(btn => {
     });
 });
 
-// ============ STUDENT FORM ============
-let studentStep = 0;
-const studentSteps = document.querySelectorAll('#studentForm .form-step');
-const studentProgress = document.querySelectorAll('#studentForm .progress-step');
+// Step Navigation
+let currentStep = 0;
+const steps = document.querySelectorAll('.form-step');
+const progressSteps = document.querySelectorAll('.progress-step');
+const progressFill = document.querySelector('.progress-fill');
+const nextBtn = document.getElementById('studentNextBtn');
+const prevBtn = document.getElementById('studentPrevBtn');
 
-function showStudentStep(step) {
-    studentSteps.forEach((s, i) => s.classList.toggle('active', i === step));
-    studentProgress.forEach((p, i) => {
+function showStep(step) {
+    steps.forEach((s, i) => {
+        s.classList.toggle('active', i === step);
+    });
+    progressSteps.forEach((p, i) => {
         p.classList.toggle('active', i === step);
         if (i < step) p.classList.add('completed');
         else p.classList.remove('completed');
     });
-    document.getElementById('studentPrevBtn').disabled = step === 0;
-    const isLast = step === studentSteps.length - 1;
-    document.getElementById('studentNextBtn').style.display = isLast ? 'none' : 'flex';
-    document.getElementById('studentSubmitBtn').style.display = isLast ? 'flex' : 'none';
+    const progressPercent = ((step + 1) / steps.length) * 100;
+    progressFill.style.width = progressPercent + '%';
+    prevBtn.style.display = step === 0 ? 'none' : 'inline-flex';
+    nextBtn.style.display = step === steps.length - 1 ? 'none' : 'inline-flex';
+    studentSubmitBtn.style.display = step === steps.length - 1 ? 'inline-flex' : 'none';
 }
 
-document.getElementById('studentNextBtn').addEventListener('click', () => {
-    if (validateStudentStep(studentStep)) {
-        if (studentStep < studentSteps.length - 1) {
-            studentStep++;
-            showStudentStep(studentStep);
+nextBtn.addEventListener('click', () => {
+    if (validateStep(currentStep)) {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            showStep(currentStep);
         }
     }
 });
 
-document.getElementById('studentPrevBtn').addEventListener('click', () => {
-    if (studentStep > 0) {
-        studentStep--;
-        showStudentStep(studentStep);
+prevBtn.addEventListener('click', () => {
+    if (currentStep > 0) {
+        currentStep--;
+        showStep(currentStep);
     }
 });
 
-function validateStudentStep(step) {
+// Validation Functions
+function validateField(id, errorId, message) {
+    const field = document.getElementById(id);
+    const error = document.getElementById(errorId);
+    if (!field.value.trim()) {
+        field.classList.add('error');
+        error.textContent = message;
+        return false;
+    } else {
+        field.classList.remove('error');
+        error.textContent = '';
+        return true;
+    }
+}
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePassword(password) {
+    return password.length >= 8 && 
+           /[a-z]/.test(password) && 
+           /[A-Z]/.test(password) && 
+           /[0-9]/.test(password);
+}
+
+function validateStep(step) {
     if (step === 0) {
-        const matric = document.getElementById('studentMatric').value;
-        const name = document.getElementById('studentName').value;
-        const email = document.getElementById('studentEmail').value;
-        const level = document.getElementById('studentLevel').value;
-        let valid = true;
-        if (!matric) { showError('studentMatricError', 'Matric number required'); valid = false; }
-        if (!name) { showError('studentNameError', 'Full name required'); valid = false; }
-        if (!email) { showError('studentEmailError', 'Email required'); valid = false; }
-        if (!level) { showError('studentLevelError', 'Level required'); valid = false; }
-        return valid;
-    } else if (step === 1) {
-        const password = document.getElementById('studentPassword').value;
-        const confirm = document.getElementById('studentConfirmPassword').value;
-        const terms = document.getElementById('studentTerms').checked;
-        let valid = true;
-        if (password.length < 8) { showError('studentPasswordError', 'Password must be at least 8 characters'); valid = false; }
-        if (password !== confirm) { showError('studentConfirmError', 'Passwords do not match'); valid = false; }
-        if (!terms) { showToast('Please accept the Terms and Conditions', 'warning'); valid = false; }
-        return valid;
-    }
-    return true;
-}
+        let isValid = true;
 
-document.getElementById('studentSubmitBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    if (!validateStudentStep(1)) return;
-    
-    const data = {
-        fullName: document.getElementById('studentName').value,
-        email: document.getElementById('studentEmail').value,
-        password: document.getElementById('studentPassword').value,
-        role: 'student',
-        matricNumber: document.getElementById('studentMatric').value,
-        level: document.getElementById('studentLevel').value
-    };
-    await registerUser(data, 'student');
-});
-
-// ============ LECTURER FORM ============
-let lecturerStep = 0;
-const lecturerSteps = document.querySelectorAll('#lecturerForm .form-step');
-const lecturerProgress = document.querySelectorAll('#lecturerForm .progress-step');
-
-function showLecturerStep(step) {
-    lecturerSteps.forEach((s, i) => s.classList.toggle('active', i === step));
-    lecturerProgress.forEach((p, i) => {
-        p.classList.toggle('active', i === step);
-        if (i < step) p.classList.add('completed');
-        else p.classList.remove('completed');
-    });
-    document.getElementById('lecturerPrevBtn').disabled = step === 0;
-    const isLast = step === lecturerSteps.length - 1;
-    document.getElementById('lecturerNextBtn').style.display = isLast ? 'none' : 'flex';
-    document.getElementById('lecturerSubmitBtn').style.display = isLast ? 'flex' : 'none';
-}
-
-document.getElementById('lecturerNextBtn').addEventListener('click', () => {
-    if (validateLecturerStep(lecturerStep)) {
-        if (lecturerStep < lecturerSteps.length - 1) {
-            lecturerStep++;
-            showLecturerStep(lecturerStep);
-        }
-    }
-});
-
-document.getElementById('lecturerPrevBtn').addEventListener('click', () => {
-    if (lecturerStep > 0) {
-        lecturerStep--;
-        showLecturerStep(lecturerStep);
-    }
-});
-
-function validateLecturerStep(step) {
-    if (step === 0) {
-        const staffId = document.getElementById('lecturerStaffId').value;
-        const name = document.getElementById('lecturerName').value;
-        const email = document.getElementById('lecturerEmail').value;
-        const rank = document.getElementById('lecturerRank').value;
-        let valid = true;
-        if (!staffId) { showError('lecturerStaffIdError', 'Staff ID required'); valid = false; }
-        if (!name) { showError('lecturerNameError', 'Full name required'); valid = false; }
-        if (!email) { showError('lecturerEmailError', 'Email required'); valid = false; }
-        if (!rank) { showError('lecturerRankError', 'Rank required'); valid = false; }
-        return valid;
-    } else if (step === 1) {
-        const password = document.getElementById('lecturerPassword').value;
-        const confirm = document.getElementById('lecturerConfirmPassword').value;
-        const terms = document.getElementById('lecturerTerms').checked;
-        let valid = true;
-        if (password.length < 8) { showError('lecturerPasswordError', 'Password must be at least 8 characters'); valid = false; }
-        if (password !== confirm) { showError('lecturerConfirmError', 'Passwords do not match'); valid = false; }
-        if (!terms) { showToast('Please accept the Terms and Conditions', 'warning'); valid = false; }
-        return valid;
-    }
-    return true;
-}
-
-document.getElementById('lecturerSubmitBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    if (!validateLecturerStep(1)) return;
-    
-    const data = {
-        fullName: document.getElementById('lecturerName').value,
-        email: document.getElementById('lecturerEmail').value,
-        password: document.getElementById('lecturerPassword').value,
-        role: 'lecturer',
-        staffId: document.getElementById('lecturerStaffId').value,
-        rank: document.getElementById('lecturerRank').value
-    };
-    await registerUser(data, 'lecturer');
-});
-
-// ============ ADMIN FORM ============
-let adminStep = 0;
-const adminSteps = document.querySelectorAll('#adminForm .form-step');
-const adminProgress = document.querySelectorAll('#adminForm .progress-step');
-
-function showAdminStep(step) {
-    adminSteps.forEach((s, i) => s.classList.toggle('active', i === step));
-    adminProgress.forEach((p, i) => {
-        p.classList.toggle('active', i === step);
-        if (i < step) p.classList.add('completed');
-        else p.classList.remove('completed');
-    });
-    document.getElementById('adminPrevBtn').disabled = step === 0;
-    const isLast = step === adminSteps.length - 1;
-    document.getElementById('adminNextBtn').style.display = isLast ? 'none' : 'flex';
-    document.getElementById('adminSubmitBtn').style.display = isLast ? 'flex' : 'none';
-}
-
-document.getElementById('adminNextBtn').addEventListener('click', () => {
-    if (validateAdminStep(adminStep)) {
-        if (adminStep < adminSteps.length - 1) {
-            adminStep++;
-            showAdminStep(adminStep);
-        }
-    }
-});
-
-document.getElementById('adminPrevBtn').addEventListener('click', () => {
-    if (adminStep > 0) {
-        adminStep--;
-        showAdminStep(adminStep);
-    }
-});
-
-function validateAdminStep(step) {
-    if (step === 0) {
-        const name = document.getElementById('adminName').value;
-        const email = document.getElementById('adminEmail').value;
-        let valid = true;
-        if (!name) { showError('adminNameError', 'Full name required'); valid = false; }
-        if (!email) { showError('adminEmailError', 'Email required'); valid = false; }
-        return valid;
-    } else if (step === 1) {
-        const password = document.getElementById('adminPassword').value;
-        const confirm = document.getElementById('adminConfirmPassword').value;
-        const terms = document.getElementById('adminTerms').checked;
-        let valid = true;
-        if (password.length < 8) { showError('adminPasswordError', 'Password must be at least 8 characters'); valid = false; }
-        if (password !== confirm) { showError('adminConfirmError', 'Passwords do not match'); valid = false; }
-        if (!terms) { showToast('Please accept the Terms and Conditions', 'warning'); valid = false; }
-        return valid;
-    }
-    return true;
-}
-
-document.getElementById('adminSubmitBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    if (!validateAdminStep(1)) return;
-    
-    const data = {
-        fullName: document.getElementById('adminName').value,
-        email: document.getElementById('adminEmail').value,
-        password: document.getElementById('adminPassword').value,
-        role: 'admin',
-        department: document.getElementById('adminDepartment').value
-    };
-    await registerUser(data, 'admin');
-});
-
-// ============ REGISTER USER FUNCTION ============
-async function registerUser(userData, role) {
-    const submitBtn = document.getElementById(`${role}SubmitBtn`);
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating account...';
-    
-    try {
-        const response = await fetch(`${API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast(`${role.charAt(0).toUpperCase() + role.slice(1)} account created successfully!`, 'success');
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 2000);
+        // Registration Number
+        const matric = document.getElementById('studentMatric');
+        if (!matric.value.trim()) {
+            matric.classList.add('error');
+            document.getElementById('studentMatricError').textContent = 'Registration number required';
+            isValid = false;
         } else {
-            showToast(data.message || 'Registration failed', 'danger');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+            matric.classList.remove('error');
+            document.getElementById('studentMatricError').textContent = '';
         }
-    } catch (error) {
-        console.error('Registration error:', error);
-        showToast('Cannot connect to server. Make sure backend is running.', 'danger');
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
+
+        // Full Name
+        if (!validateField('studentName', 'studentNameError', 'Full name required')) {
+            isValid = false;
+        }
+
+        // Email
+        const email = document.getElementById('studentEmail').value.trim();
+        if (!email) {
+            document.getElementById('studentEmail').classList.add('error');
+            document.getElementById('studentEmailError').textContent = 'Email required';
+            isValid = false;
+        } else if (!validateEmail(email)) {
+            document.getElementById('studentEmail').classList.add('error');
+            document.getElementById('studentEmailError').textContent = 'Please enter a valid email address';
+            isValid = false;
+        } else {
+            document.getElementById('studentEmail').classList.remove('error');
+            document.getElementById('studentEmailError').textContent = '';
+        }
+
+        // Level
+        if (!validateField('studentLevel', 'studentLevelError', 'Please select your level')) {
+            isValid = false;
+        }
+
+        // Department
+        if (!validateField('studentDepartment', 'studentDepartmentError', 'Please select your department')) {
+            isValid = false;
+        }
+
+        return isValid;
+    } else if (step === 1) {
+        let isValid = true;
+
+        // Password
+        const password = document.getElementById('studentPassword').value;
+        if (!password) {
+            document.getElementById('studentPassword').classList.add('error');
+            document.getElementById('studentPasswordError').textContent = 'Password required';
+            isValid = false;
+        } else if (!validatePassword(password)) {
+            document.getElementById('studentPassword').classList.add('error');
+            document.getElementById('studentPasswordError').textContent = 'Password must be at least 8 characters with uppercase, lowercase, and a number';
+            isValid = false;
+        } else {
+            document.getElementById('studentPassword').classList.remove('error');
+            document.getElementById('studentPasswordError').textContent = '';
+        }
+
+        // Confirm Password
+        const confirm = document.getElementById('studentConfirmPassword').value;
+        if (!confirm) {
+            document.getElementById('studentConfirmPassword').classList.add('error');
+            document.getElementById('studentConfirmError').textContent = 'Please confirm your password';
+            isValid = false;
+        } else if (password !== confirm) {
+            document.getElementById('studentConfirmPassword').classList.add('error');
+            document.getElementById('studentConfirmError').textContent = 'Passwords do not match';
+            isValid = false;
+        } else {
+            document.getElementById('studentConfirmPassword').classList.remove('error');
+            document.getElementById('studentConfirmError').textContent = '';
+        }
+
+        return isValid;
     }
+    return true;
 }
 
-// ============ HELPER FUNCTIONS ============
-function showError(elementId, message) {
-    const el = document.getElementById(elementId);
-    if (el) el.textContent = message;
-    setTimeout(() => {
-        if (el) el.textContent = '';
-    }, 3000);
-}
-
+// Toast Notification
 function showToast(message, type = 'success') {
     let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;';
+        document.body.appendChild(container);
+    }
+    
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i><span>${message}</span><button onclick="this.parentElement.remove()">Ã—</button>`;
+    toast.style.cssText = `
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        background: ${type === 'success' ? '#2a7a4b' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        min-width: 250px;
+    `;
+    const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+    toast.innerHTML = `
+        <i class="fa-solid ${icon}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;margin-left:auto;">×</button>
+    `;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
 
-function resetForm(role) {
-    if (role === 'student') {
-        studentStep = 0;
-        showStudentStep(0);
-        document.getElementById('studentForm').reset();
-        clearErrors('student');
-    } else if (role === 'lecturer') {
-        lecturerStep = 0;
-        showLecturerStep(0);
-        document.getElementById('lecturerForm').reset();
-        clearErrors('lecturer');
-    } else if (role === 'admin') {
-        adminStep = 0;
-        showAdminStep(0);
-        document.getElementById('adminForm').reset();
-        clearErrors('admin');
-        document.getElementById('adminDepartment').value = 'Information Technology';
-    }
-}
+// Submit Form
+studentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-function clearErrors(role) {
-    document.querySelectorAll(`#${role}Form .error-message`).forEach(el => el.textContent = '');
-}
+    if (!validateStep(1)) return;
+
+    const studentData = {
+        fullName: document.getElementById('studentName').value.trim(),
+        email: document.getElementById('studentEmail').value.trim(),
+        password: document.getElementById('studentPassword').value,
+        role: 'student',
+        matricNumber: document.getElementById('studentMatric').value.trim(),
+        level: document.getElementById('studentLevel').value,
+        department: document.getElementById('studentDepartment').value,
+        status: 'active'
+    };
+
+    studentSubmitBtn.disabled = true;
+    const originalText = studentSubmitBtn.innerHTML;
+    studentSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating account...';
+
+    try {
+        const response = await fetch(`${API_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(studentData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Student account created successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+        } else {
+            showToast(data.message || 'Registration failed', 'error');
+            studentSubmitBtn.disabled = false;
+            studentSubmitBtn.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        showToast('Cannot connect to server. Make sure backend is running.', 'error');
+        studentSubmitBtn.disabled = false;
+        studentSubmitBtn.innerHTML = originalText;
+    }
+});
+
+// Real-time validation on input
+document.querySelectorAll('.form-group input, .form-group select').forEach(field => {
+    field.addEventListener('input', () => {
+        field.classList.remove('error');
+        const errorId = field.id + 'Error';
+        const errorEl = document.getElementById(errorId);
+        if (errorEl) errorEl.textContent = '';
+    });
+});
 
 // Initialize
-showStudentStep(0);
-showLecturerStep(0);
-showAdminStep(0);
+showStep(0);
+
+// Add styles for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);

@@ -1,73 +1,64 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-<head>    <script src="api-config.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Department � Sign Up</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="signup.css">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUTO · Student Signup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="signup.css" />
 </head>
 <body>
     <div class="signup-container">
-        <div class="form-panel">
-            <div class="form-wrapper">
-                <div class="form-header">
-                    <div class="logo">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <span>FUTO</span>
-                    </div>
-                    <h2>Create Account</h2>
-                    <p>Department of Information Technology</p>
-                </div>
+        <div class="signup-card">
+            <!-- Back Button -->
+            <a href="index.html" class="back-link">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to Home
+            </a>
 
-                <div class="role-selector">
-                    <button class="role-btn active" type="button" id="studentRoleBtn">
-                        <i class="fa-regular fa-user"></i>
-                        <span>Student</span>
-                    </button>
-                    <button class="role-btn" type="button" id="lecturerRoleBtn">
-                        <i class="fa-regular fa-chalkboard-user"></i>
-                        <span>Lecturer</span>
-                    </button>
-                    <button class="role-btn" type="button" id="adminRoleBtn">
-                        <i class="fa-solid fa-shield-haltered"></i>
-                        <span>Admin</span>
-                    </button>
-                </div>
+            <!-- Logo -->
+            <div class="logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>FUTO</span>
+            </div>
 
-                <!-- STUDENT FORM -->
-                <form id="studentForm" class="signup-form active">
-                    <div class="form-progress">
-                        <div class="progress-step active" data-step="1">1</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" data-step="2">2</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" data-step="3">3</div>
-                    </div>
+            <!-- Header -->
+            <div class="signup-header">
+                <h1>Student Signup</h1>
+                <p>Create your student account for the FUTO Assignment System</p>
+            </div>
 
-                    <div class="form-step active" data-step="1">
-                        <h3 class="step-title">Basic Information</h3>
-                        <div class="input-group">
-                            <div class="input-field">
-                                <label>Matric Number <span class="required">*</span></label>
-                                <input type="text" id="studentMatric" placeholder="e.g., 20211263362">
-                                <div class="error-message" id="studentMatricError"></div>
-                            </div>
-                            <div class="input-field">
-                                <label>Full Name <span class="required">*</span></label>
-                                <input type="text" id="studentName" placeholder="Enter your full name">
-                                <div class="error-message" id="studentNameError"></div>
-                            </div>
+            <!-- Student Form -->
+            <form id="studentForm" class="signup-form">
+                <!-- Step 1: Basic Information -->
+                <div class="form-step active" data-step="0">
+                    <div class="form-section">
+                        <h2><i class="fa-solid fa-user"></i> Personal Information</h2>
+                        
+                        <div class="form-group">
+                            <label for="studentMatric">Registration Number *</label>
+                            <input type="text" id="studentMatric" placeholder="e.g., 2024/IT/001" required />
+                            <small class="hint">Format: Year/IT/Number (e.g., 2024/IT/001)</small>
+                            <div class="error-message" id="studentMatricError"></div>
                         </div>
-                        <div class="input-field">
-                            <label>Email <span class="required">*</span></label>
-                            <input type="email" id="studentEmail" placeholder="your.email@gmail.com">
+
+                        <div class="form-group">
+                            <label for="studentName">Full Name *</label>
+                            <input type="text" id="studentName" placeholder="Enter your full name" required />
+                            <div class="error-message" id="studentNameError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="studentEmail">Email Address *</label>
+                            <input type="email" id="studentEmail" placeholder="your.email@futo.edu.ng" required />
+                            <small class="hint">Use your university email</small>
                             <div class="error-message" id="studentEmailError"></div>
                         </div>
-                        <div class="input-field">
-                            <label>Level <span class="required">*</span></label>
-                            <select id="studentLevel">
+
+                        <div class="form-group">
+                            <label for="studentLevel">Level *</label>
+                            <select id="studentLevel" required>
                                 <option value="">Select level</option>
                                 <option value="100">100 Level</option>
                                 <option value="200">200 Level</option>
@@ -77,246 +68,102 @@
                             </select>
                             <div class="error-message" id="studentLevelError"></div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="studentDepartment">Department *</label>
+                            <select id="studentDepartment" required>
+                                <option value="">Select department</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Software Engineering">Software Engineering</option>
+                                <option value="Data Science">Data Science</option>
+                                <option value="Cyber Security">Cyber Security</option>
+                            </select>
+                            <div class="error-message" id="studentDepartmentError"></div>
+                        </div>
                     </div>
 
-                    <div class="form-step" data-step="2">
-                        <h3 class="step-title">Security</h3>
-                        <div class="input-field">
-                            <label>Password <span class="required">*</span></label>
+                    <div class="form-navigation">
+                        <button type="button" class="btn-next" id="studentNextBtn">
+                            Next <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Account Security - TERMS REMOVED -->
+                <div class="form-step" data-step="1">
+                    <div class="form-section">
+                        <h2><i class="fa-solid fa-lock"></i> Account Security</h2>
+
+                        <div class="form-group">
+                            <label for="studentPassword">Password *</label>
                             <div class="password-wrapper">
-                                <input type="password" id="studentPassword" placeholder="Create a strong password">
+                                <input type="password" id="studentPassword" placeholder="Create a strong password" required />
                                 <button type="button" class="password-toggle" data-target="studentPassword">
-                                    <i class="fa-regular fa-eye"></i>
+                                    <i class="fa-solid fa-eye"></i>
                                 </button>
                             </div>
+                            <small class="hint">Must be at least 8 characters with uppercase, lowercase, and a number</small>
                             <div class="error-message" id="studentPasswordError"></div>
                         </div>
-                        <div class="input-field">
-                            <label>Confirm Password <span class="required">*</span></label>
+
+                        <div class="form-group">
+                            <label for="studentConfirmPassword">Confirm Password *</label>
                             <div class="password-wrapper">
-                                <input type="password" id="studentConfirmPassword" placeholder="Re-enter your password">
+                                <input type="password" id="studentConfirmPassword" placeholder="Confirm your password" required />
                                 <button type="button" class="password-toggle" data-target="studentConfirmPassword">
-                                    <i class="fa-regular fa-eye"></i>
+                                    <i class="fa-solid fa-eye"></i>
                                 </button>
                             </div>
                             <div class="error-message" id="studentConfirmError"></div>
                         </div>
-                        <div class="terms-checkbox">
-                            <label class="checkbox-container">
-                                <input type="checkbox" id="studentTerms">
-                                <span class="checkmark"></span>
-                                <span>I agree to the Terms and Conditions</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-step" data-step="3">
-                        <h3 class="step-title">Complete Registration</h3>
-                        <div class="avatar-upload">
-                            <div class="avatar-preview">
-                                <img id="studentAvatarPreview" src="https://ui-avatars.com/api/?name=Student&background=2a7a4b&color=fff&size=120" alt="avatar">
-                            </div>
-                            <div class="upload-controls">
-                                <button type="button" class="upload-btn" onclick="document.getElementById('studentAvatar').click()">Choose Image</button>
-                                <input type="file" id="studentAvatar" accept="image/*" style="display: none;">
-                            </div>
-                        </div>
-                        <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">Click Create Account to finish registration</p>
                     </div>
 
                     <div class="form-navigation">
-                        <button type="button" class="nav-btn prev-btn" id="studentPrevBtn" disabled>Back</button>
-                        <button type="button" class="nav-btn next-btn" id="studentNextBtn">Next</button>
-                        <button type="submit" class="submit-btn" id="studentSubmitBtn" style="display: none;">Create Account</button>
+                        <button type="button" class="btn-prev" id="studentPrevBtn">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="btn-submit" id="studentSubmitBtn">
+                            <i class="fa-solid fa-user-plus"></i>
+                            Create Account
+                        </button>
                     </div>
-                </form>
-
-                <!-- LECTURER FORM -->
-                <form id="lecturerForm" class="signup-form">
-                    <div class="form-progress">
-                        <div class="progress-step active" data-step="1">1</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" data-step="2">2</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" data-step="3">3</div>
-                    </div>
-
-                    <div class="form-step active" data-step="1">
-                        <h3 class="step-title">Basic Information</h3>
-                        <div class="input-group">
-                            <div class="input-field">
-                                <label>Staff ID <span class="required">*</span></label>
-                                <input type="text" id="lecturerStaffId" placeholder="STAFF/2024/001">
-                                <div class="error-message" id="lecturerStaffIdError"></div>
-                            </div>
-                            <div class="input-field">
-                                <label>Full Name <span class="required">*</span></label>
-                                <input type="text" id="lecturerName" placeholder="Enter your full name">
-                                <div class="error-message" id="lecturerNameError"></div>
-                            </div>
-                        </div>
-                        <div class="input-field">
-                            <label>Email <span class="required">*</span></label>
-                            <input type="email" id="lecturerEmail" placeholder="your.email@gmail.com">
-                            <div class="error-message" id="lecturerEmailError"></div>
-                        </div>
-                        <div class="input-field">
-                            <label>Rank <span class="required">*</span></label>
-                            <select id="lecturerRank">
-                                <option value="">Select rank</option>
-                                <option value="Assistant Lecturer">Assistant Lecturer</option>
-                                <option value="Lecturer II">Lecturer II</option>
-                                <option value="Lecturer I">Lecturer I</option>
-                                <option value="Senior Lecturer">Senior Lecturer</option>
-                                <option value="Associate Professor">Associate Professor</option>
-                                <option value="Professor">Professor</option>
-                            </select>
-                            <div class="error-message" id="lecturerRankError"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-step" data-step="2">
-                        <h3 class="step-title">Security</h3>
-                        <div class="input-field">
-                            <label>Password <span class="required">*</span></label>
-                            <div class="password-wrapper">
-                                <input type="password" id="lecturerPassword" placeholder="Create a strong password">
-                                <button type="button" class="password-toggle" data-target="lecturerPassword">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="error-message" id="lecturerPasswordError"></div>
-                        </div>
-                        <div class="input-field">
-                            <label>Confirm Password <span class="required">*</span></label>
-                            <div class="password-wrapper">
-                                <input type="password" id="lecturerConfirmPassword" placeholder="Re-enter your password">
-                                <button type="button" class="password-toggle" data-target="lecturerConfirmPassword">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="error-message" id="lecturerConfirmError"></div>
-                        </div>
-                        <div class="terms-checkbox">
-                            <label class="checkbox-container">
-                                <input type="checkbox" id="lecturerTerms">
-                                <span class="checkmark"></span>
-                                <span>I agree to the Terms and Conditions</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-step" data-step="3">
-                        <h3 class="step-title">Complete Registration</h3>
-                        <div class="avatar-upload">
-                            <div class="avatar-preview">
-                                <img id="lecturerAvatarPreview" src="https://ui-avatars.com/api/?name=Lecturer&background=2a7a4b&color=fff&size=120" alt="avatar">
-                            </div>
-                            <div class="upload-controls">
-                                <button type="button" class="upload-btn" onclick="document.getElementById('lecturerAvatar').click()">Choose Image</button>
-                                <input type="file" id="lecturerAvatar" accept="image/*" style="display: none;">
-                            </div>
-                        </div>
-                        <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">Click Create Account to finish registration</p>
-                    </div>
-
-                    <div class="form-navigation">
-                        <button type="button" class="nav-btn prev-btn" id="lecturerPrevBtn" disabled>Back</button>
-                        <button type="button" class="nav-btn next-btn" id="lecturerNextBtn">Next</button>
-                        <button type="submit" class="submit-btn" id="lecturerSubmitBtn" style="display: none;">Create Account</button>
-                    </div>
-                </form>
-
-                <!-- ADMIN FORM -->
-                <form id="adminForm" class="signup-form">
-                    <div class="form-progress">
-                        <div class="progress-step active" data-step="1">1</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" data-step="2">2</div>
-                        <div class="progress-line"></div>
-                        <div class="progress-step" data-step="3">3</div>
-                    </div>
-
-                    <div class="form-step active" data-step="1">
-                        <h3 class="step-title">Basic Information</h3>
-                        <div class="input-group">
-                            <div class="input-field">
-                                <label>Full Name <span class="required">*</span></label>
-                                <input type="text" id="adminName" placeholder="Enter your full name">
-                                <div class="error-message" id="adminNameError"></div>
-                            </div>
-                            <div class="input-field">
-                                <label>Email <span class="required">*</span></label>
-                                <input type="email" id="adminEmail" placeholder="admin@gmail.com">
-                                <div class="error-message" id="adminEmailError"></div>
-                            </div>
-                        </div>
-                        <div class="input-field">
-                            <label>Department</label>
-                            <input type="text" id="adminDepartment" value="Information Technology" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-step" data-step="2">
-                        <h3 class="step-title">Security</h3>
-                        <div class="input-field">
-                            <label>Password <span class="required">*</span></label>
-                            <div class="password-wrapper">
-                                <input type="password" id="adminPassword" placeholder="Create a strong password">
-                                <button type="button" class="password-toggle" data-target="adminPassword">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="error-message" id="adminPasswordError"></div>
-                        </div>
-                        <div class="input-field">
-                            <label>Confirm Password <span class="required">*</span></label>
-                            <div class="password-wrapper">
-                                <input type="password" id="adminConfirmPassword" placeholder="Re-enter your password">
-                                <button type="button" class="password-toggle" data-target="adminConfirmPassword">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="error-message" id="adminConfirmError"></div>
-                        </div>
-                        <div class="terms-checkbox">
-                            <label class="checkbox-container">
-                                <input type="checkbox" id="adminTerms">
-                                <span class="checkmark"></span>
-                                <span>I agree to the Terms and Conditions</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-step" data-step="3">
-                        <h3 class="step-title">Complete Registration</h3>
-                        <div class="avatar-upload">
-                            <div class="avatar-preview">
-                                <img id="adminAvatarPreview" src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=120" alt="avatar">
-                            </div>
-                            <div class="upload-controls">
-                                <button type="button" class="upload-btn" onclick="document.getElementById('adminAvatar').click()">Choose Image</button>
-                                <input type="file" id="adminAvatar" accept="image/*" style="display: none;">
-                            </div>
-                        </div>
-                        <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">Click Create Account to finish registration</p>
-                    </div>
-
-                    <div class="form-navigation">
-                        <button type="button" class="nav-btn prev-btn" id="adminPrevBtn" disabled>Back</button>
-                        <button type="button" class="nav-btn next-btn" id="adminNextBtn">Next</button>
-                        <button type="submit" class="submit-btn" id="adminSubmitBtn" style="display: none;">Create Admin Account</button>
-                    </div>
-                </form>
-
-                <div class="login-link">
-                    <p>Already have an account? <a href="login.html">Sign in</a></p>
                 </div>
-            </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-steps">
+                        <div class="progress-step active" data-step="0">
+                            <span class="step-number">1</span>
+                            <span class="step-label">Personal Info</span>
+                        </div>
+                        <div class="progress-step" data-step="1">
+                            <span class="step-number">2</span>
+                            <span class="step-label">Security</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 50%;"></div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Login Link -->
+            <p class="login-link">
+                Already have an account? <a href="login.html">Login here</a>
+            </p>
+            
+            <!-- Lecturer Apply Link -->
+            <p class="lecturer-link">
+                Are you a lecturer? <a href="lecturer-apply.html">Apply here</a>
+            </p>
         </div>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="api-config.js"></script>
     <script src="signup.js"></script>
 </body>
 </html>

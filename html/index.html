@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUTO Assignment System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>FUTO Assignment</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="login.html" class="btn-login">Login</a>
+                <a href="signup.html" class="btn-signup">Sign Up</a>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fa-solid fa-robot"></i>
+                    AI-Powered Assignment System
+                </div>
+                <h1>Submit, Grade, and Track Assignments <span>Effortlessly</span></h1>
+                <p>
+                    Federal University of Technology, Owerri's intelligent assignment
+                    management system with AI-powered grading and real-time feedback.
+                </p>
+                <div class="hero-buttons">
+                    <a href="signup.html" class="btn-primary">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Get Started
+                    </a>
+                    <a href="login.html" class="btn-secondary">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        Login
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Students</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">50+</span>
+                        <span class="stat-label">Lecturers</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">1000+</span>
+                        <span class="stat-label">Submissions</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-illustration">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="features-container">
+            <div class="section-header">
+                <h2>Why Choose FUTO Assignment System?</h2>
+                <p>Built for students, lecturers, and administrators</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3>AI-Powered Grading</h3>
+                    <p>Automatic grading with AI, providing instant feedback and scores for student submissions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Secure Submissions</h3>
+                    <p>Safe and organized file uploads with automatic naming and folder management.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <h3>Instant Notifications</h3>
+                    <p>Get real-time email alerts for submissions, grades, and important announcements.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                    </div>
+                    <h3>Mobile Responsive</h3>
+                    <p>Access your assignments, grades, and dashboard from any device, anywhere.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <h3>Multiple File Formats</h3>
+                    <p>Support for PDF, Word, Excel, and other common document formats.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <h3>Deadline Management</h3>
+                    <p>Track assignment deadlines, receive reminders, and manage submissions efficiently.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Role Cards Section -->
+    <section class="roles" id="about">
+        <div class="roles-container">
+            <div class="section-header">
+                <h2>Who Are You?</h2>
+                <p>Select your role to get started</p>
+            </div>
+            <div class="roles-grid">
+                <div class="role-card student">
+                    <div class="role-icon">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h3>Student</h3>
+                    <p>Submit assignments, view grades, and track your academic progress.</p>
+                    <div class="role-actions">
+                        <a href="signup.html" class="btn-role">Sign Up</a>
+                        <a href="login.html" class="btn-role-outline">Login</a>
+                    </div>
+                </div>
+                <div class="role-card lecturer">
+                    <div class="role-icon">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <h3>Lecturer</h3>
+                    <p>Create courses, grade submissions, and manage your students.</p>
+                    <div class="role-actions">
+                        <a href="lecturer-apply.html" class="btn-role">Apply</a>
+                        <a href="login.html" class="btn-role-outline">Login</a>
+                    </div>
+                </div>
+                <div class="role-card admin">
+                    <div class="role-icon">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <h3>Admin</h3>
+                    <p>Manage users, courses, and system settings with full control.</p>
+                    <div class="role-actions">
+                        <a href="login.html" class="btn-role">Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO Assignment System</span>
+                    <p>Federal University of Technology, Owerri</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#features">Features</a>
+                    <a href="#about">About</a>
+                    <a href="login.html">Login</a>
+                    <a href="signup.html">Sign Up</a>
+                </div>
+                <div class="footer-social">
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+                    <a href="#"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FUTO Assignment System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="api-config.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>

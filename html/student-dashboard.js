@@ -53,13 +53,13 @@ if (profileName) profileName.textContent = userName;
 if (profileMatric) profileMatric.textContent = userMatric;
 if (profileLevel) profileLevel.textContent = `${userLevel} Level`;
 
-// Welcome message
+// Welcome message - REMOVED EMOJI
 if (welcomeName) {
     const hour = new Date().getHours();
     let greeting = 'Good morning';
     if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
     if (hour >= 17) greeting = 'Good evening';
-    welcomeName.innerHTML = `${greeting}, ${userName}! ðŸ‘‹`;
+    welcomeName.innerHTML = `${greeting}, ${userName}`;
 }
 
 // ========== FETCH ACTIVE SETTINGS ==========
@@ -78,7 +78,7 @@ async function fetchActiveSettings() {
             console.log('Active settings loaded:', currentSession, currentSemester);
             
             if (bannerText) {
-                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> Â· ${currentSession} ${currentSemester}`;
+                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> &middot; ${currentSession} ${currentSemester}`;
             }
         }
     } catch (error) {
@@ -86,7 +86,7 @@ async function fetchActiveSettings() {
         currentSession = localStorage.getItem('currentSession') || '2025-2026';
         currentSemester = localStorage.getItem('currentSemester') || 'Harmattan';
         if (bannerText) {
-            bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> Â· ${currentSession} ${currentSemester}`;
+            bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> · ${currentSession} ${currentSemester}`;
         }
     }
 }
@@ -237,7 +237,7 @@ function showToast(message, type = 'success', duration = 3000) {
     toast.innerHTML = `
         <i class="fa-solid ${icons[type] || icons.success}"></i>
         <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
     `;
     
     container.appendChild(toast);
@@ -254,9 +254,18 @@ function setupSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const menuBtn = document.getElementById('menuBtn');
-    
+    const toggleIcon = sidebarToggle?.querySelector('i');
+
     if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            // Rotate icon to show direction
+            if (toggleIcon) {
+                toggleIcon.style.transform = sidebar.classList.contains('collapsed') 
+                    ? 'rotate(180deg)' 
+                    : 'rotate(0deg)';
+            }
+        });
     }
     
     if (menuBtn && sidebar) {
@@ -266,7 +275,6 @@ function setupSidebar() {
         });
     }
     
-    // Close sidebar when clicking outside on mobile
     document.addEventListener('click', (e) => {
         if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {

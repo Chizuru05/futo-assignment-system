@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Admin · Applications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-courses.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="logo"><i class="fa-solid fa-graduation-cap"></i><span>FUTO Admin</span></div>
+            <nav>
+                <a href="admin-dashboard.html" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="admin-courses.html" class="nav-item"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="admin-students.html" class="nav-item"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="admin-lecturers.html" class="nav-item"><i class="fa-solid fa-chalkboard-user"></i> Lecturers</a>
+                <a href="admin-submissions.html" class="nav-item"><i class="fa-solid fa-file-export"></i> Submissions</a>
+                <a href="admin-applications.html" class="nav-item active"><i class="fa-solid fa-user-clock"></i> Applications <span id="pendingCount" class="badge-nav" style="background:#ef4444">0</span></a>
+            </nav>
+            <div style="margin-top:auto;padding-top:2rem">
+                <a href="#" onclick="logout()" class="nav-item"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Lecturer Applications</h1>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+                <div class="stat-card"><div class="stat-value" id="totalApps">0</div><div class="stat-label">Total Applications</div></div>
+                <div class="stat-card"><div class="stat-value" id="pendingApps" style="color:#f59e0b">0</div><div class="stat-label">Pending</div></div>
+                <div class="stat-card"><div class="stat-value" id="approvedApps" style="color:#2a7a4b">0</div><div class="stat-label">Approved</div></div>
+            </div>
+
+            <div class="table-container">
+                <table class="courses-table">
+                    <thead>
+                        <tr><th>Name</th><th>Email</th><th>Staff ID</th><th>Department</th><th>Rank</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="applicationsBody">
+                        <tr><td colspan="7" class="loading">Loading applications...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Application Details</h3><button class="modal-close" onclick="closeDetail()">&times;</button></div>
+            <div class="modal-body" id="detailBody"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDetail()">Close</button>
+                <button class="btn-danger" id="rejectBtn">Reject</button>
+                <button class="btn-primary" id="approveBtn">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="admin-applications.js"></script>
+</body>
+</html>

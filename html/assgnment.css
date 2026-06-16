@@ -1046,9 +1046,21 @@ body {
         height: 100vh;
         z-index: 1000;
         transition: left 0.3s;
+        width: 280px;          /* ← add explicit width */
+        overflow: hidden;      /* ← add this */
     }
     
     .sidebar.show {
+        left: 0;
+    }
+
+    /* NEW: collapsed on mobile hides fully */
+    .sidebar.collapsed {
+        left: -80px;
+        width: 80px;
+    }
+
+    .sidebar.collapsed.show {
         left: 0;
     }
     

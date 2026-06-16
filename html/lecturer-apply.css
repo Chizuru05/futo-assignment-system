@@ -1,4 +1,4 @@
-/* signup.css - Student Only Signup - FUTO Green Theme */
+/* lecturer-apply.css - FUTO Green Theme */
 
 :root {
     --primary: #2a7a4b;
@@ -31,9 +31,9 @@ body {
     padding: 2rem;
 }
 
-.signup-container {
+.apply-container {
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
     animation: slideUp 0.5s ease;
 }
 
@@ -48,7 +48,7 @@ body {
     }
 }
 
-.signup-card {
+.apply-card {
     background: var(--white);
     border-radius: var(--radius);
     padding: 2.5rem;
@@ -90,46 +90,33 @@ body {
     color: var(--text-dark);
 }
 
-.signup-header {
+.apply-header {
     text-align: center;
     margin-bottom: 2rem;
 }
 
-.signup-header h1 {
+.apply-header h1 {
     font-size: 1.75rem;
     font-weight: 800;
     color: var(--text-dark);
     margin-bottom: 0.5rem;
 }
 
-.signup-header p {
+.apply-header p {
     color: var(--text-light);
     font-size: 0.95rem;
 }
 
-/* Form Steps */
-.form-step {
-    display: none;
-    animation: fadeIn 0.3s ease;
-}
-
-.form-step.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 .form-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .form-section h2 {
@@ -183,18 +170,9 @@ body {
     border-color: #ef4444;
 }
 
-.hint {
-    display: block;
-    margin-top: 0.3rem;
-    font-size: 0.8rem;
-    color: var(--text-light);
-}
-
-.error-message {
-    color: #ef4444;
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
-    min-height: 1.5rem;
+.form-group input.error:focus,
+.form-group select.error:focus {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
 .password-wrapper {
@@ -222,55 +200,67 @@ body {
     color: var(--text-dark);
 }
 
-/* Form Navigation */
-.form-navigation {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border);
+.password-hint {
+    margin-top: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.8rem;
 }
 
-.btn-next,
-.btn-prev,
+.error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    min-height: 1.5rem;
+}
+
+.terms {
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+}
+
+.terms input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.terms label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+.terms label a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.terms label a:hover {
+    text-decoration: underline;
+}
+
 .btn-submit {
-    padding: 0.75rem 1.5rem;
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--primary);
+    color: white;
     border: none;
     border-radius: var(--radius);
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     transition: var(--transition);
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.btn-next {
-    background: var(--primary);
-    color: white;
-    margin-left: auto;
-}
-
-.btn-next:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-}
-
-.btn-prev {
-    background: var(--secondary);
-    color: var(--text-dark);
-}
-
-.btn-prev:hover {
-    background: var(--border);
-}
-
-.btn-submit {
-    background: var(--primary);
-    color: white;
-    margin-left: auto;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 1.5rem;
 }
 
 .btn-submit:hover:not(:disabled) {
@@ -284,83 +274,6 @@ body {
     cursor: not-allowed;
 }
 
-/* Progress Bar */
-.progress-container {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border);
-}
-
-.progress-steps {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-    position: relative;
-}
-
-.progress-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    flex: 1;
-}
-
-.step-number {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--secondary);
-    border: 2px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--text-light);
-    transition: var(--transition);
-}
-
-.progress-step.active .step-number {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
-
-.progress-step.completed .step-number {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
-
-.step-label {
-    font-size: 0.7rem;
-    color: var(--text-light);
-    text-align: center;
-}
-
-.progress-step.active .step-label,
-.progress-step.completed .step-label {
-    color: var(--primary);
-    font-weight: 600;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 4px;
-    background: var(--secondary);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: var(--primary);
-    border-radius: 2px;
-    transition: width 0.3s ease;
-}
-
-/* Links */
 .login-link {
     text-align: center;
     margin-top: 1.5rem;
@@ -375,23 +288,6 @@ body {
 }
 
 .login-link a:hover {
-    text-decoration: underline;
-}
-
-.lecturer-link {
-    text-align: center;
-    margin-top: 0.75rem;
-    font-size: 0.9rem;
-    color: var(--text-light);
-}
-
-.lecturer-link a {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.lecturer-link a:hover {
     text-decoration: underline;
 }
 
@@ -427,6 +323,10 @@ body {
     background: #ef4444;
 }
 
+.toast.info {
+    background: var(--primary);
+}
+
 .toast button {
     background: none;
     border: none;
@@ -436,37 +336,36 @@ body {
     margin-left: auto;
 }
 
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     body {
         padding: 1rem;
     }
 
-    .signup-card {
+    .apply-card {
         padding: 1.5rem;
     }
 
-    .signup-header h1 {
+    .apply-header h1 {
         font-size: 1.5rem;
     }
 
-    .form-navigation {
-        flex-wrap: wrap;
+    .form-section h2 {
+        font-size: 1rem;
     }
 
-    .btn-next,
-    .btn-prev,
     .btn-submit {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .btn-prev {
-        order: 1;
-    }
-
-    .btn-next,
-    .btn-submit {
-        order: 2;
+        font-size: 0.95rem;
     }
 }
