@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in signup.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('signup.js loaded with API_URL:', API_URL);
-// signup.js
+﻿// signup.js
 
 
 // Role switching
@@ -325,7 +319,7 @@ function showToast(message, type = 'success') {
     let container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i><span>${message}</span><button onclick="this.parentElement.remove()">×</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i><span>${message}</span><button onclick="this.parentElement.remove()">Ã—</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }

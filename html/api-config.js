@@ -12,3 +12,4 @@ const API_URL = (() => {
 window.API_URL = API_URL;
 window.API_CONFIG = { getBaseUrl: () => API_URL };
 console.log('API_URL initialized:', API_URL);
+

@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in lecturer-assignments.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('lecturer-assignments.js loaded with API_URL:', API_URL);
-// lecturer-assignments.js - UPDATED with active settings
+﻿// lecturer-assignments.js - UPDATED with active settings
 
 
 // ========== TOKEN FUNCTION ==========
@@ -267,7 +261,7 @@ async function updateAssignment(assignmentId) {
         const data = await response.json();
         
         if (data.success) {
-            showToast(`✅ Assignment updated successfully!`, 'success');
+            showToast(`âœ… Assignment updated successfully!`, 'success');
             resetToCreateMode();
             loadExistingAssignments();
         } else {
@@ -295,7 +289,7 @@ async function deleteAssignment(assignmentId, assignmentTitle) {
         const data = await response.json();
         
         if (data.success) {
-            showToast(`✅ Assignment deleted successfully!`, 'success');
+            showToast(`âœ… Assignment deleted successfully!`, 'success');
             loadExistingAssignments();
         } else {
             showToast(data.message || 'Failed to delete assignment', 'danger');
@@ -397,7 +391,7 @@ async function createAssignment(e) {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            showToast(`✅ Assignment "${title}" created successfully for ${currentSession} ${currentSemester}!`, 'success');
+            showToast(`âœ… Assignment "${title}" created successfully for ${currentSession} ${currentSemester}!`, 'success');
             
             form.reset();
             if (dueDateInput) dueDateInput.value = new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0];
@@ -474,10 +468,10 @@ function updateRubricTotal() {
     
     const assignmentTotal = parseInt(totalMarksInput.value) || 0;
     if (total === assignmentTotal && total > 0) {
-        totalMatchStatus.textContent = '✓ Matches total marks';
+        totalMatchStatus.textContent = 'âœ“ Matches total marks';
         totalMatchStatus.className = 'status-badge success';
     } else {
-        totalMatchStatus.textContent = `⚠️ Does not match total marks (${total}/${assignmentTotal})`;
+        totalMatchStatus.textContent = `âš ï¸ Does not match total marks (${total}/${assignmentTotal})`;
         totalMatchStatus.className = 'status-badge warning';
     }
 }
@@ -527,7 +521,7 @@ function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     const colors = { success: '#2a7a4b', danger: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
     toast.style.cssText = `background: white; border-radius: 8px; padding: 12px 20px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; border-left: 4px solid ${colors[type] || colors.success};`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">×</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">Ã—</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }

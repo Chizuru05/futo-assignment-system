@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in student-security.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('student-security.js loaded with API_URL:', API_URL);
-// student-security.js
+﻿// student-security.js
 
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
@@ -127,15 +121,15 @@ function checkPasswordMatch() {
     const confirm = confirmPassword.value;
     if (!confirm) { matchIndicator.textContent = ''; matchIndicator.className = 'match-indicator'; return; }
     if (password === confirm) {
-        matchIndicator.textContent = '✓ Passwords match';
+        matchIndicator.textContent = 'âœ“ Passwords match';
         matchIndicator.className = 'match-indicator match';
     } else {
-        matchIndicator.textContent = '✗ Passwords do not match';
+        matchIndicator.textContent = 'âœ— Passwords do not match';
         matchIndicator.className = 'match-indicator no-match';
     }
 }
 
-// ===== UPDATE PASSWORD — REAL API CALL =====
+// ===== UPDATE PASSWORD â€” REAL API CALL =====
 const updateBtn = document.getElementById('updatePasswordBtn');
 const currentPassword = document.getElementById('currentPassword');
 

@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in student-dashboard.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('student-dashboard.js loaded with API_URL:', API_URL);
-// student-dashboard.js
+﻿// student-dashboard.js
 
 
 // ========== TOKEN FUNCTION ==========
@@ -65,7 +59,7 @@ if (welcomeName) {
     let greeting = 'Good morning';
     if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
     if (hour >= 17) greeting = 'Good evening';
-    welcomeName.innerHTML = `${greeting}, ${userName}! 👋`;
+    welcomeName.innerHTML = `${greeting}, ${userName}! ðŸ‘‹`;
 }
 
 // ========== FETCH ACTIVE SETTINGS ==========
@@ -84,7 +78,7 @@ async function fetchActiveSettings() {
             console.log('Active settings loaded:', currentSession, currentSemester);
             
             if (bannerText) {
-                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> · ${currentSession} ${currentSemester}`;
+                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> Â· ${currentSession} ${currentSemester}`;
             }
         }
     } catch (error) {
@@ -92,7 +86,7 @@ async function fetchActiveSettings() {
         currentSession = localStorage.getItem('currentSession') || '2025-2026';
         currentSemester = localStorage.getItem('currentSemester') || 'Harmattan';
         if (bannerText) {
-            bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> · ${currentSession} ${currentSemester}`;
+            bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> Â· ${currentSession} ${currentSemester}`;
         }
     }
 }
@@ -243,7 +237,7 @@ function showToast(message, type = 'success', duration = 3000) {
     toast.innerHTML = `
         <i class="fa-solid ${icons[type] || icons.success}"></i>
         <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
     `;
     
     container.appendChild(toast);

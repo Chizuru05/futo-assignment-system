@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in admin-dashboard.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('admin-dashboard.js loaded with API_URL:', API_URL);
-// admin-dashboard.js - COMPLETE UPDATED VERSION
+﻿// admin-dashboard.js - COMPLETE UPDATED VERSION
 
 
 function getAuthToken() {
@@ -50,7 +44,7 @@ async function fetchActiveSettings() {
         if (data.success) {
             currentSession = data.settings.activeSession;
             currentSemester = data.settings.activeSemester;
-            console.log('✅ Active settings from backend:', currentSession, currentSemester);
+            console.log('âœ… Active settings from backend:', currentSession, currentSemester);
             
             // Update sidebar session info
             const sidebarSession = document.getElementById('sidebarSession');
@@ -295,7 +289,7 @@ async function saveCourse() {
         const data = await response.json();
         
         if (data.success) {
-            showToast(`✅ Course added successfully for ${currentSemester} semester!`, 'success');
+            showToast(`âœ… Course added successfully for ${currentSemester} semester!`, 'success');
             closeModal('courseModal');
             loadCourses();
         } else {
@@ -692,7 +686,7 @@ function showToast(message, type = 'success') {
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}<button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}<button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }

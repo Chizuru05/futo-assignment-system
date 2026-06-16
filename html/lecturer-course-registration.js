@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in lecturer-course-registration.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('lecturer-course-registration.js loaded with API_URL:', API_URL);
-// lecturer-course-registration.js - COMPLETE UPDATED WITH ACTIVE SESSION
+﻿// lecturer-course-registration.js - COMPLETE UPDATED WITH ACTIVE SESSION
 
 
 // ========== ROLE-SPECIFIC TOKEN RETRIEVAL ==========
@@ -49,7 +43,7 @@ async function fetchActiveSettings() {
         if (data.success) {
             currentSession = data.settings.activeSession;
             currentSemester = data.settings.activeSemester;
-            console.log('✅ Active settings loaded:', currentSession, currentSemester);
+            console.log('âœ… Active settings loaded:', currentSession, currentSemester);
             
             // Set the dropdown values
             if (academicSession) academicSession.value = currentSession;
@@ -338,7 +332,7 @@ function showToast(message, type = 'success', duration = 3000) {
             <div class="toast-title">${type === 'success' ? 'Success' : type === 'danger' ? 'Error' : 'Info'}</div>
             <div class="toast-message">${escapeHtml(message)}</div>
         </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
     `;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);

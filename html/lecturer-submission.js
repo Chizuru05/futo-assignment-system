@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in lecturer-submission.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('lecturer-submission.js loaded with API_URL:', API_URL);
-// lecturer-submissions.js - FIXED VERSION
+﻿// lecturer-submissions.js - FIXED VERSION
 
 
 // ========== ROLE-SPECIFIC TOKEN FUNCTION ==========
@@ -55,7 +49,7 @@ const aiGradeAllBtn = document.getElementById('aiGradeAllBtn');
 function updateSemesterDisplay() {
     const semesterDisplay = document.querySelector('.current-semester');
     if (semesterDisplay) {
-        semesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} · ${currentSemester}`;
+        semesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} Â· ${currentSemester}`;
     }
 }
 
@@ -432,7 +426,7 @@ document.getElementById('confirmReleaseBtn')?.addEventListener('click', async ()
         const data = await response.json();
         
         if (data.success) {
-            showToast(`✅ Grade released for ${submission.studentName}`, 'success');
+            showToast(`âœ… Grade released for ${submission.studentName}`, 'success');
             await loadSubmissions();
         } else {
             showToast(data.message || 'Failed to release grade', 'danger');
@@ -461,8 +455,8 @@ function editGrade(submissionId) {
 function notifyStudent(submissionId) {
     const submission = submissionsData.find(s => s._id === submissionId);
     if (submission) {
-        showToast(`📧 Sending notification to ${submission.studentName}...`, 'info');
-        setTimeout(() => showToast(`✅ Email sent to ${submission.studentName}`, 'success'), 1500);
+        showToast(`ðŸ“§ Sending notification to ${submission.studentName}...`, 'info');
+        setTimeout(() => showToast(`âœ… Email sent to ${submission.studentName}`, 'success'), 1500);
     }
 }
 
@@ -483,7 +477,7 @@ async function aiGradeSubmission(submissionId, studentName, assignmentTitle) {
         btn.disabled = true;
     }
     
-    showToast(`🤖 AI grading ${studentName}...`, 'info');
+    showToast(`ðŸ¤– AI grading ${studentName}...`, 'info');
     
     try {
         const response = await fetch(`${API_URL}/api/ai-grade/submission/${submissionId}`, {
@@ -497,7 +491,7 @@ async function aiGradeSubmission(submissionId, studentName, assignmentTitle) {
         const data = await response.json();
         
         if (data.success) {
-            showToast(`✅ AI grading complete!`, 'success');
+            showToast(`âœ… AI grading complete!`, 'success');
             updateCardWithAIGrades(submissionId, data.aiResult);
             showAISummary(submissionId, studentName, assignmentTitle, data.aiResult);
         } else {
@@ -611,7 +605,7 @@ async function acceptAIGrades() {
         });
         const data = await response.json();
         if (data.success) {
-            showToast('✅ Grade accepted and released!', 'success');
+            showToast('âœ… Grade accepted and released!', 'success');
             closeAISummaryModal();
             await loadSubmissions();
         } else {
@@ -641,7 +635,7 @@ async function aiGradeAllPending() {
     
     for (let i = 0; i < pending.length; i++) {
         const sub = pending[i];
-        showToast(`🤖 ${i+1}/${pending.length}: ${sub.studentName}...`, 'info');
+        showToast(`ðŸ¤– ${i+1}/${pending.length}: ${sub.studentName}...`, 'info');
         
         try {
             const response = await fetch(`${API_URL}/api/ai-grade/submission/${sub._id}`, {
@@ -672,7 +666,7 @@ async function aiGradeAllPending() {
     }
     
     currentAIProcessing = false;
-    showToast(`✅ Complete: ${graded} graded, ${failed} failed`, 'success');
+    showToast(`âœ… Complete: ${graded} graded, ${failed} failed`, 'success');
     await loadSubmissions();
 }
 
@@ -741,7 +735,7 @@ function showToast(message, type = 'success', duration = 3000) {
     }
     const toast = document.createElement('div'); 
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);
 }

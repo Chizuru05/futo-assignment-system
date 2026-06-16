@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in admin-settings.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('admin-settings.js loaded with API_URL:', API_URL);
-function getAuthToken() {
+﻿function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
     return localStorage.getItem(`${userRole}_token`) || localStorage.getItem('token');
@@ -96,7 +90,7 @@ function showToast(message, type = 'success') {
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }

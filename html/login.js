@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in login.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('login.js loaded with API_URL:', API_URL);
-// login.js
+﻿// login.js
 
 
 const studentRoleBtn = document.getElementById('studentRoleBtn');
@@ -148,7 +142,7 @@ function showToast(message, type = 'success', duration = 3000) {
             <div class="toast-title">${type === 'success' ? 'Success' : type === 'danger' ? 'Error' : 'Info'}</div>
             <div class="toast-message">${message}</div>
         </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
     `;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);

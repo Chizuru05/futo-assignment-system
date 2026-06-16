@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in assgnment.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('assgnment.js loaded with API_URL:', API_URL);
-// assignment.js - COMPLETE UPDATED VERSION WITH FIXED STATS
+﻿// assignment.js - COMPLETE UPDATED VERSION WITH FIXED STATS
 
 
 // ========== TOKEN FUNCTION ==========
@@ -88,12 +82,12 @@ async function fetchActiveSettings() {
             currentSemester = data.settings.activeSemester;
             localStorage.setItem('currentSession', currentSession);
             localStorage.setItem('currentSemester', currentSemester);
-            console.log('✅ Active settings loaded:', currentSession, currentSemester);
+            console.log('âœ… Active settings loaded:', currentSession, currentSemester);
             
             // Update banner text if exists
             const bannerText = document.getElementById('bannerText');
             if (bannerText) {
-                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> · ${currentSession} ${currentSemester}`;
+                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> Â· ${currentSession} ${currentSemester}`;
             }
             
             // Update sidebar session info
@@ -129,7 +123,7 @@ async function refreshPage() {
     
     // Force fresh fetch with cache busting
     await fetchData(true);
-    showToast('✅ Assignments refreshed!', 'success');
+    showToast('âœ… Assignments refreshed!', 'success');
 }
 
 // ========== FETCH DATA WITH CACHE BUSTING ==========
@@ -177,7 +171,7 @@ async function fetchData(forceRefresh = false) {
             });
             
             if (statTotal) statTotal.textContent = allAssignments.length;
-            console.log(`📊 Total assignments for ${currentSession} ${currentSemester}: ${allAssignments.length}`);
+            console.log(`ðŸ“Š Total assignments for ${currentSession} ${currentSemester}: ${allAssignments.length}`);
         }
 
         // Fetch submissions - Backend now filters by session/semester
@@ -193,7 +187,7 @@ async function fetchData(forceRefresh = false) {
             mySubmissions = submissionsData.submissions || [];
             
             if (statSubmitted) statSubmitted.textContent = mySubmissions.length;
-            console.log(`📊 Submitted assignments for ${currentSession} ${currentSemester}: ${mySubmissions.length}`);
+            console.log(`ðŸ“Š Submitted assignments for ${currentSession} ${currentSemester}: ${mySubmissions.length}`);
 
             const pendingCount = allAssignments.length - mySubmissions.length;
             const finalPending = pendingCount > 0 ? pendingCount : 0;
@@ -202,7 +196,7 @@ async function fetchData(forceRefresh = false) {
             if (sidebarBadge) sidebarBadge.textContent = finalPending > 0 ? finalPending : '';
             if (notifCount) notifCount.textContent = finalPending > 0 ? (finalPending > 9 ? '9+' : finalPending) : '0';
             
-            console.log(`📊 Pending assignments: ${finalPending}`);
+            console.log(`ðŸ“Š Pending assignments: ${finalPending}`);
         }
 
         renderAssignments();
@@ -269,7 +263,7 @@ async function checkForUpdates() {
             
             if (hasChanges) {
                 console.log('Detected assignment changes, refreshing...');
-                showToast('📅 Assignment deadlines have been updated!', 'info');
+                showToast('ðŸ“… Assignment deadlines have been updated!', 'info');
                 await fetchData();
             }
         }
@@ -531,7 +525,7 @@ function openSubmitModal(assignmentId) {
     }
     
     if (isOverdue && allowLate) {
-        showToast('⚠️ Late submission - penalty may apply', 'warning');
+        showToast('âš ï¸ Late submission - penalty may apply', 'warning');
     }
     
     currentAssignmentForSubmission = assignment;
@@ -608,7 +602,7 @@ async function uploadAssignment() {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            showToast('✅ Assignment submitted successfully!', 'success');
+            showToast('âœ… Assignment submitted successfully!', 'success');
             closeSubmissionModal();
             await fetchData(true);
         } else {
@@ -794,7 +788,7 @@ function renderAssignments() {
                         <span class="course-code">${assignment.course}</span>
                         ${!isSubmitted ? 
                             `<span class="due-badge ${dueClass}">${dueText}</span>` : 
-                            `<span class="status-badge">${isGraded ? 'Graded ✓' : 'Submitted'}</span>`}
+                            `<span class="status-badge">${isGraded ? 'Graded âœ“' : 'Submitted'}</span>`}
                     </div>
                     <h3 class="assignment-title">${escapeHtml(assignment.title)}</h3>
                     <div class="assignment-meta">
@@ -973,7 +967,7 @@ function updateFileList(files, fileListDiv) {
         
         fileItem.innerHTML = `
             <span><i class="${icon}"></i> ${file.name} (${fileSize} KB)</span>
-            <span class="file-remove" onclick="this.parentElement.remove()">✕</span>
+            <span class="file-remove" onclick="this.parentElement.remove()">âœ•</span>
         `;
         fileListDiv.appendChild(fileItem);
     });

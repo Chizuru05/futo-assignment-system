@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in admin-courses.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('admin-courses.js loaded with API_URL:', API_URL);
-// admin-courses.js
+﻿// admin-courses.js
 
 
 // ========== ROLE-SPECIFIC TOKEN FUNCTION ==========
@@ -348,7 +342,7 @@ function showToast(message, type = 'success', duration = 3000) {
     toast.innerHTML = `
         <i class="fa-solid ${icons[type] || icons.success}"></i>
         <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
     `;
     
     container.appendChild(toast);
@@ -789,7 +783,7 @@ function showToast(message, type = 'success', duration = 3000) {
     toast.innerHTML = `
         <i class="fa-solid ${icons[type] || icons.success}"></i>
         <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
     `;
     
     container.appendChild(toast);

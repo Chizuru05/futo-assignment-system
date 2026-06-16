@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in lecturer-students.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('lecturer-students.js loaded with API_URL:', API_URL);
-// lecturer-students.js
+﻿// lecturer-students.js
 
 
 function getAuthToken() {
@@ -89,7 +83,7 @@ async function fetchData() {
         }
 
         if (semesterDisplay) {
-            semesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} · ${currentSemester}`;
+            semesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} Â· ${currentSemester}`;
         }
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -328,7 +322,7 @@ function showToast(message, type = 'success', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icons = { success: 'fa-check-circle', danger: 'fa-exclamation-circle', warning: 'fa-triangle-exclamation', info: 'fa-info-circle' };
-    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);
 }

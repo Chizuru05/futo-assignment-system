@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in lecturer-courses.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('lecturer-courses.js loaded with API_URL:', API_URL);
-// lecturer-courses.js
+﻿// lecturer-courses.js
 
 
 // ========== ROLE-SPECIFIC TOKEN RETRIEVAL ==========
@@ -147,7 +141,7 @@ function renderCourses() {
                 <div class="detail-item"><i class="fa-regular fa-users"></i> <span>${students} student${students !== 1 ? 's' : ''}</span></div>
                 <div class="detail-item"><i class="fa-regular fa-star"></i> <span>${credits} Credits</span></div>
                 <div class="detail-item"><i class="fa-regular fa-layer-group"></i> <span>${level} Level</span></div>
-                <div class="detail-item"><i class="fa-regular fa-calendar"></i> <span>${currentSession} · ${currentSemester}</span></div>
+                <div class="detail-item"><i class="fa-regular fa-calendar"></i> <span>${currentSession} Â· ${currentSemester}</span></div>
             </div>
             <div class="course-footer">
                 <a href="lecturer-assignments.html?course=${code}" class="btn-small">
@@ -172,7 +166,7 @@ function updateStats() {
     if (totalStudentsEl) totalStudentsEl.textContent = totalStudents;
     
     if (currentSemesterDisplay) {
-        currentSemesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} · ${currentSemester}`;
+        currentSemesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} Â· ${currentSemester}`;
     }
 }
 
@@ -233,7 +227,7 @@ async function unregisterCourse(courseId, courseCode) {
                 allCourses = allCourses.filter(c => (c._id || c.courseId) !== courseId);
                 renderCourses();
                 updateStats();
-                showToast(`✅ Successfully unregistered from ${courseCode}`, 'success');
+                showToast(`âœ… Successfully unregistered from ${courseCode}`, 'success');
                 return true;
             }
         }
@@ -311,7 +305,7 @@ function showToast(message, type = 'success') {
     toast.innerHTML = `
         <i class="fa-solid ${icon}"></i>
         <span>${escapeHtml(message)}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
     `;
     
     container.appendChild(toast);

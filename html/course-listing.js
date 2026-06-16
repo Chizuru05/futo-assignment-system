@@ -1,10 +1,4 @@
-// API_URL is defined in api-config.js (loaded globally)
-if (typeof API_URL === 'undefined') {
-    console.warn('API_URL not defined in course-listing.js, using fallback');
-    var API_URL = 'https://futo-assignment-system-api.onrender.com';
-}
-console.log('course-listing.js loaded with API_URL:', API_URL);
-// course-listing.js
+﻿// course-listing.js
 
 
 // ========== TOKEN FUNCTION ==========
@@ -198,7 +192,7 @@ async function registerCourses() {
         console.log('Registration response:', data);
         
         if (data.success) {
-            showToast(`✅ Successfully registered ${selectedCourses.length} course(s)!`, 'success');
+            showToast(`âœ… Successfully registered ${selectedCourses.length} course(s)!`, 'success');
             
             // Clear localStorage mock data to force real data fetch
             localStorage.removeItem('userCourses');
@@ -247,7 +241,7 @@ function showToast(message, type = 'success') {
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()">×</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()">Ã—</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
