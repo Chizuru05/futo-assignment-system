@@ -38,8 +38,8 @@
                         
                         <div class="form-group">
                             <label for="studentMatric">Registration Number *</label>
-                            <input type="text" id="studentMatric" placeholder="e.g., 2024/IT/001" required />
-                            <small class="hint">Format: Year/IT/Number (e.g., 2024/IT/001)</small>
+                            <input type="text" id="studentMatric" placeholder="e.g., 20211263362" required />
+                            <small class="hint">Format: 11 digits (e.g., 20211263362)</small>
                             <div class="error-message" id="studentMatricError"></div>
                         </div>
 
@@ -71,15 +71,8 @@
 
                         <div class="form-group">
                             <label for="studentDepartment">Department *</label>
-                            <select id="studentDepartment" required>
-                                <option value="">Select department</option>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Software Engineering">Software Engineering</option>
-                                <option value="Data Science">Data Science</option>
-                                <option value="Cyber Security">Cyber Security</option>
-                            </select>
-                            <div class="error-message" id="studentDepartmentError"></div>
+                            <input type="text" id="studentDepartment" value="Information Technology" readonly disabled style="background:var(--secondary);cursor:not-allowed;" />
+                            <small class="hint">Only Information Technology department is available</small>
                         </div>
                     </div>
 
@@ -90,7 +83,7 @@
                     </div>
                 </div>
 
-                <!-- Step 2: Account Security - TERMS REMOVED -->
+                <!-- Step 2: Account Security -->
                 <div class="form-step" data-step="1">
                     <div class="form-section">
                         <h2><i class="fa-solid fa-lock"></i> Account Security</h2>

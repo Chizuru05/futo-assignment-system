@@ -90,15 +90,24 @@ function validatePassword(password) {
            /[0-9]/.test(password);
 }
 
+function validateMatric(matric) {
+    // Allow only numbers, exactly 11 digits
+    return /^[0-9]{11}$/.test(matric);
+}
+
 function validateStep(step) {
     if (step === 0) {
         let isValid = true;
 
-        // Registration Number
+        // Registration Number - FIXED: 11 digits, no slash
         const matric = document.getElementById('studentMatric');
         if (!matric.value.trim()) {
             matric.classList.add('error');
             document.getElementById('studentMatricError').textContent = 'Registration number required';
+            isValid = false;
+        } else if (!validateMatric(matric.value.trim())) {
+            matric.classList.add('error');
+            document.getElementById('studentMatricError').textContent = 'Please enter 11 digits (e.g., 20211263362)';
             isValid = false;
         } else {
             matric.classList.remove('error');
@@ -130,10 +139,7 @@ function validateStep(step) {
             isValid = false;
         }
 
-        // Department
-        if (!validateField('studentDepartment', 'studentDepartmentError', 'Please select your department')) {
-            isValid = false;
-        }
+        // Department - auto-filled, no validation needed
 
         return isValid;
     } else if (step === 1) {
@@ -222,7 +228,7 @@ studentForm.addEventListener('submit', async (e) => {
         role: 'student',
         matricNumber: document.getElementById('studentMatric').value.trim(),
         level: document.getElementById('studentLevel').value,
-        department: document.getElementById('studentDepartment').value,
+        department: 'Information Technology',
         status: 'active'
     };
 

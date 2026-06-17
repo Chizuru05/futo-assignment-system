@@ -74,9 +74,7 @@ function validateForm() {
         isValid = false;
     }
 
-    if (!validateField('department', 'departmentError', 'Please select your department')) {
-        isValid = false;
-    }
+    // Department is auto-filled, no validation needed
 
     if (!validateField('rank', 'rankError', 'Please select your academic rank')) {
         isValid = false;
@@ -146,7 +144,7 @@ applyForm.addEventListener('submit', async (e) => {
         fullName: document.getElementById('fullName').value.trim(),
         email: document.getElementById('email').value.trim(),
         staffId: document.getElementById('staffId').value.trim(),
-        department: document.getElementById('department').value,
+        department: 'Information Technology',
         rank: document.getElementById('rank').value,
         specialization: document.getElementById('specialization').value.trim(),
         password: document.getElementById('password').value,

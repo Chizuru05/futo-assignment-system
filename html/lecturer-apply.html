@@ -50,17 +50,8 @@
 
                     <div class="form-group">
                         <label for="department">Department *</label>
-                        <select id="department" required>
-                            <option value="">Select Department</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Software Engineering">Software Engineering</option>
-                            <option value="Data Science">Data Science</option>
-                            <option value="Cyber Security">Cyber Security</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="Physics">Physics</option>
-                        </select>
-                        <div class="error-message" id="departmentError"></div>
+                        <input type="text" id="department" value="Information Technology" readonly disabled style="background:var(--secondary);cursor:not-allowed;" />
+                        <small class="hint">Only Information Technology department is available</small>
                     </div>
 
                     <div class="form-group">
