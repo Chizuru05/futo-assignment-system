@@ -108,13 +108,7 @@ function validateForm() {
         document.getElementById('confirmPasswordError').textContent = '';
     }
 
-    const terms = document.getElementById('terms');
-    if (!terms.checked) {
-        document.getElementById('termsError').textContent = 'You must accept the Terms and Conditions';
-        isValid = false;
-    } else {
-        document.getElementById('termsError').textContent = '';
-    }
+    // TERMS & CONDITIONS VALIDATION REMOVED
 
     return isValid;
 }
