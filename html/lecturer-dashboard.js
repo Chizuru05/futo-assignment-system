@@ -93,6 +93,7 @@ async function fetchActiveSettings() {
     }
 }
 
+
 // ========== FETCH DASHBOARD DATA ==========
 async function fetchDashboardData() {
     if (!currentSession || !currentSemester) {
@@ -112,13 +113,13 @@ async function fetchDashboardData() {
             allCourses = coursesData.courses || [];
             if (totalCoursesEl) totalCoursesEl.textContent = allCourses.length;
             
-            const totalStudentsCount = allCourses.reduce((sum, course) => sum + (course.studentCount || 0), 0);
-            if (totalStudentsEl) totalStudentsEl.textContent = totalStudentsCount;
+            // FIXED: Use uniqueStudentCount from backend API response
+            if (totalStudentsEl) totalStudentsEl.textContent = coursesData.uniqueStudentCount || 0;
             
             renderMyCourses();
         }
         
-        // Fetch assignments for lecturer - FIXED: Remove query parameters
+        // Fetch assignments for lecturer
         const assignmentsRes = await fetch(`${API_URL}/api/assignments/lecturer`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -130,7 +131,7 @@ async function fetchDashboardData() {
             renderActiveAssignments();
         }
         
-        // Fetch submissions for active session/semester - FIXED: Use correct endpoint
+        // Fetch submissions for active session/semester
         const submissionsRes = await fetch(`${API_URL}/api/submissions/lecturer/all?session=${currentSession}&semester=${currentSemester}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
