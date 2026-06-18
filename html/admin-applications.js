@@ -18,10 +18,10 @@ if (adminNameEl) adminNameEl.textContent = localStorage.getItem('fullName') || '
 let applications = [];
 let currentAppId = null;
 
-// ========== LOAD APPLICATIONS ==========
+// ========== LOAD ALL APPLICATIONS ==========
 async function loadApplications() {
     try {
-        console.log('Fetching applications...');
+        console.log('Fetching all lecturer applications...');
         const response = await fetch(`${API_URL}/api/admin/pending-applications`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -47,24 +47,34 @@ function renderApplications() {
     if (!tbody) return;
 
     if (applications.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No pending applications</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No applications found</p></td></tr>';
         return;
     }
 
-    tbody.innerHTML = applications.map(app => `
-        <tr>
-            <td><strong>${escapeHtml(app.fullName)}</strong></td>
-            <td>${escapeHtml(app.email)}</td>
-            <td>${escapeHtml(app.staffId || 'N/A')}</td>
-            <td>${escapeHtml(app.rank || 'N/A')}</td>
-            <td><span class="status-badge" style="background:#fff3e0;color:#f59e0b;padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status || 'pending'}</span></td>
-            <td>
-                <button class="btn-icon" onclick="viewDetail('${app._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
-                <button class="btn-icon" onclick="approveApplication('${app._id}')" title="Approve" style="color:#2a7a4b"><i class="fa-solid fa-check"></i></button>
-                <button class="btn-icon danger" onclick="rejectApplication('${app._id}')" title="Reject"><i class="fa-solid fa-times"></i></button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = applications.map(app => {
+        const statusColor = app.status === 'pending' ? '#f59e0b' : app.status === 'approved' ? '#2a7a4b' : '#ef4444';
+        const statusBg = app.status === 'pending' ? '#fff3e0' : app.status === 'approved' ? '#e8f5e9' : '#fee2e2';
+        return `
+            <tr>
+                <td><strong>${escapeHtml(app.fullName)}</strong></td>
+                <td>${escapeHtml(app.email)}</td>
+                <td>${escapeHtml(app.staffId || 'N/A')}</td>
+                <td>${escapeHtml(app.rank || 'N/A')}</td>
+                <td><span style="background:${statusBg};color:${statusColor};padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status || 'pending'}</span></td>
+                <td>
+                    <button class="btn-icon" onclick="viewDetail('${app._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
+                    ${app.status === 'pending' ? `
+                        <button class="btn-icon" onclick="approveApplication('${app._id}')" title="Approve" style="color:#2a7a4b"><i class="fa-solid fa-check"></i></button>
+                        <button class="btn-icon danger" onclick="rejectApplication('${app._id}')" title="Reject"><i class="fa-solid fa-times"></i></button>
+                    ` : app.status === 'approved' ? `
+                        <span style="color:#2a7a4b;font-size:0.75rem;font-weight:600;">Approved</span>
+                    ` : `
+                        <span style="color:#ef4444;font-size:0.75rem;font-weight:600;">Rejected</span>
+                    `}
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function updateStats() {
@@ -98,15 +108,21 @@ function viewDetail(id) {
                 <div><strong>Department:</strong></div><div>${escapeHtml(app.department || 'Information Technology')}</div>
                 <div><strong>Rank:</strong></div><div>${escapeHtml(app.rank || 'N/A')}</div>
                 <div><strong>Specialization:</strong></div><div>${escapeHtml(app.specialization || 'N/A')}</div>
-                <div><strong>Status:</strong></div><div><span style="background:#fff3e0;color:#f59e0b;padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status}</span></div>
+                <div><strong>Status:</strong></div><div><span style="background:${app.status === 'pending' ? '#fff3e0' : '#e8f5e9'};color:${app.status === 'pending' ? '#f59e0b' : '#2a7a4b'};padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status}</span></div>
             </div>
         `;
     }
 
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
-    if (approveBtn) approveBtn.onclick = () => { approveApplication(id); closeDetail(); };
-    if (rejectBtn) rejectBtn.onclick = () => { rejectApplication(id); closeDetail(); };
+    
+    if (app.status === 'pending') {
+        if (approveBtn) { approveBtn.style.display = 'inline-flex'; approveBtn.onclick = () => { approveApplication(id); closeDetail(); }; }
+        if (rejectBtn) { rejectBtn.style.display = 'inline-flex'; rejectBtn.onclick = () => { rejectApplication(id); closeDetail(); }; }
+    } else {
+        if (approveBtn) approveBtn.style.display = 'none';
+        if (rejectBtn) rejectBtn.style.display = 'none';
+    }
 
     document.getElementById('detailModal')?.classList.add('show');
 }

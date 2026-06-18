@@ -1,6 +1,5 @@
 ﻿// admin-dashboard.js - COMPLETE UPDATED VERSION
 
-
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
@@ -46,7 +45,6 @@ async function fetchActiveSettings() {
             currentSemester = data.settings.activeSemester;
             console.log('✅ Active settings from backend:', currentSession, currentSemester);
             
-            // Update sidebar session info
             const sidebarSession = document.getElementById('sidebarSession');
             if (sidebarSession) {
                 sidebarSession.innerHTML = `${currentSession} ${currentSemester}`;
@@ -69,50 +67,64 @@ async function loadDashboard() {
     contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading dashboard...</div>';
     
     try {
+        // Fetch stats from admin API
         const statsRes = await fetch(`${API_URL}/api/admin/stats?session=${currentSession}&semester=${currentSemester}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const statsData = await statsRes.json();
         
-        if (statsData.success) {
-            const stats = statsData.stats;
-            contentWrapper.innerHTML = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fa-solid fa-book"></i></div>
-                        <div class="stat-details">
-                            <h3>${stats.courses || 0}</h3>
-                            <p>Courses (${currentSemester})</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
-                        <div class="stat-details">
-                            <h3>${stats.students || 0}</h3>
-                            <p>Students</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
-                        <div class="stat-details">
-                            <h3>${stats.lecturers || 0}</h3>
-                            <p>Lecturers</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="welcome-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-crown"></i> Welcome, ${localStorage.getItem('fullName') || 'Administrator'}!</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>Current Academic Session: <strong>${currentSession} ${currentSemester}</strong></p>
-                        <p>Use the sidebar to manage courses, lecturers, and students.</p>
-                    </div>
-                </div>
-            `;
-        } else {
-            contentWrapper.innerHTML = '<div class="error-message">Failed to load dashboard stats</div>';
+        // Fetch all users to get correct counts
+        const usersRes = await fetch(`${API_URL}/api/admin/users/all`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const usersData = await usersRes.json();
+        
+        // Count students (all students)
+        let totalStudents = 0;
+        let approvedLecturers = 0;
+        
+        if (usersData.success && usersData.users) {
+            totalStudents = usersData.users.filter(u => u.role === 'student').length;
+            approvedLecturers = usersData.users.filter(u => u.role === 'lecturer' && u.isApproved === true).length;
         }
+        
+        // Get courses count
+        const courses = statsData.success ? statsData.stats.courses : 0;
+        
+        contentWrapper.innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-book"></i></div>
+                    <div class="stat-details">
+                        <h3>${courses || 0}</h3>
+                        <p>Courses (${currentSemester})</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-details">
+                        <h3>${totalStudents || 0}</h3>
+                        <p>Students</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+                    <div class="stat-details">
+                        <h3>${approvedLecturers || 0}</h3>
+                        <p>Lecturers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="welcome-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-crown"></i> Welcome, ${localStorage.getItem('fullName') || 'Administrator'}!</h3>
+                </div>
+                <div class="card-body">
+                    <p>Current Academic Session: <strong>${currentSession} ${currentSemester}</strong></p>
+                    <p>Use the sidebar to manage courses, lecturers, and students.</p>
+                </div>
+            </div>
+        `;
     } catch (error) {
         console.error('Error loading dashboard:', error);
         contentWrapper.innerHTML = '<div class="error-message">Failed to load dashboard</div>';
@@ -427,11 +439,12 @@ async function loadLecturers() {
             headers: { Authorization: `Bearer ${token}` }
         });
         const usersData = await usersRes.json();
-        const allLecturers = usersData.users?.filter(u => u.role === 'lecturer') || [];
+        // Only show approved lecturers
+        const allLecturers = usersData.users?.filter(u => u.role === 'lecturer' && u.isApproved === true) || [];
         
         if (allLecturers.length === 0) {
             document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-                '<div class="empty-state">No lecturers registered</div>';
+                '<div class="empty-state">No approved lecturers registered</div>';
             return;
         }
         
