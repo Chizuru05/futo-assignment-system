@@ -12,23 +12,8 @@ exports.applyLecturer = async (req, res) => {
         console.log('Email:', email);
         console.log('Staff ID:', staffId);
         console.log('Rank:', rank);
-        console.log('Department:', department);
-        console.log('Specialization:', specialization);
 
-        // Validate required fields
-        if (!fullName || !email || !staffId || !password) {
-            console.log('❌ Missing required fields');
-            return res.status(400).json({
-                success: false,
-                message: 'All required fields must be filled.'
-            });
-        }
-
-        // Check if user already exists
-        const existingUser = await User.findOne({ 
-            $or: [{ email }, { staffId }] 
-        });
-        
+        const existingUser = await User.findOne({ $or: [{ email }, { staffId }] });
         if (existingUser) {
             console.log('❌ User already exists:', existingUser.email);
             return res.status(400).json({
@@ -37,11 +22,11 @@ exports.applyLecturer = async (req, res) => {
             });
         }
 
-        // Create new lecturer - let the model hash the password
+        // DO NOT hash password manually — User model pre-save hook handles it
         const lecturer = new User({
             fullName: fullName.trim(),
             email: email.trim().toLowerCase(),
-            password: password, // plain text - model will hash it
+            password: password,        // plain text — model will hash it
             staffId: staffId.trim(),
             department: department || 'Information Technology',
             rank: rank || 'Lecturer',
@@ -74,7 +59,7 @@ exports.applyLecturer = async (req, res) => {
         console.error('❌ Lecturer application error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to submit application: ' + error.message,
+            message: 'Failed to submit application.',
             error: error.message
         });
     }
@@ -215,11 +200,11 @@ exports.createAdmin = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Admin with this email already exists.' });
         }
 
-        // Create admin - let the model hash the password
+        // DO NOT hash manually — model pre-save hook handles it
         const admin = new User({
             fullName: fullName.trim(),
             email: email.trim().toLowerCase(),
-            password: password, // plain text - model will hash it
+            password: password,        // plain text — model will hash it
             department: department || 'Information Technology',
             role: 'admin',
             isActive: true,
