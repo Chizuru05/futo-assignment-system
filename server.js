@@ -24,6 +24,12 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Log all requests in development
+app.use((req, res, next) => {
+    console.log(`📝 ${req.method} ${req.url}`);
+    next();
+});
+
 // Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
@@ -52,9 +58,18 @@ app.get('/', (req, res) => {
     });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        success: true, 
+        message: 'Server is running',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err.stack);
+    console.error('❌ Error:', err.stack);
     res.status(500).json({ 
         success: false, 
         message: err.message || 'Internal server error' 
@@ -63,6 +78,7 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
+    console.log(`❌ 404: ${req.method} ${req.url}`);
     res.status(404).json({ 
         success: false, 
         message: `Route ${req.method} ${req.url} not found` 
@@ -72,4 +88,11 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📚 Available routes:`);
+    console.log(`   POST /api/auth/register - Register user`);
+    console.log(`   POST /api/auth/login - Login user`);
+    console.log(`   POST /api/auth/lecturer-apply - Apply as lecturer`);
+    console.log(`   GET /api/admin/pending-applications - Get pending applications`);
+    console.log(`   PUT /api/admin/approve-lecturer/:id - Approve lecturer`);
+    console.log(`   PUT /api/admin/reject-lecturer/:id - Reject lecturer`);
 });

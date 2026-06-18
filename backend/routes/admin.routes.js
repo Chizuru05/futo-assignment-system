@@ -4,7 +4,10 @@ const { authMiddleware } = require('../middleware/auth');
 const adminController = require('../controllers/admin.controller');
 const lecturerApplicationController = require('../controllers/lecturerApplication.controller');
 
+// All admin routes require authentication
 router.use(authMiddleware);
+
+// Admin only - check role
 router.use((req, res, next) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ success: false, message: 'Access denied. Admin only.' });
@@ -12,29 +15,29 @@ router.use((req, res, next) => {
     next();
 });
 
-// User Management
+// ============ USER MANAGEMENT ============
 router.get('/users/all', adminController.getAllUsers);
 router.get('/users/role/:role', adminController.getUsersByRole);
 router.get('/users/:id', adminController.getUserById);
 router.delete('/users/:id', adminController.deleteUser);
 
-// Lecturer Courses
+// ============ LECTURER COURSES (FOR ADMIN) ============
 router.get('/lecturer/:lecturerId/courses', adminController.getLecturerCourses);
 
-// Student Management
+// ============ STUDENT MANAGEMENT ============
 router.get('/students/grouped', adminController.getStudentsGrouped);
 
-// Course Management
+// ============ COURSE MANAGEMENT ============
 router.get('/courses/all', adminController.getAllCourses);
 router.get('/courses/:id', adminController.getCourseById);
 router.post('/courses', adminController.createCourse);
 router.put('/courses/:id', adminController.updateCourse);
 router.delete('/courses/:id', adminController.deleteCourse);
 
-// Statistics
+// ============ STATISTICS ============
 router.get('/stats', adminController.getStats);
 
-// Lecturer Applications
+// ============ LECTURER APPLICATIONS ============
 router.get('/pending-applications', lecturerApplicationController.getPendingApplications);
 router.put('/approve-lecturer/:id', lecturerApplicationController.approveLecturer);
 router.put('/reject-lecturer/:id', lecturerApplicationController.rejectLecturer);

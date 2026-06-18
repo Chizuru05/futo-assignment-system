@@ -7,9 +7,19 @@ exports.applyLecturer = async (req, res) => {
     try {
         const { fullName, email, staffId, department, rank, specialization, password } = req.body;
 
+        console.log('=== LECTURER APPLICATION SUBMISSION ===');
+        console.log('Name:', fullName);
+        console.log('Email:', email);
+        console.log('Staff ID:', staffId);
+        console.log('Rank:', rank);
+
         // Check if user already exists
-        const existingUser = await User.findOne({ $or: [{ email }, { staffId }] });
+        const existingUser = await User.findOne({ 
+            $or: [{ email }, { staffId }] 
+        });
+        
         if (existingUser) {
+            console.log('❌ User already exists:', existingUser.email);
             return res.status(400).json({
                 success: false,
                 message: 'A user with this email or staff ID already exists.'
@@ -19,15 +29,15 @@ exports.applyLecturer = async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create pending lecturer
+        // Create pending lecturer with all required fields
         const lecturer = new User({
-            fullName,
-            email,
+            fullName: fullName.trim(),
+            email: email.trim().toLowerCase(),
             password: hashedPassword,
-            staffId,
-            department,
-            rank,
-            specialization,
+            staffId: staffId.trim(),
+            department: department || 'Information Technology',
+            rank: rank || 'Lecturer',
+            specialization: specialization || '',
             role: 'lecturer',
             isActive: false,
             isApproved: false,
@@ -35,6 +45,11 @@ exports.applyLecturer = async (req, res) => {
         });
 
         await lecturer.save();
+        
+        console.log('✅ Lecturer application saved successfully!');
+        console.log('   ID:', lecturer._id);
+        console.log('   Name:', lecturer.fullName);
+        console.log('   Status:', lecturer.status);
 
         res.status(201).json({
             success: true,
@@ -48,7 +63,7 @@ exports.applyLecturer = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Lecturer application error:', error);
+        console.error('❌ Lecturer application error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to submit application.',
@@ -60,11 +75,21 @@ exports.applyLecturer = async (req, res) => {
 // Get all pending applications (Admin only)
 exports.getPendingApplications = async (req, res) => {
     try {
+        console.log('=== FETCHING PENDING APPLICATIONS ===');
+        
         const pendingLecturers = await User.find({
             role: 'lecturer',
             isApproved: false,
             status: 'pending'
-        }).select('-password');
+        }).select('-password').sort({ createdAt: -1 });
+
+        console.log(`✅ Found ${pendingLecturers.length} pending application(s)`);
+        
+        if (pendingLecturers.length > 0) {
+            pendingLecturers.forEach((lecturer, index) => {
+                console.log(`   ${index + 1}. ${lecturer.fullName} (${lecturer.email})`);
+            });
+        }
 
         res.status(200).json({
             success: true,
@@ -72,7 +97,7 @@ exports.getPendingApplications = async (req, res) => {
             data: pendingLecturers
         });
     } catch (error) {
-        console.error('Get pending applications error:', error);
+        console.error('❌ Get pending applications error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to fetch pending applications.',
@@ -86,8 +111,13 @@ exports.approveLecturer = async (req, res) => {
     try {
         const { id } = req.params;
 
+        console.log('=== APPROVING LECTURER APPLICATION ===');
+        console.log('ID:', id);
+
         const lecturer = await User.findById(id);
+        
         if (!lecturer) {
+            console.log('❌ Lecturer not found');
             return res.status(404).json({
                 success: false,
                 message: 'Lecturer not found.'
@@ -95,18 +125,39 @@ exports.approveLecturer = async (req, res) => {
         }
 
         if (lecturer.role !== 'lecturer') {
+            console.log('❌ User is not a lecturer');
             return res.status(400).json({
                 success: false,
                 message: 'User is not a lecturer.'
             });
         }
 
+        if (lecturer.status === 'approved') {
+            console.log('⚠️ Lecturer already approved');
+            return res.status(400).json({
+                success: false,
+                message: 'This lecturer has already been approved.'
+            });
+        }
+
+        // Update lecturer status
         lecturer.isActive = true;
         lecturer.isApproved = true;
         lecturer.status = 'approved';
         await lecturer.save();
 
+        console.log('✅ Lecturer approved successfully!');
+        console.log('   Name:', lecturer.fullName);
+        console.log('   Email:', lecturer.email);
+        console.log('   Staff ID:', lecturer.staffId);
+
         // TODO: Send email notification to lecturer
+        // try {
+        //     const emailHtml = emailTemplates.lecturerApproved(lecturer.fullName);
+        //     await sendEmail(lecturer.email, '🎓 Lecturer Application Approved', emailHtml);
+        // } catch (emailError) {
+        //     console.error('Failed to send approval email:', emailError.message);
+        // }
 
         res.status(200).json({
             success: true,
@@ -120,7 +171,7 @@ exports.approveLecturer = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Approve lecturer error:', error);
+        console.error('❌ Approve lecturer error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to approve lecturer.',
@@ -134,8 +185,13 @@ exports.rejectLecturer = async (req, res) => {
     try {
         const { id } = req.params;
 
+        console.log('=== REJECTING LECTURER APPLICATION ===');
+        console.log('ID:', id);
+
         const lecturer = await User.findById(id);
+        
         if (!lecturer) {
+            console.log('❌ Lecturer not found');
             return res.status(404).json({
                 success: false,
                 message: 'Lecturer not found.'
@@ -143,18 +199,38 @@ exports.rejectLecturer = async (req, res) => {
         }
 
         if (lecturer.role !== 'lecturer') {
+            console.log('❌ User is not a lecturer');
             return res.status(400).json({
                 success: false,
                 message: 'User is not a lecturer.'
             });
         }
 
+        if (lecturer.status === 'rejected') {
+            console.log('⚠️ Lecturer already rejected');
+            return res.status(400).json({
+                success: false,
+                message: 'This lecturer has already been rejected.'
+            });
+        }
+
+        // Update lecturer status
         lecturer.status = 'rejected';
         lecturer.isActive = false;
         lecturer.isApproved = false;
         await lecturer.save();
 
+        console.log('❌ Lecturer rejected');
+        console.log('   Name:', lecturer.fullName);
+        console.log('   Email:', lecturer.email);
+
         // TODO: Send email notification to lecturer
+        // try {
+        //     const emailHtml = emailTemplates.lecturerRejected(lecturer.fullName);
+        //     await sendEmail(lecturer.email, '📧 Lecturer Application Status', emailHtml);
+        // } catch (emailError) {
+        //     console.error('Failed to send rejection email:', emailError.message);
+        // }
 
         res.status(200).json({
             success: true,
@@ -168,10 +244,45 @@ exports.rejectLecturer = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Reject lecturer error:', error);
+        console.error('❌ Reject lecturer error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to reject lecturer.',
+            error: error.message
+        });
+    }
+};
+
+// Get all lecturer applications (Admin only) - NEW
+exports.getAllApplications = async (req, res) => {
+    try {
+        console.log('=== FETCHING ALL LECTURER APPLICATIONS ===');
+        
+        const allLecturers = await User.find({
+            role: 'lecturer'
+        }).select('-password').sort({ createdAt: -1 });
+
+        const pending = allLecturers.filter(l => l.status === 'pending');
+        const approved = allLecturers.filter(l => l.status === 'approved');
+        const rejected = allLecturers.filter(l => l.status === 'rejected');
+
+        console.log(`✅ Total: ${allLecturers.length} | Pending: ${pending.length} | Approved: ${approved.length} | Rejected: ${rejected.length}`);
+
+        res.status(200).json({
+            success: true,
+            count: allLecturers.length,
+            data: allLecturers,
+            stats: {
+                pending: pending.length,
+                approved: approved.length,
+                rejected: rejected.length
+            }
+        });
+    } catch (error) {
+        console.error('❌ Get all applications error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch applications.',
             error: error.message
         });
     }
@@ -182,9 +293,14 @@ exports.createAdmin = async (req, res) => {
     try {
         const { fullName, email, password, department, secretCode } = req.body;
 
+        console.log('=== CREATING ADMIN ===');
+        console.log('Name:', fullName);
+        console.log('Email:', email);
+
         // Verify admin secret code
         const ADMIN_SECRET = process.env.ADMIN_SECRET || 'FUTO-ADMIN-2025';
         if (secretCode !== ADMIN_SECRET) {
+            console.log('❌ Invalid admin secret code');
             return res.status(403).json({
                 success: false,
                 message: 'Invalid admin secret code.'
@@ -194,6 +310,7 @@ exports.createAdmin = async (req, res) => {
         // Check if admin already exists
         const existingAdmin = await User.findOne({ email });
         if (existingAdmin) {
+            console.log('❌ Admin already exists');
             return res.status(400).json({
                 success: false,
                 message: 'Admin with this email already exists.'
@@ -205,10 +322,10 @@ exports.createAdmin = async (req, res) => {
 
         // Create admin
         const admin = new User({
-            fullName,
-            email,
+            fullName: fullName.trim(),
+            email: email.trim().toLowerCase(),
             password: hashedPassword,
-            department,
+            department: department || 'Information Technology',
             role: 'admin',
             isActive: true,
             isApproved: true,
@@ -216,6 +333,10 @@ exports.createAdmin = async (req, res) => {
         });
 
         await admin.save();
+
+        console.log('✅ Admin created successfully!');
+        console.log('   Name:', admin.fullName);
+        console.log('   Email:', admin.email);
 
         res.status(201).json({
             success: true,
@@ -228,7 +349,7 @@ exports.createAdmin = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Create admin error:', error);
+        console.error('❌ Create admin error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to create admin.',

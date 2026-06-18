@@ -21,10 +21,13 @@ let currentAppId = null;
 // ========== LOAD APPLICATIONS ==========
 async function loadApplications() {
     try {
+        console.log('Fetching applications...');
         const response = await fetch(`${API_URL}/api/admin/pending-applications`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
+
+        console.log('Applications response:', data);
 
         if (data.success) {
             applications = data.data || [];
@@ -67,13 +70,14 @@ function renderApplications() {
 function updateStats() {
     const pending = applications.filter(a => a.status === 'pending').length;
     const approved = applications.filter(a => a.status === 'approved').length;
+    const total = applications.length;
 
     const totalEl = document.getElementById('totalApps');
     const pendingEl = document.getElementById('pendingApps');
     const approvedEl = document.getElementById('approvedApps');
     const countBadge = document.getElementById('pendingCount');
 
-    if (totalEl) totalEl.textContent = applications.length;
+    if (totalEl) totalEl.textContent = total;
     if (pendingEl) pendingEl.textContent = pending;
     if (approvedEl) approvedEl.textContent = approved;
     if (countBadge) countBadge.textContent = pending;

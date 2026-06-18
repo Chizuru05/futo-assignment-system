@@ -7,10 +7,16 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['student', 'lecturer', 'admin'], required: true },
+    
+    // Student-specific fields
     matricNumber: { type: String, unique: true, sparse: true },
     level: { type: String, enum: ['100', '200', '300', '400', '500'], default: '500' },
+    
+    // Lecturer-specific fields
     staffId: { type: String, unique: true, sparse: true },
     rank: { type: String, default: 'Lecturer' },
+    
+    // Common fields
     department: { type: String, default: 'Information Technology' },
     faculty: { type: String, default: 'Computing' },
     phone: { type: String, default: '' },
@@ -23,6 +29,16 @@ const userSchema = new mongoose.Schema({
     bio: { type: String, default: '' },
     research: { type: String, default: '' },
     profilePic: { type: String, default: '' },
+    
+    // Lecturer application fields
+    isApproved: { type: Boolean, default: false },
+    status: { 
+        type: String, 
+        enum: ['pending', 'approved', 'rejected', 'active'], 
+        default: 'pending' 
+    },
+    isActive: { type: Boolean, default: false },
+    
     // Student-specific
     stateOfOrigin: { type: String, default: '' },
     lga: { type: String, default: '' },
@@ -34,6 +50,7 @@ const userSchema = new mongoose.Schema({
     guardianPhone: { type: String, default: '' },
     guardianEmail: { type: String, default: '' },
     guardianAddress: { type: String, default: '' },
+    
     createdAt: { type: Date, default: Date.now }
 });
 
