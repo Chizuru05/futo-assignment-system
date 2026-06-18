@@ -21,16 +21,30 @@ async function loadSettings() {
         const data = await response.json();
         
         if (data.success) {
-            document.getElementById('activeSession').value = data.settings.activeSession;
-            document.querySelector(`input[name="semester"][value="${data.settings.activeSemester}"]`).checked = true;
-            document.getElementById('displaySession').textContent = data.settings.activeSession;
-            document.getElementById('displaySemester').textContent = data.settings.activeSemester;
-            document.getElementById('lastUpdated').textContent = new Date(data.settings.updatedAt).toLocaleString();
+            const sessionSelect = document.getElementById('activeSession');
+            if (sessionSelect) {
+                sessionSelect.value = data.settings.activeSession;
+            }
+            
+            const semesterRadios = document.querySelectorAll('input[name="semester"]');
+            semesterRadios.forEach(radio => {
+                radio.checked = radio.value === data.settings.activeSemester;
+            });
+            
+            const displaySession = document.getElementById('displaySession');
+            const displaySemester = document.getElementById('displaySemester');
+            const lastUpdated = document.getElementById('lastUpdated');
+            
+            if (displaySession) displaySession.textContent = data.settings.activeSession;
+            if (displaySemester) displaySemester.textContent = data.settings.activeSemester;
+            if (lastUpdated) lastUpdated.textContent = new Date(data.settings.updatedAt).toLocaleString();
             
             const sidebarSession = document.getElementById('sidebarSession');
             if (sidebarSession) {
                 sidebarSession.textContent = `${data.settings.activeSession} ${data.settings.activeSemester}`;
             }
+        } else {
+            showToast('Failed to load settings', 'danger');
         }
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -40,7 +54,7 @@ async function loadSettings() {
 
 async function saveSettings() {
     const activeSession = document.getElementById('activeSession').value;
-    const activeSemester = document.querySelector('input[name="semester"]:checked').value;
+    const activeSemester = document.querySelector('input[name="semester"]:checked')?.value;
     
     if (!activeSemester) {
         showToast('Please select a semester', 'warning');
@@ -90,7 +104,7 @@ function showToast(message, type = 'success') {
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -107,10 +121,15 @@ function setupTheme() {
 function setupSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
-    if (sidebarToggle) sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    }
 }
 
-document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
-setupTheme();
-setupSidebar();
-loadSettings();
+document.addEventListener('DOMContentLoaded', () => {
+    setupTheme();
+    setupSidebar();
+    loadSettings();
+});
+
+document.getElementById('saveSettingsBtn')?.addEventListener('click', saveSettings);

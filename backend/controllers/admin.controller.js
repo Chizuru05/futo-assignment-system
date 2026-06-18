@@ -93,7 +93,7 @@ exports.deleteUser = async (req, res) => {
     }
 };
 
-// ============ GET LECTURER'S REGISTERED COURSES - FIXED ============
+// ============ GET LECTURER'S REGISTERED COURSES ============
 exports.getLecturerCourses = async (req, res) => {
     try {
         const { lecturerId } = req.params;
@@ -117,7 +117,6 @@ exports.getLecturerCourses = async (req, res) => {
         console.log('Session:', activeSession);
         console.log('Semester:', activeSemester);
         
-        // For 2026-2027, return empty array immediately
         if (activeSession !== '2025-2026') {
             return res.status(200).json({
                 success: true,
@@ -127,11 +126,10 @@ exports.getLecturerCourses = async (req, res) => {
             });
         }
         
-        // FIXED: Filter by semester as well
         const lecturerCourses = await LecturerCourse.find({ 
             lecturerId: lecturerId, 
             status: 'active',
-            semester: activeSemester  // Add semester filter
+            semester: activeSemester
         });
         
         console.log(`Found ${lecturerCourses.length} courses for ${activeSemester} semester`);
@@ -445,7 +443,7 @@ exports.deleteCourse = async (req, res) => {
     }
 };
 
-// ============ STATISTICS ============
+// ============ STATISTICS - FIXED: Only count APPROVED lecturers ============
 
 exports.getStats = async (req, res) => {
     try {
@@ -492,7 +490,11 @@ exports.getStats = async (req, res) => {
         }).distinct('studentId');
         const totalStudents = students.length;
         
-        const totalLecturers = await User.countDocuments({ role: 'lecturer' });
+        // FIXED: Only count APPROVED lecturers (isApproved === true)
+        const totalLecturers = await User.countDocuments({ 
+            role: 'lecturer',
+            isApproved: true 
+        });
         
         console.log(`Stats: Courses=${totalCourses}, Students=${totalStudents}, Lecturers=${totalLecturers}`);
         

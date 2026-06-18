@@ -44,7 +44,7 @@ async function fetchActiveSettings() {
         if (data.success) {
             currentSession = data.settings.activeSession;
             currentSemester = data.settings.activeSemester;
-            console.log('âœ… Active settings from backend:', currentSession, currentSemester);
+            console.log('✅ Active settings from backend:', currentSession, currentSemester);
             
             // Update sidebar session info
             const sidebarSession = document.getElementById('sidebarSession');
@@ -69,10 +69,23 @@ async function loadDashboard() {
     contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading dashboard...</div>';
     
     try {
+        // Fetch stats
         const statsRes = await fetch(`${API_URL}/api/admin/stats?session=${currentSession}&semester=${currentSemester}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const statsData = await statsRes.json();
+        
+        // Fetch all users to count approved lecturers
+        const usersRes = await fetch(`${API_URL}/api/admin/users/all`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const usersData = await usersRes.json();
+        
+        // Count approved lecturers only
+        let approvedLecturers = 0;
+        if (usersData.success && usersData.users) {
+            approvedLecturers = usersData.users.filter(u => u.role === 'lecturer' && u.isApproved === true).length;
+        }
         
         if (statsData.success) {
             const stats = statsData.stats;
@@ -95,7 +108,7 @@ async function loadDashboard() {
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
                         <div class="stat-details">
-                            <h3>${stats.lecturers || 0}</h3>
+                            <h3>${approvedLecturers || 0}</h3>
                             <p>Lecturers</p>
                         </div>
                     </div>
@@ -223,10 +236,10 @@ function renderCoursesTable() {
                 <tbody>
                     ${allCourses.map(course => `
                         <tr>
-                            <td><strong>${escapeHtml(course.courseCode)}</strong></div>
-                            <td>${escapeHtml(course.courseTitle)}</div>
-                            <td>${course.level} Level</div>
-                            <td>${course.credits || 3}</div>
+                            <td><strong>${escapeHtml(course.courseCode)}</strong></td>
+                            <td>${escapeHtml(course.courseTitle)}</td>
+                            <td>${course.level} Level</td>
+                            <td>${course.credits || 3}</td>
                             <td>
                                 <button class="btn-icon" onclick="editCourse('${course._id}')" title="Edit">
                                     <i class="fa-regular fa-pen-to-square"></i>
@@ -234,7 +247,7 @@ function renderCoursesTable() {
                                 <button class="btn-icon danger" onclick="confirmDeleteCourse('${course._id}', '${course.courseCode}')" title="Delete">
                                     <i class="fa-regular fa-trash-can"></i>
                                 </button>
-                            </div>
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -289,7 +302,7 @@ async function saveCourse() {
         const data = await response.json();
         
         if (data.success) {
-            showToast(`âœ… Course added successfully for ${currentSemester} semester!`, 'success');
+            showToast(`✅ Course added successfully for ${currentSemester} semester!`, 'success');
             closeModal('courseModal');
             loadCourses();
         } else {
@@ -427,11 +440,12 @@ async function loadLecturers() {
             headers: { Authorization: `Bearer ${token}` }
         });
         const usersData = await usersRes.json();
-        const allLecturers = usersData.users?.filter(u => u.role === 'lecturer') || [];
+        // Only show approved lecturers
+        const allLecturers = usersData.users?.filter(u => u.role === 'lecturer' && u.isApproved === true) || [];
         
         if (allLecturers.length === 0) {
             document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-                '<div class="empty-state">No lecturers registered</div>';
+                '<div class="empty-state">No approved lecturers registered</div>';
             return;
         }
         
@@ -510,10 +524,10 @@ function renderLecturersTable(lecturers) {
                         <tbody>
                             ${courses.map(c => `
                                 <tr>
-                                    <td><strong>${c.courseCode}</strong></div>
-                                    <td>${escapeHtml(c.courseTitle)}</div>
-                                    <td>${c.level} Level</div>
-                                    <td>${c.credits || 3}</div>
+                                    <td><strong>${c.courseCode}</strong></td>
+                                    <td>${escapeHtml(c.courseTitle)}</td>
+                                    <td>${c.level} Level</td>
+                                    <td>${c.credits || 3}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -629,9 +643,9 @@ function renderStudentsGrouped(groupedData) {
                             <tbody>
                                 ${studentsList.map(s => `
                                     <tr>
-                                        <td><strong>${escapeHtml(s.name)}</strong></div>
-                                        <td>${s.matricNumber || 'N/A'}</div>
-                                        <td>${s.email || 'N/A'}</div>
+                                        <td><strong>${escapeHtml(s.name)}</strong></td>
+                                        <td>${s.matricNumber || 'N/A'}</td>
+                                        <td>${s.email || 'N/A'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -686,7 +700,7 @@ function showToast(message, type = 'success') {
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}<button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}<button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }

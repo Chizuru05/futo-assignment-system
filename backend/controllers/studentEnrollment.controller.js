@@ -20,7 +20,6 @@ exports.getAvailableCourses = async (req, res) => {
         const { level } = req.query;
         const studentId = req.user.id;
         
-        // Get active settings from database
         const activeSettings = await getActiveSettings();
         const activeSession = activeSettings.session;
         const activeSemester = activeSettings.semester;
@@ -31,7 +30,6 @@ exports.getAvailableCourses = async (req, res) => {
         console.log('Active Session:', activeSession);
         console.log('Active Semester:', activeSemester);
         
-        // Get courses for the student's level and active semester
         let query = { semester: activeSemester };
         if (level && level !== 'all') {
             query.level = level;
@@ -39,7 +37,6 @@ exports.getAvailableCourses = async (req, res) => {
         
         const allCourses = await Course.find(query).sort({ courseCode: 1 });
         
-        // Get already enrolled courses for active session/semester
         const enrolled = await Enrollment.find({
             studentId,
             session: activeSession,
@@ -48,7 +45,6 @@ exports.getAvailableCourses = async (req, res) => {
         
         const enrolledIds = enrolled.map(e => e.courseId.toString());
         
-        // Filter out already enrolled courses
         const availableCourses = allCourses.filter(c => !enrolledIds.includes(c._id.toString()));
         
         res.status(200).json({
@@ -76,7 +72,6 @@ exports.registerCourses = async (req, res) => {
         const { courses } = req.body;
         const studentId = req.user.id;
         
-        // Get active settings from database
         const activeSettings = await getActiveSettings();
         const activeSession = activeSettings.session;
         const activeSemester = activeSettings.semester;
@@ -104,13 +99,11 @@ exports.registerCourses = async (req, res) => {
                 continue;
             }
             
-            // Check if course semester matches active semester
             if (course.semester !== activeSemester) {
                 skipped.push({ courseId, courseCode: course.courseCode, reason: `Course not available for ${activeSemester} semester` });
                 continue;
             }
             
-            // Check if already enrolled
             const existing = await Enrollment.findOne({
                 studentId,
                 courseId,
@@ -162,11 +155,11 @@ exports.getMyCourses = async (req, res) => {
     try {
         const studentId = req.user.id;
         
-        // Get active settings from database
         const activeSettings = await getActiveSettings();
         const activeSession = activeSettings.session;
         const activeSemester = activeSettings.semester;
         
+        // Get all enrollments for the student
         const enrollments = await Enrollment.find({
             studentId,
             session: activeSession,
@@ -226,7 +219,6 @@ exports.dropCourse = async (req, res) => {
         const { courseId } = req.body;
         const studentId = req.user.id;
         
-        // Get active settings from database
         const activeSettings = await getActiveSettings();
         const activeSession = activeSettings.session;
         const activeSemester = activeSettings.semester;
@@ -244,7 +236,6 @@ exports.dropCourse = async (req, res) => {
             });
         }
         
-        // Find the enrollment
         const enrollment = await Enrollment.findOne({
             studentId: studentId,
             courseId: courseId,
@@ -259,7 +250,6 @@ exports.dropCourse = async (req, res) => {
             });
         }
         
-        // Check if there are any pending submissions
         const assignments = await Assignment.find({ course: enrollment.courseCode });
         const assignmentIds = assignments.map(a => a._id);
         
@@ -276,7 +266,6 @@ exports.dropCourse = async (req, res) => {
             });
         }
         
-        // Delete the enrollment
         const result = await Enrollment.findOneAndDelete({
             studentId: studentId,
             courseId: courseId,

@@ -11,9 +11,14 @@ if (!token || userRole !== 'admin') {
     window.location.href = 'login.html';
 }
 
+// Set admin name
+const adminNameEl = document.getElementById('adminName');
+if (adminNameEl) adminNameEl.textContent = localStorage.getItem('fullName') || 'Administrator';
+
 let applications = [];
 let currentAppId = null;
 
+// ========== LOAD APPLICATIONS ==========
 async function loadApplications() {
     try {
         const response = await fetch(`${API_URL}/api/admin/pending-applications`, {
@@ -39,7 +44,7 @@ function renderApplications() {
     if (!tbody) return;
 
     if (applications.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No pending applications</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No pending applications</p></td></tr>';
         return;
     }
 
@@ -48,9 +53,8 @@ function renderApplications() {
             <td><strong>${escapeHtml(app.fullName)}</strong></td>
             <td>${escapeHtml(app.email)}</td>
             <td>${escapeHtml(app.staffId || 'N/A')}</td>
-            <td>${escapeHtml(app.department || 'N/A')}</td>
             <td>${escapeHtml(app.rank || 'N/A')}</td>
-            <td><span style="padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;background:#fff3e0;color:#f59e0b">${app.status || 'pending'}</span></td>
+            <td><span class="status-badge" style="background:#fff3e0;color:#f59e0b;padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status || 'pending'}</span></td>
             <td>
                 <button class="btn-icon" onclick="viewDetail('${app._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
                 <button class="btn-icon" onclick="approveApplication('${app._id}')" title="Approve" style="color:#2a7a4b"><i class="fa-solid fa-check"></i></button>
@@ -83,13 +87,15 @@ function viewDetail(id) {
     const body = document.getElementById('detailBody');
     if (body) {
         body.innerHTML = `
-            <p><strong>Name:</strong> ${escapeHtml(app.fullName)}</p>
-            <p><strong>Email:</strong> ${escapeHtml(app.email)}</p>
-            <p><strong>Staff ID:</strong> ${escapeHtml(app.staffId || 'N/A')}</p>
-            <p><strong>Department:</strong> ${escapeHtml(app.department || 'N/A')}</p>
-            <p><strong>Rank:</strong> ${escapeHtml(app.rank || 'N/A')}</p>
-            <p><strong>Specialization:</strong> ${escapeHtml(app.specialization || 'N/A')}</p>
-            <p><strong>Status:</strong> ${app.status}</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+                <div><strong>Name:</strong></div><div>${escapeHtml(app.fullName)}</div>
+                <div><strong>Email:</strong></div><div>${escapeHtml(app.email)}</div>
+                <div><strong>Staff ID:</strong></div><div>${escapeHtml(app.staffId || 'N/A')}</div>
+                <div><strong>Department:</strong></div><div>${escapeHtml(app.department || 'Information Technology')}</div>
+                <div><strong>Rank:</strong></div><div>${escapeHtml(app.rank || 'N/A')}</div>
+                <div><strong>Specialization:</strong></div><div>${escapeHtml(app.specialization || 'N/A')}</div>
+                <div><strong>Status:</strong></div><div><span style="background:#fff3e0;color:#f59e0b;padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status}</span></div>
+            </div>
         `;
     }
 
@@ -148,7 +154,12 @@ async function rejectApplication(id) {
 
 function showToast(message, type = 'success') {
     let container = document.getElementById('toastContainer');
-    if (!container) { container = document.createElement('div'); container.id = 'toastContainer'; container.className = 'toast-container'; document.body.appendChild(container); }
+    if (!container) { 
+        container = document.createElement('div'); 
+        container.id = 'toastContainer'; 
+        container.className = 'toast-container'; 
+        document.body.appendChild(container); 
+    }
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;margin-left:auto">&times;</button>`;
@@ -170,8 +181,22 @@ function setupTheme() {
     if (localStorage.getItem('futoTheme') === 'dark') document.body.classList.add('dark');
 }
 
+function setupSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const menuBtn = document.getElementById('menuBtn');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    }
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setupTheme();
+    setupSidebar();
     loadApplications();
 });
 
