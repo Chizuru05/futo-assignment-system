@@ -56,6 +56,7 @@ async function fetchCourses() {
             const data = await response.json();
             if (data.success && data.courses) {
                 allCourses = data.courses;
+                window._uniqueStudentCount = data.uniqueStudentCount || 0;
                 showToast(`Loaded ${allCourses.length} courses`, 'success');
             } else {
                 allCourses = [];
@@ -157,7 +158,7 @@ function renderCourses() {
 
 function updateStats() {
     const totalCourses = allCourses.length;
-    const totalStudents = allCourses.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+    const totalStudents = window._uniqueStudentCount || 0;
     
     const totalCoursesEl = document.getElementById('totalCourses');
     const totalStudentsEl = document.getElementById('totalStudents');

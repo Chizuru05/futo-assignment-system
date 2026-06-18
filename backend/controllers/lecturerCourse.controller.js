@@ -327,6 +327,23 @@ exports.getMyCourses = async (req, res) => {
                 pendingSubmissions
             };
         }));
+        // Count unique students across ALL courses
+        const allCourseIds = courses.map(c => c.courseId);
+        const uniqueStudents = await Enrollment.distinct('studentId', {
+            courseId: { $in: allCourseIds },
+            session: activeSession,
+            semester: activeSemester,
+            status: 'active'
+        });
+
+        res.status(200).json({
+            success: true,
+            count: coursesWithStats.length,
+            courses: coursesWithStats,
+            uniqueStudentCount: uniqueStudents.length,  // ADD THIS
+            activeSession,
+            activeSemester
+        });
         
         res.status(200).json({
             success: true,
