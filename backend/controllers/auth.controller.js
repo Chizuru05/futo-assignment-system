@@ -36,14 +36,11 @@ exports.register = async (req, res) => {
             if (!matricNumber) return res.status(400).json({ success: false, message: 'Matric number required' });
             userData.matricNumber = matricNumber;
             userData.level = level || '500';
-            // Students DO NOT get rank
         } else if (role === 'lecturer') {
             if (!staffId) return res.status(400).json({ success: false, message: 'Staff ID required' });
             userData.staffId = staffId;
             userData.rank = rank || 'Lecturer';
-            // Lecturers DO NOT get level
         }
-        // Admin - only basic fields, no level, no rank
         
         const user = new User(userData);
         await user.save();
@@ -78,7 +75,7 @@ exports.register = async (req, res) => {
     }
 };
 
-// Login user
+// Login user - FIXED to allow approved lecturers
 exports.login = async (req, res) => {
     try {
         const { identifier, password } = req.body;
@@ -86,25 +83,61 @@ exports.login = async (req, res) => {
         console.log('=== LOGIN REQUEST ===');
         console.log('Identifier:', identifier);
         
+        // Find user by email, matricNumber, or staffId
         let user = await User.findOne({ email: identifier });
         if (!user) user = await User.findOne({ matricNumber: identifier });
         if (!user) user = await User.findOne({ staffId: identifier });
         
         if (!user) {
+            console.log('❌ User not found');
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
         
+        console.log('✅ User found:', user.fullName);
+        console.log('Role:', user.role);
+        console.log('Status:', user.status);
+        console.log('isActive:', user.isActive);
+        console.log('isApproved:', user.isApproved);
+        
+        // Check if user is active (for lecturers, check if approved)
+        if (user.role === 'lecturer') {
+            if (!user.isApproved) {
+                console.log('❌ Lecturer not approved');
+                return res.status(401).json({ 
+                    success: false, 
+                    message: 'Your account is pending approval. Please wait for admin approval.' 
+                });
+            }
+            if (!user.isActive) {
+                console.log('❌ Lecturer not active');
+                return res.status(401).json({ 
+                    success: false, 
+                    message: 'Your account is not active. Please contact admin.' 
+                });
+            }
+        }
+        
+        // Check password
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
+            console.log('❌ Password does not match');
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
+        
+        console.log('✅ Password matched!');
         
         const token = generateToken(user._id, user.role);
         
         const userResponse = user.toObject();
         delete userResponse.password;
         
-        res.status(200).json({ success: true, message: 'Login successful', user: userResponse, token, role: user.role });
+        res.status(200).json({ 
+            success: true, 
+            message: 'Login successful', 
+            user: userResponse, 
+            token, 
+            role: user.role 
+        });
         
     } catch (error) {
         console.error('Login error:', error);
