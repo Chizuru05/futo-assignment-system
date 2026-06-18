@@ -1,5 +1,6 @@
-﻿// lecturer-students.js
+﻿javascript
 
+// lecturer-students.js
 
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
@@ -17,7 +18,10 @@ const lecturerName = localStorage.getItem('fullName') || 'Dr. Lecturer';
 const staffId = localStorage.getItem('staffId') || 'STAFF/2024/001';
 const lecturerRank = localStorage.getItem('rank') || 'Senior Lecturer';
 
+// allStudents = raw array from API (one row per student per course)
+// uniqueStudents = merged array (one row per student, courses combined)
 let allStudents = [];
+let uniqueStudents = [];
 let enrolledCourses = [];
 let currentPage = 1;
 const itemsPerPage = 10;
@@ -48,6 +52,41 @@ if (lecturerNameEl) lecturerNameEl.textContent = lecturerName;
 if (lecturerRankEl) lecturerRankEl.textContent = lecturerRank;
 if (staffIdEl) staffIdEl.textContent = staffId;
 
+// ========== MERGE DUPLICATE STUDENTS ==========
+function mergeStudents(rawStudents) {
+    const map = new Map();
+
+    for (const s of rawStudents) {
+        const id = s.userId;
+        if (!map.has(id)) {
+            map.set(id, {
+                userId: s.userId,
+                name: s.name,
+                email: s.email,
+                matricNumber: s.matricNumber,
+                level: s.level,
+                courses: [],
+                totalAssignments: 0,
+                submittedCount: 0,
+                pendingSubmissions: 0
+            });
+        }
+        const student = map.get(id);
+        student.courses.push({
+            courseCode: s.courseCode,
+            courseTitle: s.courseTitle,
+            totalAssignments: s.totalAssignments || 0,
+            submittedCount: s.submittedCount || 0,
+            pendingSubmissions: s.pendingSubmissions || 0
+        });
+        student.totalAssignments += s.totalAssignments || 0;
+        student.submittedCount += s.submittedCount || 0;
+        student.pendingSubmissions += s.pendingSubmissions || 0;
+    }
+
+    return Array.from(map.values());
+}
+
 async function fetchData() {
     showLoading(true);
     try {
@@ -68,27 +107,35 @@ async function fetchData() {
 
         if (studentsData.success) {
             allStudents = studentsData.students || [];
-            if (totalStudentsEl) totalStudentsEl.textContent = allStudents.length;
 
-            const pendingCount = allStudents.reduce((sum, s) => sum + (s.pendingSubmissions || 0), 0);
+            // Merge into unique students
+            uniqueStudents = mergeStudents(allStudents);
+
+            // Show unique student count
+            if (totalStudentsEl) totalStudentsEl.textContent = uniqueStudents.length;
+
+            // Total pending across all
+            const pendingCount = uniqueStudents.reduce((sum, s) => sum + (s.pendingSubmissions || 0), 0);
             if (pendingSubmissionsEl) pendingSubmissionsEl.textContent = pendingCount;
             if (pendingSubmissionsBadge) pendingSubmissionsBadge.textContent = pendingCount > 0 ? pendingCount : '';
 
             renderTable();
-            showToast(`Loaded ${allStudents.length} students`, 'success');
+            showToast(`Loaded ${uniqueStudents.length} students`, 'success');
         } else {
             showToast(studentsData.message || 'Failed to load students', 'danger');
             allStudents = [];
+            uniqueStudents = [];
             renderTable();
         }
 
         if (semesterDisplay) {
-            semesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} Â· ${currentSemester}`;
+            semesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} · ${currentSemester}`;
         }
     } catch (error) {
         console.error('Error fetching data:', error);
         showToast('Failed to load data', 'danger');
         allStudents = [];
+        uniqueStudents = [];
         renderTable();
     } finally {
         showLoading(false);
@@ -109,11 +156,16 @@ function updateCourseFilter() {
 function renderTable() {
     if (!studentsTableBody) return;
 
-    let filtered = [...allStudents];
+    let filtered = [...uniqueStudents];
 
+    // Filter by course — keep student if any of their courses match
     if (currentFilter !== 'all') {
-        filtered = filtered.filter(s => s.courseCode === currentFilter);
+        filtered = filtered.filter(s =>
+            s.courses.some(c => c.courseCode === currentFilter)
+        );
     }
+
+    // Search
     if (searchTerm) {
         const term = searchTerm.toLowerCase();
         filtered = filtered.filter(s =>
@@ -123,6 +175,7 @@ function renderTable() {
         );
     }
 
+    // Sort
     filtered.sort((a, b) => {
         if (currentSort === 'name') return (a.name || '').localeCompare(b.name || '');
         if (currentSort === 'matric') return (a.matricNumber || '').localeCompare(b.matricNumber || '');
@@ -135,23 +188,25 @@ function renderTable() {
     const paginated = filtered.slice(start, start + itemsPerPage);
 
     if (paginated.length === 0) {
-        studentsTableBody.innerHTML = `<tr><td colspan="7" class="text-center"><i class="fa-regular fa-folder-open" style="font-size:2rem;opacity:0.5;"></i><p>No students found</p></td></tr>`;
+        studentsTableBody.innerHTML = `<tr><td colspan="6" class="text-center"><i class="fa-regular fa-folder-open" style="font-size:2rem;opacity:0.5;display:block;margin-bottom:0.5rem;"></i><p>No students found</p></td></tr>`;
         updatePagination(totalPages);
         return;
     }
 
-    // FIXED: All closing tags are now </td> not </div>
     studentsTableBody.innerHTML = paginated.map(student => {
-        const submissionsText = `${student.submittedCount || 0}/${student.totalAssignments || 0}`;
         const percentage = student.totalAssignments > 0
-            ? ((student.submittedCount || 0) / student.totalAssignments) * 100
+            ? Math.round((student.submittedCount / student.totalAssignments) * 100)
             : 0;
 
-        let statusClass = 'warning';
-        let statusText = 'In Progress';
+        let statusClass = 'danger';
+        let statusText = 'Not Started';
         if (percentage === 100) { statusClass = 'success'; statusText = 'Completed'; }
         else if (percentage >= 50) { statusClass = 'active'; statusText = 'Active'; }
-        else if (percentage === 0) { statusClass = 'danger'; statusText = 'Not Started'; }
+        else if (percentage > 0) { statusClass = 'warning'; statusText = 'In Progress'; }
+
+        const coursesBadges = student.courses.map(c =>
+            `<span style="background:var(--primary-light,#e8f5e9);color:var(--primary,#2a7a4b);padding:2px 8px;border-radius:12px;font-size:0.72rem;font-weight:600;margin:2px;display:inline-block;">${c.courseCode}</span>`
+        ).join('');
 
         return `
             <tr style="cursor:pointer;" onclick="viewStudentDetails('${student.userId}')">
@@ -165,27 +220,24 @@ function renderTable() {
                     </div>
                 </td>
                 <td>${student.matricNumber || 'N/A'}</td>
-                <td>${student.courseCode || 'N/A'}</td>
                 <td>${student.level || '500'}</td>
+                <td><div style="display:flex;flex-wrap:wrap;gap:2px;">${coursesBadges}</div></td>
                 <td>
                     <div class="submission-progress">
-                        <span class="progress-value">${submissionsText}</span>
+                        <span class="progress-value">${student.submittedCount}/${student.totalAssignments}</span>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width:${percentage}%"></div>
                         </div>
                     </div>
                 </td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>
-                    <div class="action-buttons" onclick="event.stopPropagation()">
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    <div class="action-buttons" onclick="event.stopPropagation()" style="margin-top:4px;">
                         <button class="btn-icon" onclick="viewStudentDetails('${student.userId}')" title="View Details">
                             <i class="fa-regular fa-eye"></i>
                         </button>
-                        <button class="btn-icon" onclick="viewStudentSubmissions('${student.userId}', '${student.courseCode}')" title="View Submissions">
+                        <button class="btn-icon" onclick="viewStudentSubmissions('${student.userId}', 'all')" title="View Submissions">
                             <i class="fa-regular fa-file"></i>
-                        </button>
-                        <button class="btn-icon" onclick="messageStudent('${student.userId}', '${escapeHtml(student.name)}')" title="Send Message">
-                            <i class="fa-regular fa-message"></i>
                         </button>
                     </div>
                 </td>
@@ -212,13 +264,21 @@ function updatePagination(totalPages) {
 }
 
 function changePage(page) {
-    const total = Math.ceil(allStudents.length / itemsPerPage);
+    const total = Math.ceil(uniqueStudents.length / itemsPerPage);
     if (page < 1 || page > total) return;
     currentPage = page;
     renderTable();
 }
 
+// ========== VIEW STUDENT DETAILS (MODAL) ==========
 async function viewStudentDetails(userId) {
+    // First check local data
+    const localStudent = uniqueStudents.find(s => s.userId === userId);
+    if (localStudent) {
+        showStudentModal(localStudent);
+        return;
+    }
+
     try {
         showToast('Loading student details...', 'info');
         const response = await fetch(`${API_URL}/api/lecturer/student/${userId}?session=${currentSession}&semester=${currentSemester}`, {
@@ -231,7 +291,6 @@ async function viewStudentDetails(userId) {
             showToast(data.message || 'Failed to load student details', 'danger');
         }
     } catch (error) {
-        console.error('Error loading student details:', error);
         showToast('Failed to load student details', 'danger');
     }
 }
@@ -242,11 +301,13 @@ function showStudentModal(student) {
     const modalBody = document.getElementById('studentModalBody');
     if (!modal || !modalBody) return;
 
-    if (modalTitle) modalTitle.textContent = `Student Details: ${student.name}`;
+    if (modalTitle) modalTitle.textContent = `${escapeHtml(student.name)}`;
 
     const percentage = student.totalAssignments > 0
-        ? ((student.submittedCount || 0) / student.totalAssignments) * 100
+        ? Math.round((student.submittedCount / student.totalAssignments) * 100)
         : 0;
+
+    const courses = student.courses || [];
 
     modalBody.innerHTML = `
         <div class="student-detail-header">
@@ -258,29 +319,39 @@ function showStudentModal(student) {
                 <p><i class="fa-solid fa-layer-group"></i> ${student.level || '500'} Level</p>
             </div>
         </div>
-        <div class="course-list">
-            <h4>Enrolled Courses</h4>
-            ${student.courses && student.courses.length > 0
-                ? student.courses.map(c => `
-                    <div class="course-item">
-                        <span class="course-name">${c.courseCode} - ${c.courseTitle}</span>
-                        <span class="course-grade">${c.submittedCount || 0}/${c.totalAssignments || 0} assignments</span>
-                    </div>`).join('')
-                : '<p>No courses enrolled</p>'}
+
+        <div style="margin:1rem 0;">
+            <h4 style="margin-bottom:0.8rem;font-size:0.95rem;">Enrolled Courses (${courses.length})</h4>
+            ${courses.length > 0 ? courses.map(c => {
+                const pct = c.totalAssignments > 0
+                    ? Math.round((c.submittedCount / c.totalAssignments) * 100)
+                    : 0;
+                return `
+                    <div style="padding:0.8rem;background:var(--bg-body,#f1f5f9);border-radius:10px;margin-bottom:0.6rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+                            <strong style="font-size:0.88rem;">${c.courseCode}${c.courseTitle ? ' — ' + escapeHtml(c.courseTitle) : ''}</strong>
+                            <span style="font-size:0.78rem;color:#64748b;">${c.submittedCount || 0}/${c.totalAssignments || 0} assignments</span>
+                        </div>
+                        <div style="height:6px;background:#e2e8f0;border-radius:4px;">
+                            <div style="height:6px;width:${pct}%;background:#2a7a4b;border-radius:4px;transition:width 0.3s;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('') : '<p style="color:#64748b;">No courses enrolled</p>'}
         </div>
-        <div style="margin-top:1rem;padding:1rem;background:var(--secondary);border-radius:12px;">
-            <h4>Overall Progress</h4>
-            <div class="submission-progress">
-                <span class="progress-value">${student.submittedCount || 0}/${student.totalAssignments || 0} completed</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width:${percentage}%"></div>
-                </div>
+
+        <div style="padding:1rem;background:var(--bg-body,#f1f5f9);border-radius:10px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                <strong style="font-size:0.9rem;">Overall Progress</strong>
+                <span style="font-size:0.85rem;color:#2a7a4b;font-weight:600;">${percentage}%</span>
             </div>
+            <div style="height:8px;background:#e2e8f0;border-radius:4px;">
+                <div style="height:8px;width:${percentage}%;background:#2a7a4b;border-radius:4px;transition:width 0.3s;"></div>
+            </div>
+            <p style="font-size:0.8rem;color:#64748b;margin-top:0.4rem;">${student.submittedCount || 0} of ${student.totalAssignments || 0} assignments submitted</p>
         </div>
     `;
 
-    modal.dataset.studentId = student.userId;
-    modal.dataset.studentName = student.name;
     modal.classList.add('show');
 }
 
@@ -290,7 +361,6 @@ function closeStudentModal() {
 }
 
 function viewStudentSubmissions(userId, courseCode) {
-    showToast('Loading submissions...', 'info');
     window.location.href = `lecturer-submissions.html?student=${userId}&course=${courseCode}`;
 }
 
@@ -322,7 +392,7 @@ function showToast(message, type = 'success', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icons = { success: 'fa-check-circle', danger: 'fa-exclamation-circle', warning: 'fa-triangle-exclamation', info: 'fa-info-circle' };
-    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);
 }
@@ -365,6 +435,14 @@ function initUI() {
 
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+    // Close modal on outside click
+    const modal = document.getElementById('studentModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeStudentModal();
+        });
+    }
 }
 
 function logout() {
