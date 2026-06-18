@@ -1,6 +1,4 @@
-﻿javascript
-
-// lecturer-students.js
+﻿// lecturer-students.js - COMPLETE FIXED VERSION (Option A: One row per student)
 
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
