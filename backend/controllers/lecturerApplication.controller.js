@@ -1,5 +1,6 @@
 // backend/controllers/lecturerApplication.controller.js
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 // Submit lecturer application
 exports.applyLecturer = async (req, res) => {
@@ -114,10 +115,6 @@ exports.approveLecturer = async (req, res) => {
         if (lecturer.status === 'approved') {
             return res.status(400).json({ success: false, message: 'Already approved.' });
         }
-
-        lecturer.isActive = true;
-        lecturer.isApproved = true;
-        lecturer.status = 'approved';
 
         // Use updateOne to avoid triggering pre-save password re-hash
         await User.updateOne(
