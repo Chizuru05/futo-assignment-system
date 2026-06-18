@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <script src="api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUTO Admin · Courses</title>
+    <title>FUTO Admin · Students</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
@@ -39,7 +39,7 @@
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="admin-courses.html" class="nav-item active">
+                <a href="admin-courses.html" class="nav-item">
                     <i class="fa-solid fa-book"></i>
                     <span>Courses</span>
                 </a>
@@ -47,7 +47,7 @@
                     <i class="fa-solid fa-chalkboard-user"></i>
                     <span>Lecturers</span>
                 </a>
-                <a href="admin-students.html" class="nav-item">
+                <a href="admin-students.html" class="nav-item active">
                     <i class="fa-solid fa-users"></i>
                     <span>Students</span>
                 </a>
@@ -84,7 +84,7 @@
                     <button class="menu-btn" id="menuBtn">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <h2>Courses</h2>
+                    <h2>Students</h2>
                 </div>
                 <div class="header-right">
                     <div class="theme-toggle" id="themeToggle">
@@ -101,57 +101,34 @@
                 <!-- Page Header -->
                 <div class="page-header">
                     <div>
-                        <h1 class="page-title">Manage Courses</h1>
-                        <p class="page-subtitle">View and manage all courses in the system</p>
+                        <h1 class="page-title">Students</h1>
+                        <p class="page-subtitle">View all students enrolled in the system</p>
                     </div>
-                    <button class="btn-primary" onclick="openAddCourseModal()">
-                        <i class="fa-solid fa-plus"></i> Add Course
-                    </button>
+                    <span class="current-semester">
+                        <i class="fa-regular fa-calendar"></i> ${currentSession || '2025-2026'} ${currentSemester || 'Harmattan'}
+                    </span>
                 </div>
 
                 <!-- Stats Cards -->
-                <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+                <div class="stats-grid" style="grid-template-columns:repeat(2,1fr)">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fa-solid fa-book"></i></div>
+                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                         <div class="stat-details">
-                            <h3 id="totalCourses">0</h3>
-                            <p>Total Courses</p>
+                            <h3 id="totalStudents">0</h3>
+                            <p>Total Students</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fa-solid fa-sun" style="color:#f59e0b;"></i></div>
+                        <div class="stat-icon"><i class="fa-solid fa-user-graduate" style="color:#8b5cf6;"></i></div>
                         <div class="stat-details">
-                            <h3 id="harmattanCourses">0</h3>
-                            <p>Harmattan</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fa-solid fa-cloud-rain" style="color:#3b82f6;"></i></div>
-                        <div class="stat-details">
-                            <h3 id="rainCourses">0</h3>
-                            <p>Rain</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fa-solid fa-layer-group" style="color:#8b5cf6;"></i></div>
-                        <div class="stat-details">
-                            <h3 id="bothCourses">0</h3>
-                            <p>Both Semesters</p>
+                            <h3 id="activeStudents">0</h3>
+                            <p>Active</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Filter Bar -->
                 <div class="filter-bar">
-                    <div class="filter-group">
-                        <label>Semester:</label>
-                        <select id="semesterFilter" class="filter-select">
-                            <option value="all">All</option>
-                            <option value="Harmattan">Harmattan</option>
-                            <option value="Rain">Rain</option>
-                            <option value="Both">Both</option>
-                        </select>
-                    </div>
                     <div class="filter-group">
                         <label>Level:</label>
                         <select id="levelFilter" class="filter-select">
@@ -163,6 +140,10 @@
                             <option value="500">500 Level</option>
                         </select>
                     </div>
+                    <div class="filter-group" style="flex:1;">
+                        <label>Search:</label>
+                        <input type="text" id="searchInput" class="filter-select" placeholder="Search by name or matric..." style="min-width:200px;">
+                    </div>
                     <button class="filter-btn" onclick="applyFilters()">
                         <i class="fa-solid fa-filter"></i> Apply Filters
                     </button>
@@ -171,26 +152,26 @@
                     </button>
                 </div>
 
-                <!-- Courses Table -->
+                <!-- Students Table -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fa-solid fa-list"></i> All Courses</h3>
-                        <span id="courseCount" class="badge">0 courses</span>
+                        <h3><i class="fa-solid fa-list"></i> All Students</h3>
+                        <span id="studentCount" class="badge">0 students</span>
                     </div>
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Code</th>
-                                    <th>Title</th>
+                                    <th>Name</th>
+                                    <th>Matric Number</th>
+                                    <th>Email</th>
                                     <th>Level</th>
-                                    <th>Semester</th>
-                                    <th>Credits</th>
+                                    <th>Department</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="coursesTableBody">
-                                <tr><td colspan="6" class="loading">Loading courses...</td></tr>
+                            <tbody id="studentsTableBody">
+                                <tr><td colspan="6" class="loading">Loading students...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -199,79 +180,9 @@
         </main>
     </div>
 
-    <!-- Add Course Modal -->
-    <div class="modal" id="courseModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Add New Course</h3>
-                <button class="modal-close" onclick="closeModal('courseModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Course Code <span class="required">*</span></label>
-                    <input type="text" id="courseCode" placeholder="e.g., IFT501" maxlength="10">
-                </div>
-                <div class="form-group">
-                    <label>Course Title <span class="required">*</span></label>
-                    <input type="text" id="courseTitle" placeholder="e.g., Cyber Security and Networks">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Level <span class="required">*</span></label>
-                        <select id="courseLevel">
-                            <option value="100">100 Level</option>
-                            <option value="200">200 Level</option>
-                            <option value="300">300 Level</option>
-                            <option value="400">400 Level</option>
-                            <option value="500" selected>500 Level</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Credits</label>
-                        <input type="number" id="courseCredits" value="3" min="1" max="6">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Semester <span class="required">*</span></label>
-                    <select id="courseSemester">
-                        <option value="Harmattan">Harmattan</option>
-                        <option value="Rain">Rain</option>
-                        <option value="Both">Both Semesters</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="courseDescription" rows="3" placeholder="Course description (optional)"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('courseModal')">Cancel</button>
-                <button class="btn-primary" id="saveCourseBtn">Save Course</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal" id="deleteModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirm Delete</h3>
-                <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete <strong id="deleteCourseName"></strong>?</p>
-                <p class="warning-text">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
-                <button class="btn-danger" id="confirmDeleteBtn">Delete Course</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="admin-courses.js"></script>
+    <script src="admin-students.js"></script>
 </body>
 </html>
