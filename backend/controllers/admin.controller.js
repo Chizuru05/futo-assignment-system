@@ -117,6 +117,7 @@ exports.getLecturerCourses = async (req, res) => {
         console.log('Session:', activeSession);
         console.log('Semester:', activeSemester);
         
+        // If session doesn't match, return empty
         if (activeSession !== '2025-2026') {
             return res.status(200).json({
                 success: true,
@@ -156,7 +157,7 @@ exports.getLecturerCourses = async (req, res) => {
     }
 };
 
-// ============ STUDENT MANAGEMENT - FIXED ============
+// ============ STUDENT MANAGEMENT ============
 exports.getStudentsGrouped = async (req, res) => {
     try {
         const { session, semester } = req.query;
@@ -173,6 +174,7 @@ exports.getStudentsGrouped = async (req, res) => {
         console.log('Active Session:', activeSession);
         console.log('Active Semester:', activeSemester);
         
+        // If session doesn't match, return empty
         if (activeSession !== '2025-2026') {
             return res.status(200).json({
                 success: true,
@@ -194,7 +196,6 @@ exports.getStudentsGrouped = async (req, res) => {
         
         // Group by level with unique students
         const groupedByLevel = {};
-        const uniqueStudentsByLevel = {};
         
         for (const enrollment of enrollments) {
             const student = enrollment.studentId;
@@ -204,7 +205,6 @@ exports.getStudentsGrouped = async (req, res) => {
             
             const level = student.level || '500';
             
-            // Initialize level grouping
             if (!groupedByLevel[level]) {
                 groupedByLevel[level] = {
                     level: level,
@@ -213,10 +213,8 @@ exports.getStudentsGrouped = async (req, res) => {
                 };
             }
             
-            // Add student to unique set for this level
             groupedByLevel[level].uniqueStudents.add(student._id.toString());
             
-            // Group by course
             const courseKey = course.courseCode;
             if (!groupedByLevel[level].courses[courseKey]) {
                 groupedByLevel[level].courses[courseKey] = {
@@ -227,7 +225,6 @@ exports.getStudentsGrouped = async (req, res) => {
                 };
             }
             
-            // Add student to course if not already added
             const existingStudent = groupedByLevel[level].courses[courseKey].students.find(
                 s => s.id === student._id.toString()
             );
@@ -243,7 +240,6 @@ exports.getStudentsGrouped = async (req, res) => {
             }
         }
         
-        // Build result
         const result = [];
         for (const level of Object.keys(groupedByLevel).sort((a, b) => parseInt(a) - parseInt(b))) {
             const levelData = groupedByLevel[level];
@@ -252,7 +248,7 @@ exports.getStudentsGrouped = async (req, res) => {
             result.push({
                 level: level,
                 courses: coursesArray,
-                totalStudents: levelData.uniqueStudents.size  // Unique students per level
+                totalStudents: levelData.uniqueStudents.size
             });
         }
         
@@ -294,6 +290,7 @@ exports.getAllCourses = async (req, res) => {
         console.log('Session:', activeSession);
         console.log('Semester:', activeSemester);
         
+        // If session doesn't match, return empty
         if (activeSession !== '2025-2026') {
             return res.status(200).json({
                 success: true,
@@ -473,6 +470,7 @@ exports.getStats = async (req, res) => {
         console.log('Active Session:', activeSession);
         console.log('Active Semester:', activeSemester);
         
+        // If session doesn't match active session, return all zeros
         if (activeSession !== '2025-2026') {
             console.log('Showing zeros for new session:', activeSession);
             return res.status(200).json({
@@ -487,7 +485,7 @@ exports.getStats = async (req, res) => {
             });
         }
         
-        // Get courses for active semester
+        // Get courses for active semester (only Harmattan or Rain)
         const courses = await Course.find({
             $or: [
                 { semester: activeSemester },
@@ -495,6 +493,7 @@ exports.getStats = async (req, res) => {
             ]
         });
         const totalCourses = courses.length;
+        console.log(`Courses for ${activeSemester}: ${totalCourses}`);
         
         // Get UNIQUE students enrolled in active session/semester
         const students = await Enrollment.find({
@@ -503,12 +502,19 @@ exports.getStats = async (req, res) => {
             status: 'active'
         }).distinct('studentId');
         const totalStudents = students.length;
+        console.log(`Students for ${activeSemester}: ${totalStudents}`);
         
-        // Only count APPROVED lecturers
-        const totalLecturers = await User.countDocuments({ 
-            role: 'lecturer',
-            isApproved: true 
-        });
+        // Count lecturers who are actually teaching courses for this semester
+        // Get all active lecturer-course assignments for this semester
+        const lecturerCourses = await LecturerCourse.find({
+            session: activeSession,
+            semester: activeSemester,
+            status: 'active'
+        }).distinct('lecturerId');
+        
+        // Only count lecturers who have at least one course for this semester
+        const totalLecturers = lecturerCourses.length;
+        console.log(`Lecturers for ${activeSemester}: ${totalLecturers}`);
         
         console.log(`Stats: Courses=${totalCourses}, Students=${totalStudents}, Lecturers=${totalLecturers}`);
         
