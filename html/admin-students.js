@@ -79,25 +79,35 @@ function renderStudents() {
     const tbody = document.getElementById('studentsTableBody');
     if (!tbody) return;
     
-    let filtered = [...allStudents];
     const levelFilter = document.getElementById('levelFilter').value;
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
+    console.log('Filtering - Level:', levelFilter, 'Search:', searchTerm);
+    console.log('Total students:', allStudents.length);
+    
+    let filtered = [...allStudents];
+    
     // FIXED: Filter by level - compare as strings
     if (levelFilter !== 'all') {
-        filtered = filtered.filter(s => String(s.level) === String(levelFilter));
+        filtered = filtered.filter(s => {
+            const studentLevel = String(s.level || '');
+            const filterLevel = String(levelFilter);
+            return studentLevel === filterLevel;
+        });
+        console.log(`Filtered by level ${levelFilter}: ${filtered.length} students`);
     }
     
     if (searchTerm) {
         filtered = filtered.filter(s => 
-            s.fullName?.toLowerCase().includes(searchTerm) ||
-            s.matricNumber?.toLowerCase().includes(searchTerm) ||
-            s.email?.toLowerCase().includes(searchTerm)
+            (s.fullName || '').toLowerCase().includes(searchTerm) ||
+            (s.matricNumber || '').toLowerCase().includes(searchTerm) ||
+            (s.email || '').toLowerCase().includes(searchTerm)
         );
+        console.log(`Filtered by search: ${filtered.length} students`);
     }
     
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No students found</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No students found matching your filters</p></td></tr>';
         return;
     }
     
@@ -115,7 +125,7 @@ function renderStudents() {
                 <td>${escapeHtml(student.department || 'Information Technology')}</td>
                 <td>
                     <button class="btn-icon" onclick="viewStudentCourses('${student._id}')" title="View Courses"><i class="fa-solid fa-book-open"></i></button>
-                    <button class="btn-icon" onclick="viewStudent('${student._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
+                    <button class="btn-icon" onclick="viewStudentDetails('${student._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
                 </td>
             </tr>
         `;
@@ -133,7 +143,7 @@ function validateMatricNumber(matric) {
     return true;
 }
 
-// ========== VIEW STUDENT COURSES - FIXED ==========
+// ========== VIEW STUDENT COURSES ==========
 async function viewStudentCourses(id) {
     try {
         showToast('Loading student courses...', 'info');
@@ -151,8 +161,7 @@ async function viewStudentCourses(id) {
         
         const student = data.user;
         
-        // Fetch student's enrolled courses using the student's own token or admin route
-        // Since we're admin, we need to use the admin endpoint or student endpoint with admin token
+        // Fetch student's enrolled courses
         const coursesResponse = await fetch(`${API_URL}/api/student/my-courses?session=${currentSession}&semester=${currentSemester}`, {
             headers: { 
                 'Authorization': `Bearer ${token}`,
@@ -208,27 +217,29 @@ function closeStudentDetail() {
     document.getElementById('studentDetailModal')?.classList.remove('show');
 }
 
-function applyFilters() {
-    renderStudents();
-    showToast('Filters applied', 'success');
-}
-
-function clearFilters() {
-    document.getElementById('levelFilter').value = 'all';
-    document.getElementById('searchInput').value = '';
-    renderStudents();
-    showToast('Filters cleared', 'success');
-}
-
 // ========== VIEW STUDENT DETAILS ==========
-function viewStudent(id) {
+function viewStudentDetails(id) {
     const student = allStudents.find(s => s._id === id);
     if (!student) {
         showToast('Student not found', 'danger');
         return;
     }
-    // Show student details in modal instead of just toast
     viewStudentCourses(id);
+}
+
+// ========== FILTER FUNCTIONS - FIXED ==========
+function applyFilters() {
+    console.log('Apply filters clicked');
+    renderStudents();
+    showToast('Filters applied', 'success');
+}
+
+function clearFilters() {
+    console.log('Clear filters clicked');
+    document.getElementById('levelFilter').value = 'all';
+    document.getElementById('searchInput').value = '';
+    renderStudents();
+    showToast('Filters cleared', 'success');
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -274,6 +285,26 @@ function setupSidebar() {
     if (menuBtn) menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
 }
 
+// ========== EVENT LISTENERS FOR FILTERS ==========
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-apply filter when dropdown changes
+    const levelFilter = document.getElementById('levelFilter');
+    if (levelFilter) {
+        levelFilter.addEventListener('change', function() {
+            console.log('Level filter changed to:', this.value);
+            renderStudents();
+        });
+    }
+    
+    // Auto-apply filter when search input changes
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            renderStudents();
+        });
+    }
+});
+
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', async () => {
     setupTheme();
@@ -281,13 +312,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchActiveSettings();
     loadStudents();
     
-    // Log to debug
     console.log('Admin Students page initialized');
     console.log('Current Session:', currentSession);
     console.log('Current Semester:', currentSemester);
 });
 
-window.viewStudent = viewStudent;
+window.viewStudentDetails = viewStudentDetails;
 window.viewStudentCourses = viewStudentCourses;
 window.closeStudentDetail = closeStudentDetail;
 window.applyFilters = applyFilters;

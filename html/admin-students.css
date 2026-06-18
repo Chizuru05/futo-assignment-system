@@ -1011,3 +1011,22 @@ body {
 .filter-group select.filter-select {
     min-width: 140px;
 }
+
+/* ========== TABLE RESPONSIVE FIX ========== */
+@media (max-width: 768px) {
+    .data-table {
+        min-width: 400px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    .btn-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+}
