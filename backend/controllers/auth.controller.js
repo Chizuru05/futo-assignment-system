@@ -64,7 +64,7 @@ exports.register = async (req, res) => {
     }
 };
 
-// Login user - FIXED
+// Login user
 exports.login = async (req, res) => {
     try {
         const { identifier, password } = req.body;
@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
         if (!user) user = await User.findOne({ staffId: identifier });
         
         if (!user) {
-            console.log('❌ User not found');
+            console.log('❌ User not found for identifier:', identifier);
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
         
@@ -88,6 +88,9 @@ exports.login = async (req, res) => {
         console.log('Status:', user.status);
         console.log('isActive:', user.isActive);
         console.log('isApproved:', user.isApproved);
+        console.log('Email:', user.email);
+        console.log('Staff ID:', user.staffId);
+        console.log('Matric Number:', user.matricNumber);
         
         // Check if user is active (for lecturers, check if approved)
         if (user.role === 'lecturer') {
@@ -105,18 +108,19 @@ exports.login = async (req, res) => {
                     message: 'Your account is not active. Please contact admin.' 
                 });
             }
+            console.log('✅ Lecturer is approved and active');
         }
         
-        // Check password - FIXED: Use bcrypt compare directly
+        // Check password
         const isMatch = await bcrypt.compare(password, user.password);
-        console.log('Password match:', isMatch);
+        console.log('Password match result:', isMatch);
         
         if (!isMatch) {
             console.log('❌ Password does not match');
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
         
-        console.log('✅ Password matched!');
+        console.log('✅ Password matched! Login successful for:', user.fullName);
         
         const token = generateToken(user._id, user.role);
         

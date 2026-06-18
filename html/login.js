@@ -174,14 +174,12 @@ async function handleLogin(e) {
         console.log('📥 Response data:', data);
 
         if (data.success) {
-            // Clear all existing session data first
             localStorage.clear();
 
             const role = data.user.role;
 
-            // Store both role-specific token AND generic token
             localStorage.setItem(`${role}_token`, data.token);
-            localStorage.setItem('token', data.token); // fallback for older pages
+            localStorage.setItem('token', data.token);
             localStorage.setItem('userRole', role);
             localStorage.setItem('userId', data.user._id);
             localStorage.setItem('fullName', data.user.fullName);
