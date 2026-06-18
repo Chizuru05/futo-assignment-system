@@ -1,7 +1,7 @@
 // backend/controllers/auth.controller.js
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const { sendEmail, emailTemplates } = require('../config/email');
+const bcrypt = require('bcryptjs');
 
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET || 'futo_secret_key', {
@@ -50,20 +50,9 @@ exports.register = async (req, res) => {
         const userResponse = user.toObject();
         delete userResponse.password;
         
-        // Send welcome email
-        try {
-            const emailHtml = emailTemplates.welcome(fullName, role);
-            const emailSubject = `Welcome to FUTO Assignment System - ${role.charAt(0).toUpperCase() + role.slice(1)} Account`;
-            
-            await sendEmail(email, emailSubject, emailHtml);
-            console.log(`✅ Welcome email sent to ${email}`);
-        } catch (emailError) {
-            console.error('❌ Failed to send welcome email:', emailError.message);
-        }
-        
         res.status(201).json({ 
             success: true, 
-            message: 'Account created successfully. A welcome email has been sent to your email address.', 
+            message: 'Account created successfully.', 
             user: userResponse, 
             token, 
             role: user.role 
@@ -75,13 +64,14 @@ exports.register = async (req, res) => {
     }
 };
 
-// Login user - FIXED to allow approved lecturers
+// Login user - FIXED
 exports.login = async (req, res) => {
     try {
         const { identifier, password } = req.body;
         
         console.log('=== LOGIN REQUEST ===');
         console.log('Identifier:', identifier);
+        console.log('Password provided:', password ? 'Yes' : 'No');
         
         // Find user by email, matricNumber, or staffId
         let user = await User.findOne({ email: identifier });
@@ -117,8 +107,10 @@ exports.login = async (req, res) => {
             }
         }
         
-        // Check password
-        const isMatch = await user.comparePassword(password);
+        // Check password - FIXED: Use bcrypt compare directly
+        const isMatch = await bcrypt.compare(password, user.password);
+        console.log('Password match:', isMatch);
+        
         if (!isMatch) {
             console.log('❌ Password does not match');
             return res.status(401).json({ success: false, message: 'Invalid credentials' });

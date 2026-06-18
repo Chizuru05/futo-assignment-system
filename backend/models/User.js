@@ -54,20 +54,26 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-userSchema.pre('save', async function () {
-    if (!this.isModified('password')) return;
+// Pre-save hook to hash password
+userSchema.pre('save', async function (next) {
+    // Only hash if password is modified
+    if (!this.isModified('password')) return next();
+    
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
+        next();
     } catch (error) {
-        throw error;
+        next(error);
     }
 });
 
+// Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
     try {
         return await bcrypt.compare(candidatePassword, this.password);
     } catch (error) {
+        console.error('Password comparison error:', error);
         return false;
     }
 };
