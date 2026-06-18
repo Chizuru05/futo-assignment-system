@@ -966,3 +966,48 @@ body {
         font-size: 1.3rem;
     }
 }
+
+/* ========== MATRIC NUMBER STYLING ========== */
+.matric-number {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--text-dark);
+    letter-spacing: 0.5px;
+    background: var(--bg-body);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+.matric-number.invalid {
+    color: var(--danger);
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+/* ========== STUDENT DETAIL MODAL ========== */
+#studentDetailModal .modal-content {
+    max-width: 600px;
+}
+
+#studentDetailModal .modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* ========== ACTION BUTTONS ========== */
+.btn-icon .fa-book-open {
+    color: var(--primary);
+}
+
+.btn-icon:hover .fa-book-open {
+    color: white;
+}
+
+/* ========== FILTER FIXES ========== */
+.filter-select option {
+    padding: 0.3rem;
+}
+
+.filter-group select.filter-select {
+    min-width: 140px;
+}

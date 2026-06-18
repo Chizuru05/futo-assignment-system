@@ -12,7 +12,6 @@ if (!token || userRole !== 'admin') {
 }
 
 let allStudents = [];
-let allEnrollments = [];
 let currentSession = '';
 let currentSemester = '';
 
@@ -84,9 +83,11 @@ function renderStudents() {
     const levelFilter = document.getElementById('levelFilter').value;
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
+    // FIXED: Filter by level - compare as strings
     if (levelFilter !== 'all') {
-        filtered = filtered.filter(s => s.level === levelFilter);
+        filtered = filtered.filter(s => String(s.level) === String(levelFilter));
     }
+    
     if (searchTerm) {
         filtered = filtered.filter(s => 
             s.fullName?.toLowerCase().includes(searchTerm) ||
@@ -96,7 +97,7 @@ function renderStudents() {
     }
     
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No students found</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No students found</p></td></tr>';
         return;
     }
     
@@ -132,64 +133,74 @@ function validateMatricNumber(matric) {
     return true;
 }
 
-// ========== VIEW STUDENT COURSES ==========
+// ========== VIEW STUDENT COURSES - FIXED ==========
 async function viewStudentCourses(id) {
     try {
         showToast('Loading student courses...', 'info');
         
+        // Get student info
         const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const data = await response.json();
         
-        if (data.success) {
-            const student = data.user;
-            
-            // Fetch student's enrolled courses
-            const coursesResponse = await fetch(`${API_URL}/api/student/my-courses?session=${currentSession}&semester=${currentSemester}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const coursesData = await coursesResponse.json();
-            
-            let coursesHtml = '';
-            if (coursesData.success && coursesData.courses && coursesData.courses.length > 0) {
-                coursesHtml = coursesData.courses.map(c => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);">
-                        <div>
-                            <strong style="color:var(--primary);">${escapeHtml(c.courseCode)}</strong>
-                            <span style="color:var(--text-dark);margin-left:0.5rem;">${escapeHtml(c.courseTitle)}</span>
-                        </div>
-                        <span style="color:var(--text-light);font-size:0.8rem;">${c.credits || 3} Credits</span>
-                    </div>
-                `).join('');
-            } else {
-                coursesHtml = '<p style="color:var(--text-light);padding:1rem 0;text-align:center;">No courses enrolled</p>';
-            }
-            
-            const modalBody = document.getElementById('studentDetailBody');
-            if (modalBody) {
-                modalBody.innerHTML = `
-                    <div style="margin-bottom:1rem;padding:1rem;background:var(--bg-body);border-radius:8px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-                            <div><strong>Name:</strong></div><div>${escapeHtml(student.fullName)}</div>
-                            <div><strong>Matric Number:</strong></div><div>${escapeHtml(student.matricNumber || 'N/A')}</div>
-                            <div><strong>Email:</strong></div><div>${escapeHtml(student.email)}</div>
-                            <div><strong>Level:</strong></div><div>${escapeHtml(student.level || 'N/A')}</div>
-                            <div><strong>Department:</strong></div><div>${escapeHtml(student.department || 'Information Technology')}</div>
-                        </div>
-                    </div>
-                    <h4 style="margin-bottom:0.8rem;color:var(--primary);"><i class="fa-solid fa-book"></i> Enrolled Courses</h4>
-                    <div style="background:var(--bg-body);border-radius:8px;padding:0.5rem 1rem;">
-                        ${coursesHtml}
-                    </div>
-                `;
-            }
-            
-            document.getElementById('studentDetailModal')?.classList.add('show');
+        if (!data.success) {
+            showToast('Failed to load student details', 'danger');
+            return;
         }
+        
+        const student = data.user;
+        
+        // Fetch student's enrolled courses using the student's own token or admin route
+        // Since we're admin, we need to use the admin endpoint or student endpoint with admin token
+        const coursesResponse = await fetch(`${API_URL}/api/student/my-courses?session=${currentSession}&semester=${currentSemester}`, {
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        const coursesData = await coursesResponse.json();
+        
+        let coursesHtml = '';
+        if (coursesData.success && coursesData.courses && coursesData.courses.length > 0) {
+            coursesHtml = coursesData.courses.map(c => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);">
+                    <div>
+                        <strong style="color:var(--primary);">${escapeHtml(c.courseCode)}</strong>
+                        <span style="color:var(--text-dark);margin-left:0.5rem;">${escapeHtml(c.courseTitle)}</span>
+                    </div>
+                    <span style="color:var(--text-light);font-size:0.8rem;">${c.credits || 3} Credits</span>
+                </div>
+            `).join('');
+        } else {
+            coursesHtml = '<p style="color:var(--text-light);padding:1rem 0;text-align:center;">No courses enrolled for this student</p>';
+        }
+        
+        const modalBody = document.getElementById('studentDetailBody');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div style="margin-bottom:1rem;padding:1rem;background:var(--bg-body);border-radius:8px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                        <div><strong>Name:</strong></div><div>${escapeHtml(student.fullName)}</div>
+                        <div><strong>Matric Number:</strong></div><div><span class="matric-number">${escapeHtml(student.matricNumber || 'N/A')}</span></div>
+                        <div><strong>Email:</strong></div><div>${escapeHtml(student.email)}</div>
+                        <div><strong>Level:</strong></div><div>${escapeHtml(student.level || 'N/A')}</div>
+                        <div><strong>Department:</strong></div><div>${escapeHtml(student.department || 'Information Technology')}</div>
+                        <div><strong>Session:</strong></div><div>${currentSession} ${currentSemester}</div>
+                    </div>
+                </div>
+                <h4 style="margin-bottom:0.8rem;color:var(--primary);"><i class="fa-solid fa-book"></i> Enrolled Courses</h4>
+                <div style="background:var(--bg-body);border-radius:8px;padding:0.5rem 1rem;">
+                    ${coursesHtml}
+                </div>
+            `;
+        }
+        
+        document.getElementById('studentDetailModal')?.classList.add('show');
+        
     } catch (error) {
         console.error('Error loading student courses:', error);
-        showToast('Failed to load student courses', 'danger');
+        showToast('Failed to load student courses. Please try again.', 'danger');
     }
 }
 
@@ -216,7 +227,8 @@ function viewStudent(id) {
         showToast('Student not found', 'danger');
         return;
     }
-    showToast(`Viewing ${student.fullName}`, 'info');
+    // Show student details in modal instead of just toast
+    viewStudentCourses(id);
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -268,6 +280,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupSidebar();
     await fetchActiveSettings();
     loadStudents();
+    
+    // Log to debug
+    console.log('Admin Students page initialized');
+    console.log('Current Session:', currentSession);
+    console.log('Current Semester:', currentSemester);
 });
 
 window.viewStudent = viewStudent;
