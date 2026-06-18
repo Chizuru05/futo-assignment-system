@@ -44,28 +44,32 @@ body {
     height: 100vh;
 }
 
-/* ========== SIDEBAR ========== */
+/* ========== SIDEBAR - FIXED RESPONSIVENESS ========== */
 .sidebar {
     width: 280px;
     background: var(--white);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    transition: 0.3s;
+    transition: width 0.3s ease;
     z-index: 100;
     overflow: hidden;
+    flex-shrink: 0;
+    height: 100vh;
 }
 
 .sidebar.collapsed {
     width: 80px;
+    padding: 0;
 }
 
 .sidebar.collapsed .logo span,
 .sidebar.collapsed .profile-info,
 .sidebar.collapsed .nav-item span,
 .sidebar.collapsed .semester-info div,
-.sidebar.collapsed .logout-link span {
-    display: none;
+.sidebar.collapsed .logout-link span,
+.sidebar.collapsed .badge-nav {
+    display: none !important;
 }
 
 .sidebar.collapsed .nav-item {
@@ -73,7 +77,35 @@ body {
     padding: 0.8rem;
 }
 
+.sidebar.collapsed .nav-item i {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.sidebar.collapsed .sidebar-profile {
+    justify-content: center;
+    padding: 0.5rem 0;
+}
+
+.sidebar.collapsed .profile-image img {
+    width: 40px;
+    height: 40px;
+}
+
+.sidebar.collapsed .sidebar-toggle i {
+    transform: rotate(180deg);
+}
+
 .sidebar.collapsed .semester-info {
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+.sidebar.collapsed .semester-info i {
+    font-size: 1.2rem;
+}
+
+.sidebar.collapsed .logout-link {
     justify-content: center;
 }
 
@@ -83,6 +115,7 @@ body {
     align-items: center;
     padding: 1.2rem 1.5rem;
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
 .logo {
@@ -92,25 +125,38 @@ body {
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary);
+    white-space: nowrap;
+}
+
+.logo i {
+    font-size: 1.8rem;
 }
 
 .sidebar-toggle {
-    background: none;
+    background: var(--primary-light);
     border: none;
-    color: var(--text-light);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: var(--primary);
     cursor: pointer;
-    font-size: 1rem;
-    padding: 0.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
 }
 
 .sidebar-toggle:hover {
-    color: var(--primary);
+    background: var(--primary);
+    color: white;
 }
 
 .sidebar-profile {
     padding: 1.5rem;
     text-align: center;
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
 .profile-image img {
@@ -125,12 +171,18 @@ body {
     font-size: 1rem;
     color: var(--text-dark);
     margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .profile-info p {
     font-size: 0.75rem;
     color: var(--text-light);
     margin-bottom: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .badge-level {
@@ -147,6 +199,25 @@ body {
     flex: 1;
     padding: 1rem 0.8rem;
     overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 
 .nav-item {
@@ -159,6 +230,8 @@ body {
     border-radius: 12px;
     margin-bottom: 0.3rem;
     transition: all 0.2s;
+    flex-shrink: 0;
+    min-height: 44px;
 }
 
 .nav-item:hover,
@@ -170,11 +243,29 @@ body {
 .nav-item i {
     width: 20px;
     font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.nav-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge-nav {
+    background: #ef4444;
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .sidebar-footer {
     padding: 1rem;
     border-top: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
 .semester-info {
@@ -190,17 +281,28 @@ body {
 .semester-info i {
     color: var(--primary);
     font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.semester-info div {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .semester-info small {
     font-size: 0.7rem;
     color: var(--text-light);
+    display: block;
 }
 
 .semester-info p {
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .logout-link {
@@ -218,12 +320,17 @@ body {
     background: rgba(239, 68, 68, 0.1);
 }
 
+.logout-link span {
+    white-space: nowrap;
+}
+
 /* ========== MAIN CONTENT ========== */
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 0;
 }
 
 .main-header {
@@ -233,12 +340,14 @@ body {
     padding: 1rem 1.5rem;
     background: var(--white);
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 1rem;
+    min-width: 0;
 }
 
 .menu-btn {
@@ -254,12 +363,16 @@ body {
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-right {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-shrink: 0;
 }
 
 .theme-toggle {
@@ -333,6 +446,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .stat-icon i {
@@ -343,6 +457,7 @@ body {
 .stat-details {
     flex: 1;
     min-width: 0;
+    overflow: hidden;
 }
 
 .stat-details h3 {
@@ -417,6 +532,7 @@ body {
     display: flex;
     gap: 0.8rem;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .filter-select {
@@ -871,14 +987,26 @@ body {
         left: -280px;
         height: 100vh;
         z-index: 200;
+        box-shadow: var(--shadow-lg);
     }
     
     .sidebar.show {
         left: 0;
+        width: 280px;
+    }
+    
+    .sidebar.collapsed:not(.show) {
+        left: -80px;
+        width: 80px;
+    }
+    
+    .sidebar.collapsed.show {
+        left: 0;
+        width: 80px;
     }
     
     .menu-btn {
-        display: block;
+        display: block !important;
     }
     
     .stats-grid {
@@ -946,6 +1074,10 @@ body {
     .header-left h2 {
         font-size: 1rem;
     }
+    
+    .data-table {
+        min-width: 500px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -979,5 +1111,15 @@ body {
     .modal-content {
         width: 95%;
         padding: 1rem;
+    }
+    
+    .data-table {
+        min-width: 400px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem;
+        font-size: 0.75rem;
     }
 }

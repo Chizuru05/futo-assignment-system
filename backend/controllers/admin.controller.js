@@ -156,8 +156,7 @@ exports.getLecturerCourses = async (req, res) => {
     }
 };
 
-// ============ STUDENT MANAGEMENT ============
-
+// ============ STUDENT MANAGEMENT - FIXED ============
 exports.getStudentsGrouped = async (req, res) => {
     try {
         const { session, semester } = req.query;
@@ -170,6 +169,10 @@ exports.getStudentsGrouped = async (req, res) => {
             activeSemester = settings.semester;
         }
         
+        console.log('=== GET STUDENTS GROUPED ===');
+        console.log('Active Session:', activeSession);
+        console.log('Active Semester:', activeSemester);
+        
         if (activeSession !== '2025-2026') {
             return res.status(200).json({
                 success: true,
@@ -179,6 +182,7 @@ exports.getStudentsGrouped = async (req, res) => {
             });
         }
         
+        // Get all enrollments for the active session/semester
         const enrollments = await Enrollment.find({
             session: activeSession,
             semester: activeSemester,
@@ -186,7 +190,11 @@ exports.getStudentsGrouped = async (req, res) => {
         }).populate('studentId', 'fullName email matricNumber level')
           .populate('courseId', 'courseCode courseTitle level semester');
         
+        console.log(`Found ${enrollments.length} enrollments for ${activeSession} ${activeSemester}`);
+        
+        // Group by level with unique students
         const groupedByLevel = {};
+        const uniqueStudentsByLevel = {};
         
         for (const enrollment of enrollments) {
             const student = enrollment.studentId;
@@ -196,17 +204,22 @@ exports.getStudentsGrouped = async (req, res) => {
             
             const level = student.level || '500';
             
+            // Initialize level grouping
             if (!groupedByLevel[level]) {
                 groupedByLevel[level] = {
                     level: level,
-                    students: {},
-                    totalStudents: 0
+                    courses: {},
+                    uniqueStudents: new Set()
                 };
             }
             
+            // Add student to unique set for this level
+            groupedByLevel[level].uniqueStudents.add(student._id.toString());
+            
+            // Group by course
             const courseKey = course.courseCode;
-            if (!groupedByLevel[level].students[courseKey]) {
-                groupedByLevel[level].students[courseKey] = {
+            if (!groupedByLevel[level].courses[courseKey]) {
+                groupedByLevel[level].courses[courseKey] = {
                     courseCode: course.courseCode,
                     courseTitle: course.courseTitle,
                     semester: course.semester,
@@ -214,37 +227,37 @@ exports.getStudentsGrouped = async (req, res) => {
                 };
             }
             
-            const existingStudent = groupedByLevel[level].students[courseKey].students.find(
+            // Add student to course if not already added
+            const existingStudent = groupedByLevel[level].courses[courseKey].students.find(
                 s => s.id === student._id.toString()
             );
             
             if (!existingStudent) {
-                groupedByLevel[level].students[courseKey].students.push({
+                groupedByLevel[level].courses[courseKey].students.push({
                     id: student._id,
                     name: student.fullName,
                     matricNumber: student.matricNumber,
                     email: student.email,
                     level: student.level
                 });
-                groupedByLevel[level].totalStudents++;
             }
         }
         
+        // Build result
         const result = [];
         for (const level of Object.keys(groupedByLevel).sort((a, b) => parseInt(a) - parseInt(b))) {
             const levelData = groupedByLevel[level];
-            const coursesArray = [];
-            
-            for (const courseCode of Object.keys(levelData.students)) {
-                coursesArray.push(levelData.students[courseCode]);
-            }
+            const coursesArray = Object.values(levelData.courses);
             
             result.push({
                 level: level,
                 courses: coursesArray,
-                totalStudents: levelData.totalStudents
+                totalStudents: levelData.uniqueStudents.size  // Unique students per level
             });
         }
+        
+        console.log(`Grouped ${enrollments.length} enrollments into ${result.length} levels`);
+        console.log(`Total unique students: ${result.reduce((sum, l) => sum + l.totalStudents, 0)}`);
         
         res.status(200).json({
             success: true,
@@ -443,8 +456,7 @@ exports.deleteCourse = async (req, res) => {
     }
 };
 
-// ============ STATISTICS - FIXED: Only count APPROVED lecturers ============
-
+// ============ STATISTICS - FIXED ============
 exports.getStats = async (req, res) => {
     try {
         const { session, semester } = req.query;
@@ -475,6 +487,7 @@ exports.getStats = async (req, res) => {
             });
         }
         
+        // Get courses for active semester
         const courses = await Course.find({
             $or: [
                 { semester: activeSemester },
@@ -483,6 +496,7 @@ exports.getStats = async (req, res) => {
         });
         const totalCourses = courses.length;
         
+        // Get UNIQUE students enrolled in active session/semester
         const students = await Enrollment.find({
             session: activeSession,
             semester: activeSemester,
@@ -490,7 +504,7 @@ exports.getStats = async (req, res) => {
         }).distinct('studentId');
         const totalStudents = students.length;
         
-        // FIXED: Only count APPROVED lecturers (isApproved === true)
+        // Only count APPROVED lecturers
         const totalLecturers = await User.countDocuments({ 
             role: 'lecturer',
             isApproved: true 

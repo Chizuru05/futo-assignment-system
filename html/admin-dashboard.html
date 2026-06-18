@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>    <script src="api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUTO Admin � Dashboard</title>
+    <title>FUTO Admin · Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
@@ -34,23 +34,28 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-page="dashboard">
+                <a href="admin-dashboard.html" class="nav-item active" data-page="dashboard">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" data-page="courses">
+                <a href="admin-courses.html" class="nav-item" data-page="courses">
                     <i class="fa-solid fa-book"></i>
                     <span>Courses</span>
                 </a>
-                <a href="#" class="nav-item" data-page="lecturers">
+                <a href="admin-lecturers.html" class="nav-item" data-page="lecturers">
                     <i class="fa-solid fa-chalkboard-user"></i>
                     <span>Lecturers</span>
                 </a>
-                <a href="#" class="nav-item" data-page="students">
+                <a href="admin-students.html" class="nav-item" data-page="students">
                     <i class="fa-solid fa-users"></i>
                     <span>Students</span>
                 </a>
-                <a href="#" class="nav-item" data-page="settings">
+                <a href="admin-applications.html" class="nav-item" data-page="applications">
+                    <i class="fa-solid fa-user-clock"></i>
+                    <span>Applications</span>
+                    <span id="pendingCount" class="badge-nav" style="background:#ef4444">0</span>
+                </a>
+                <a href="admin-settings.html" class="nav-item" data-page="settings">
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </a>

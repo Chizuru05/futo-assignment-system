@@ -1,6 +1,7 @@
 // backend/controllers/auth.controller.js
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { sendEmail, emailTemplates } = require('../config/email');
 
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET || 'futo_secret_key', {
@@ -23,17 +24,26 @@ exports.register = async (req, res) => {
             return res.status(400).json({ success: false, message: 'User already exists' });
         }
         
-        let userData = { fullName, email, password, role, department: department || 'Information Technology' };
+        let userData = { 
+            fullName, 
+            email, 
+            password, 
+            role, 
+            department: department || 'Information Technology' 
+        };
         
         if (role === 'student') {
             if (!matricNumber) return res.status(400).json({ success: false, message: 'Matric number required' });
             userData.matricNumber = matricNumber;
             userData.level = level || '500';
+            // Students DO NOT get rank
         } else if (role === 'lecturer') {
             if (!staffId) return res.status(400).json({ success: false, message: 'Staff ID required' });
             userData.staffId = staffId;
             userData.rank = rank || 'Lecturer';
+            // Lecturers DO NOT get level
         }
+        // Admin - only basic fields, no level, no rank
         
         const user = new User(userData);
         await user.save();
@@ -43,7 +53,24 @@ exports.register = async (req, res) => {
         const userResponse = user.toObject();
         delete userResponse.password;
         
-        res.status(201).json({ success: true, message: 'Account created', user: userResponse, token, role: user.role });
+        // Send welcome email
+        try {
+            const emailHtml = emailTemplates.welcome(fullName, role);
+            const emailSubject = `Welcome to FUTO Assignment System - ${role.charAt(0).toUpperCase() + role.slice(1)} Account`;
+            
+            await sendEmail(email, emailSubject, emailHtml);
+            console.log(`✅ Welcome email sent to ${email}`);
+        } catch (emailError) {
+            console.error('❌ Failed to send welcome email:', emailError.message);
+        }
+        
+        res.status(201).json({ 
+            success: true, 
+            message: 'Account created successfully. A welcome email has been sent to your email address.', 
+            user: userResponse, 
+            token, 
+            role: user.role 
+        });
         
     } catch (error) {
         console.error('Register error:', error);

@@ -606,7 +606,7 @@ function renderStudentsGrouped(groupedData) {
             <h3><i class="fa-solid fa-users"></i> Students</h3>
             <div class="header-actions">
                 <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
-                    <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
+                    <i class="fa-regular fa-calendar"></i] ${currentSession} ${currentSemester}
                 </span>
             </div>
         </div>
