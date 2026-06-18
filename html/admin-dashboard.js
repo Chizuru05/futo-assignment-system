@@ -69,23 +69,10 @@ async function loadDashboard() {
     contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading dashboard...</div>';
     
     try {
-        // Fetch stats
         const statsRes = await fetch(`${API_URL}/api/admin/stats?session=${currentSession}&semester=${currentSemester}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const statsData = await statsRes.json();
-        
-        // Fetch all users to count approved lecturers
-        const usersRes = await fetch(`${API_URL}/api/admin/users/all`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const usersData = await usersRes.json();
-        
-        // Count approved lecturers only
-        let approvedLecturers = 0;
-        if (usersData.success && usersData.users) {
-            approvedLecturers = usersData.users.filter(u => u.role === 'lecturer' && u.isApproved === true).length;
-        }
         
         if (statsData.success) {
             const stats = statsData.stats;
@@ -108,7 +95,7 @@ async function loadDashboard() {
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
                         <div class="stat-details">
-                            <h3>${approvedLecturers || 0}</h3>
+                            <h3>${stats.lecturers || 0}</h3>
                             <p>Lecturers</p>
                         </div>
                     </div>
@@ -440,12 +427,11 @@ async function loadLecturers() {
             headers: { Authorization: `Bearer ${token}` }
         });
         const usersData = await usersRes.json();
-        // Only show approved lecturers
-        const allLecturers = usersData.users?.filter(u => u.role === 'lecturer' && u.isApproved === true) || [];
+        const allLecturers = usersData.users?.filter(u => u.role === 'lecturer') || [];
         
         if (allLecturers.length === 0) {
             document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-                '<div class="empty-state">No approved lecturers registered</div>';
+                '<div class="empty-state">No lecturers registered</div>';
             return;
         }
         
@@ -458,7 +444,6 @@ async function loadLecturers() {
             });
             const coursesData = await coursesRes.json();
             
-            // Only add lecturer if they have courses in the active session
             if (coursesData.success && coursesData.courses && coursesData.courses.length > 0) {
                 lecturersWithCourses.push({
                     ...lecturer,
@@ -606,7 +591,7 @@ function renderStudentsGrouped(groupedData) {
             <h3><i class="fa-solid fa-users"></i> Students</h3>
             <div class="header-actions">
                 <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
-                    <i class="fa-regular fa-calendar"></i] ${currentSession} ${currentSemester}
+                    <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                 </span>
             </div>
         </div>
@@ -660,6 +645,11 @@ function renderStudentsGrouped(groupedData) {
     
     html += `</div>`;
     card.innerHTML = html;
+}
+
+// ========== LOAD APPLICATIONS PAGE ==========
+function loadApplications() {
+    window.location.href = 'admin-applications.html';
 }
 
 // ========== LOAD SETTINGS PAGE ==========
@@ -732,6 +722,7 @@ function loadPage(page) {
     else if (page === 'courses') loadCourses();
     else if (page === 'lecturers') loadLecturers();
     else if (page === 'students') loadStudents();
+    else if (page === 'applications') loadApplications();
     else if (page === 'settings') loadSettings();
 }
 

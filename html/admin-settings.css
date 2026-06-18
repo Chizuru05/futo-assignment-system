@@ -327,7 +327,7 @@ body {
     min-width: 0;
 }
 
-/* ========== PAGE HEADER - FIXED ALIGNMENT ========== */
+/* ========== PAGE HEADER ========== */
 .page-header {
     padding: 1.5rem 2rem;
     background: var(--white);
@@ -486,9 +486,11 @@ body {
     margin-bottom: 0;
 }
 
-/* ========== FORM ACTIONS ========== */
+/* ========== FORM ACTIONS - FIXED ========== */
 .form-actions {
     margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-start;
 }
 
 .btn-primary {
@@ -504,12 +506,19 @@ body {
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s;
+    width: auto;
+    min-width: 160px;
+    justify-content: center;
 }
 
 .btn-primary:hover {
     background: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(42, 122, 75, 0.2);
+}
+
+.btn-primary i {
+    font-size: 1rem;
 }
 
 /* ========== STATUS GRID ========== */
@@ -657,6 +666,15 @@ body {
         flex-direction: column;
         align-items: flex-start;
     }
+    
+    .form-actions {
+        justify-content: center;
+    }
+    
+    .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 480px) {
@@ -670,5 +688,11 @@ body {
     
     .card-header {
         padding: 1rem;
+    }
+    
+    .btn-primary {
+        padding: 0.7rem 1.5rem;
+        font-size: 0.9rem;
+        min-width: 100%;
     }
 }
