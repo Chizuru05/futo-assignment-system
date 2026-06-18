@@ -72,35 +72,42 @@ exports.applyLecturer = async (req, res) => {
     }
 };
 
-// Get all pending applications (Admin only)
+// Get ALL applications (Admin only) - UPDATED to return all applications
 exports.getPendingApplications = async (req, res) => {
     try {
-        console.log('=== FETCHING PENDING APPLICATIONS ===');
+        console.log('=== FETCHING ALL LECTURER APPLICATIONS ===');
         
-        const pendingLecturers = await User.find({
-            role: 'lecturer',
-            isApproved: false,
-            status: 'pending'
+        // Get ALL lecturers (not just pending)
+        const allLecturers = await User.find({
+            role: 'lecturer'
         }).select('-password').sort({ createdAt: -1 });
 
-        console.log(`✅ Found ${pendingLecturers.length} pending application(s)`);
+        const pending = allLecturers.filter(l => l.status === 'pending' || l.isApproved === false);
+        const approved = allLecturers.filter(l => l.status === 'approved' || l.isApproved === true);
+
+        console.log(`✅ Total: ${allLecturers.length} | Pending: ${pending.length} | Approved: ${approved.length}`);
         
-        if (pendingLecturers.length > 0) {
-            pendingLecturers.forEach((lecturer, index) => {
-                console.log(`   ${index + 1}. ${lecturer.fullName} (${lecturer.email})`);
+        if (allLecturers.length > 0) {
+            allLecturers.forEach((lecturer, index) => {
+                console.log(`   ${index + 1}. ${lecturer.fullName} (${lecturer.email}) - Status: ${lecturer.status || 'pending'}`);
             });
         }
 
         res.status(200).json({
             success: true,
-            count: pendingLecturers.length,
-            data: pendingLecturers
+            count: allLecturers.length,
+            data: allLecturers,
+            stats: {
+                pending: pending.length,
+                approved: approved.length,
+                total: allLecturers.length
+            }
         });
     } catch (error) {
-        console.error('❌ Get pending applications error:', error);
+        console.error('❌ Get applications error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch pending applications.',
+            message: 'Failed to fetch applications.',
             error: error.message
         });
     }
@@ -150,14 +157,6 @@ exports.approveLecturer = async (req, res) => {
         console.log('   Name:', lecturer.fullName);
         console.log('   Email:', lecturer.email);
         console.log('   Staff ID:', lecturer.staffId);
-
-        // TODO: Send email notification to lecturer
-        // try {
-        //     const emailHtml = emailTemplates.lecturerApproved(lecturer.fullName);
-        //     await sendEmail(lecturer.email, '🎓 Lecturer Application Approved', emailHtml);
-        // } catch (emailError) {
-        //     console.error('Failed to send approval email:', emailError.message);
-        // }
 
         res.status(200).json({
             success: true,
@@ -224,14 +223,6 @@ exports.rejectLecturer = async (req, res) => {
         console.log('   Name:', lecturer.fullName);
         console.log('   Email:', lecturer.email);
 
-        // TODO: Send email notification to lecturer
-        // try {
-        //     const emailHtml = emailTemplates.lecturerRejected(lecturer.fullName);
-        //     await sendEmail(lecturer.email, '📧 Lecturer Application Status', emailHtml);
-        // } catch (emailError) {
-        //     console.error('Failed to send rejection email:', emailError.message);
-        // }
-
         res.status(200).json({
             success: true,
             message: 'Lecturer application rejected.',
@@ -248,41 +239,6 @@ exports.rejectLecturer = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to reject lecturer.',
-            error: error.message
-        });
-    }
-};
-
-// Get all lecturer applications (Admin only) - NEW
-exports.getAllApplications = async (req, res) => {
-    try {
-        console.log('=== FETCHING ALL LECTURER APPLICATIONS ===');
-        
-        const allLecturers = await User.find({
-            role: 'lecturer'
-        }).select('-password').sort({ createdAt: -1 });
-
-        const pending = allLecturers.filter(l => l.status === 'pending');
-        const approved = allLecturers.filter(l => l.status === 'approved');
-        const rejected = allLecturers.filter(l => l.status === 'rejected');
-
-        console.log(`✅ Total: ${allLecturers.length} | Pending: ${pending.length} | Approved: ${approved.length} | Rejected: ${rejected.length}`);
-
-        res.status(200).json({
-            success: true,
-            count: allLecturers.length,
-            data: allLecturers,
-            stats: {
-                pending: pending.length,
-                approved: approved.length,
-                rejected: rejected.length
-            }
-        });
-    } catch (error) {
-        console.error('❌ Get all applications error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch applications.',
             error: error.message
         });
     }

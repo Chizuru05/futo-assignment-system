@@ -38,9 +38,13 @@ router.delete('/courses/:id', adminController.deleteCourse);
 router.get('/stats', adminController.getStats);
 
 // ============ LECTURER APPLICATIONS ============
+// Get ALL applications (pending + approved + rejected)
 router.get('/pending-applications', lecturerApplicationController.getPendingApplications);
+// Approve lecturer
 router.put('/approve-lecturer/:id', lecturerApplicationController.approveLecturer);
+// Reject lecturer
 router.put('/reject-lecturer/:id', lecturerApplicationController.rejectLecturer);
+// Create admin
 router.post('/create-admin', lecturerApplicationController.createAdmin);
 
 module.exports = router;

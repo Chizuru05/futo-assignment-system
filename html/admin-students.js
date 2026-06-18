@@ -12,6 +12,7 @@ if (!token || userRole !== 'admin') {
 }
 
 let allStudents = [];
+let allEnrollments = [];
 let currentSession = '';
 let currentSemester = '';
 
@@ -33,7 +34,6 @@ async function fetchActiveSettings() {
             if (sidebarSession) {
                 sidebarSession.innerHTML = `${currentSession} ${currentSemester}`;
             }
-            // Update current semester display
             const semesterDisplay = document.querySelector('.current-semester');
             if (semesterDisplay) {
                 semesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}`;
@@ -96,22 +96,105 @@ function renderStudents() {
     }
     
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No students found</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No students found</p></td></tr>';
         return;
     }
     
-    tbody.innerHTML = filtered.map(student => `
-        <tr>
-            <td><strong>${escapeHtml(student.fullName)}</strong></td>
-            <td>${escapeHtml(student.matricNumber || 'N/A')}</td>
-            <td>${escapeHtml(student.email)}</td>
-            <td>${escapeHtml(student.level || 'N/A')}</td>
-            <td>${escapeHtml(student.department || 'Information Technology')}</td>
-            <td>
-                <button class="btn-icon" onclick="viewStudent('${student._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = filtered.map(student => {
+        // Check if matric number is valid
+        const isValidMatric = student.matricNumber ? validateMatricNumber(student.matricNumber) : false;
+        const matricClass = isValidMatric ? '' : 'invalid';
+        
+        return `
+            <tr>
+                <td><strong>${escapeHtml(student.fullName)}</strong></td>
+                <td><span class="matric-number ${matricClass}">${escapeHtml(student.matricNumber || 'N/A')}</span></td>
+                <td>${escapeHtml(student.email)}</td>
+                <td>${escapeHtml(student.level || 'N/A')}</td>
+                <td>${escapeHtml(student.department || 'Information Technology')}</td>
+                <td>
+                    <button class="btn-icon" onclick="viewStudentCourses('${student._id}')" title="View Courses"><i class="fa-solid fa-book-open"></i></button>
+                    <button class="btn-icon" onclick="viewStudent('${student._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ========== VALIDATE MATRIC NUMBER ==========
+function validateMatricNumber(matric) {
+    if (!matric || matric.length < 11) return false;
+    if (!/^[0-9]+$/.test(matric)) return false;
+    if (!matric.endsWith('2')) return false;
+    const year = parseInt(matric.substring(0, 4));
+    const currentYear = new Date().getFullYear();
+    if (year < 2010 || year > currentYear) return false;
+    return true;
+}
+
+// ========== VIEW STUDENT COURSES ==========
+async function viewStudentCourses(id) {
+    try {
+        showToast('Loading student courses...', 'info');
+        
+        const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            const student = data.user;
+            
+            // Fetch student's enrolled courses
+            const coursesResponse = await fetch(`${API_URL}/api/student/my-courses?session=${currentSession}&semester=${currentSemester}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const coursesData = await coursesResponse.json();
+            
+            let coursesHtml = '';
+            if (coursesData.success && coursesData.courses && coursesData.courses.length > 0) {
+                coursesHtml = coursesData.courses.map(c => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);">
+                        <div>
+                            <strong style="color:var(--primary);">${escapeHtml(c.courseCode)}</strong>
+                            <span style="color:var(--text-dark);margin-left:0.5rem;">${escapeHtml(c.courseTitle)}</span>
+                        </div>
+                        <span style="color:var(--text-light);font-size:0.8rem;">${c.credits || 3} Credits</span>
+                    </div>
+                `).join('');
+            } else {
+                coursesHtml = '<p style="color:var(--text-light);padding:1rem 0;text-align:center;">No courses enrolled</p>';
+            }
+            
+            const modalBody = document.getElementById('studentDetailBody');
+            if (modalBody) {
+                modalBody.innerHTML = `
+                    <div style="margin-bottom:1rem;padding:1rem;background:var(--bg-body);border-radius:8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                            <div><strong>Name:</strong></div><div>${escapeHtml(student.fullName)}</div>
+                            <div><strong>Matric Number:</strong></div><div>${escapeHtml(student.matricNumber || 'N/A')}</div>
+                            <div><strong>Email:</strong></div><div>${escapeHtml(student.email)}</div>
+                            <div><strong>Level:</strong></div><div>${escapeHtml(student.level || 'N/A')}</div>
+                            <div><strong>Department:</strong></div><div>${escapeHtml(student.department || 'Information Technology')}</div>
+                        </div>
+                    </div>
+                    <h4 style="margin-bottom:0.8rem;color:var(--primary);"><i class="fa-solid fa-book"></i> Enrolled Courses</h4>
+                    <div style="background:var(--bg-body);border-radius:8px;padding:0.5rem 1rem;">
+                        ${coursesHtml}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('studentDetailModal')?.classList.add('show');
+        }
+    } catch (error) {
+        console.error('Error loading student courses:', error);
+        showToast('Failed to load student courses', 'danger');
+    }
+}
+
+function closeStudentDetail() {
+    document.getElementById('studentDetailModal')?.classList.remove('show');
 }
 
 function applyFilters() {
@@ -133,7 +216,6 @@ function viewStudent(id) {
         showToast('Student not found', 'danger');
         return;
     }
-    
     showToast(`Viewing ${student.fullName}`, 'info');
 }
 
@@ -189,6 +271,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 window.viewStudent = viewStudent;
+window.viewStudentCourses = viewStudentCourses;
+window.closeStudentDetail = closeStudentDetail;
 window.applyFilters = applyFilters;
 window.clearFilters = clearFilters;
 window.logout = logout;

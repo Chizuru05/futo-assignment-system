@@ -90,28 +90,59 @@ function validatePassword(password) {
            /[0-9]/.test(password);
 }
 
+// ========== MATRIC NUMBER VALIDATION - FIXED ==========
 function validateMatric(matric) {
-    // Allow only numbers, exactly 11 digits
-    return /^[0-9]{11}$/.test(matric);
+    // Format: Year (4 digits) + Department code (2 digits) + Number (5+ digits)
+    // Must end with 2 for Information Technology department
+    // Example: 20211263362 (2021 + 12 + 63362)
+    
+    // Must be at least 11 digits
+    if (matric.length < 11) {
+        return { valid: false, message: 'Matric number must be at least 11 digits (e.g., 20211263362)' };
+    }
+    
+    // Must be all numbers
+    if (!/^[0-9]+$/.test(matric)) {
+        return { valid: false, message: 'Matric number must contain only numbers' };
+    }
+    
+    // Check if it ends with 2 (IT department identifier)
+    if (!matric.endsWith('2')) {
+        return { valid: false, message: 'Invalid matric number. Must end with 2 for IT department' };
+    }
+    
+    // Extract year (first 4 digits)
+    const year = parseInt(matric.substring(0, 4));
+    const currentYear = new Date().getFullYear();
+    
+    if (year < 2010 || year > currentYear) {
+        return { valid: false, message: `Invalid admission year. Must be between 2010 and ${currentYear}` };
+    }
+    
+    return { valid: true, message: '' };
 }
 
 function validateStep(step) {
     if (step === 0) {
         let isValid = true;
 
-        // Registration Number - FIXED: 11 digits, no slash
+        // Registration Number - FIXED
         const matric = document.getElementById('studentMatric');
-        if (!matric.value.trim()) {
+        const matricValue = matric.value.trim();
+        if (!matricValue) {
             matric.classList.add('error');
             document.getElementById('studentMatricError').textContent = 'Registration number required';
             isValid = false;
-        } else if (!validateMatric(matric.value.trim())) {
-            matric.classList.add('error');
-            document.getElementById('studentMatricError').textContent = 'Please enter 11 digits (e.g., 20211263362)';
-            isValid = false;
         } else {
-            matric.classList.remove('error');
-            document.getElementById('studentMatricError').textContent = '';
+            const result = validateMatric(matricValue);
+            if (!result.valid) {
+                matric.classList.add('error');
+                document.getElementById('studentMatricError').textContent = result.message;
+                isValid = false;
+            } else {
+                matric.classList.remove('error');
+                document.getElementById('studentMatricError').textContent = '';
+            }
         }
 
         // Full Name
@@ -138,8 +169,6 @@ function validateStep(step) {
         if (!validateField('studentLevel', 'studentLevelError', 'Please select your level')) {
             isValid = false;
         }
-
-        // Department - auto-filled, no validation needed
 
         return isValid;
     } else if (step === 1) {
@@ -281,7 +310,7 @@ const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(0%); opacity: 1; }
     }
 `;
 document.head.appendChild(style);

@@ -105,7 +105,7 @@
                         <p class="page-subtitle">View all students enrolled in the system</p>
                     </div>
                     <span class="current-semester">
-                        <i class="fa-regular fa-calendar"></i> ${currentSession || '2025-2026'} ${currentSemester || 'Harmattan'}
+                        <i class="fa-regular fa-calendar"></i> 2025-2026 Harmattan
                     </span>
                 </div>
 
@@ -178,6 +178,22 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Student Detail Modal -->
+    <div class="modal" id="studentDetailModal">
+        <div class="modal-content" style="max-width:600px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-graduate"></i> Student Details & Courses</h3>
+                <button class="modal-close" onclick="closeStudentDetail()">&times;</button>
+            </div>
+            <div class="modal-body" id="studentDetailBody">
+                <div class="loading">Loading student details...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeStudentDetail()">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Toast Container -->

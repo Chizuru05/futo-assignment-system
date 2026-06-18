@@ -22,6 +22,7 @@ let currentAppId = null;
 async function loadApplications() {
     try {
         console.log('Fetching all lecturer applications...');
+        // Use the endpoint that returns ALL applications
         const response = await fetch(`${API_URL}/api/admin/pending-applications`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -54,22 +55,24 @@ function renderApplications() {
     tbody.innerHTML = applications.map(app => {
         const statusColor = app.status === 'pending' ? '#f59e0b' : app.status === 'approved' ? '#2a7a4b' : '#ef4444';
         const statusBg = app.status === 'pending' ? '#fff3e0' : app.status === 'approved' ? '#e8f5e9' : '#fee2e2';
+        const statusText = app.status || 'pending';
+        
         return `
             <tr>
                 <td><strong>${escapeHtml(app.fullName)}</strong></td>
                 <td>${escapeHtml(app.email)}</td>
                 <td>${escapeHtml(app.staffId || 'N/A')}</td>
                 <td>${escapeHtml(app.rank || 'N/A')}</td>
-                <td><span style="background:${statusBg};color:${statusColor};padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status || 'pending'}</span></td>
+                <td><span style="background:${statusBg};color:${statusColor};padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${statusText}</span></td>
                 <td>
                     <button class="btn-icon" onclick="viewDetail('${app._id}')" title="View Details"><i class="fa-regular fa-eye"></i></button>
                     ${app.status === 'pending' ? `
                         <button class="btn-icon" onclick="approveApplication('${app._id}')" title="Approve" style="color:#2a7a4b"><i class="fa-solid fa-check"></i></button>
                         <button class="btn-icon danger" onclick="rejectApplication('${app._id}')" title="Reject"><i class="fa-solid fa-times"></i></button>
                     ` : app.status === 'approved' ? `
-                        <span style="color:#2a7a4b;font-size:0.75rem;font-weight:600;">Approved</span>
+                        <span style="color:#2a7a4b;font-size:0.75rem;font-weight:600;">✓ Approved</span>
                     ` : `
-                        <span style="color:#ef4444;font-size:0.75rem;font-weight:600;">Rejected</span>
+                        <span style="color:#ef4444;font-size:0.75rem;font-weight:600;">✗ Rejected</span>
                     `}
                 </td>
             </tr>
@@ -78,8 +81,8 @@ function renderApplications() {
 }
 
 function updateStats() {
-    const pending = applications.filter(a => a.status === 'pending').length;
-    const approved = applications.filter(a => a.status === 'approved').length;
+    const pending = applications.filter(a => a.status === 'pending' || a.isApproved === false).length;
+    const approved = applications.filter(a => a.status === 'approved' || a.isApproved === true).length;
     const total = applications.length;
 
     const totalEl = document.getElementById('totalApps');
@@ -100,6 +103,9 @@ function viewDetail(id) {
     currentAppId = id;
     const body = document.getElementById('detailBody');
     if (body) {
+        const statusColor = app.status === 'pending' ? '#f59e0b' : app.status === 'approved' ? '#2a7a4b' : '#ef4444';
+        const statusBg = app.status === 'pending' ? '#fff3e0' : app.status === 'approved' ? '#e8f5e9' : '#fee2e2';
+        
         body.innerHTML = `
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
                 <div><strong>Name:</strong></div><div>${escapeHtml(app.fullName)}</div>
@@ -108,7 +114,7 @@ function viewDetail(id) {
                 <div><strong>Department:</strong></div><div>${escapeHtml(app.department || 'Information Technology')}</div>
                 <div><strong>Rank:</strong></div><div>${escapeHtml(app.rank || 'N/A')}</div>
                 <div><strong>Specialization:</strong></div><div>${escapeHtml(app.specialization || 'N/A')}</div>
-                <div><strong>Status:</strong></div><div><span style="background:${app.status === 'pending' ? '#fff3e0' : '#e8f5e9'};color:${app.status === 'pending' ? '#f59e0b' : '#2a7a4b'};padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status}</span></div>
+                <div><strong>Status:</strong></div><div><span style="background:${statusBg};color:${statusColor};padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600;">${app.status || 'pending'}</span></div>
             </div>
         `;
     }
