@@ -1,6 +1,5 @@
 // backend/controllers/lecturerApplication.controller.js
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
 
 // Submit lecturer application
 exports.applyLecturer = async (req, res) => {
@@ -13,11 +12,7 @@ exports.applyLecturer = async (req, res) => {
         console.log('Staff ID:', staffId);
         console.log('Rank:', rank);
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ 
-            $or: [{ email }, { staffId }] 
-        });
-        
+        const existingUser = await User.findOne({ $or: [{ email }, { staffId }] });
         if (existingUser) {
             console.log('❌ User already exists:', existingUser.email);
             return res.status(400).json({
@@ -26,14 +21,11 @@ exports.applyLecturer = async (req, res) => {
             });
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create pending lecturer with all required fields
+        // DO NOT hash password manually — User model pre-save hook handles it
         const lecturer = new User({
             fullName: fullName.trim(),
             email: email.trim().toLowerCase(),
-            password: hashedPassword,
+            password: password,        // plain text — model will hash it
             staffId: staffId.trim(),
             department: department || 'Information Technology',
             rank: rank || 'Lecturer',
@@ -45,7 +37,7 @@ exports.applyLecturer = async (req, res) => {
         });
 
         await lecturer.save();
-        
+
         console.log('✅ Lecturer application saved successfully!');
         console.log('   ID:', lecturer._id);
         console.log('   Name:', lecturer.fullName);
@@ -72,26 +64,19 @@ exports.applyLecturer = async (req, res) => {
     }
 };
 
-// Get ALL applications (Admin only) - UPDATED to return all applications
+// Get ALL applications (Admin only)
 exports.getPendingApplications = async (req, res) => {
     try {
         console.log('=== FETCHING ALL LECTURER APPLICATIONS ===');
-        
-        // Get ALL lecturers (not just pending)
-        const allLecturers = await User.find({
-            role: 'lecturer'
-        }).select('-password').sort({ createdAt: -1 });
+
+        const allLecturers = await User.find({ role: 'lecturer' })
+            .select('-password')
+            .sort({ createdAt: -1 });
 
         const pending = allLecturers.filter(l => l.status === 'pending' || l.isApproved === false);
         const approved = allLecturers.filter(l => l.status === 'approved' || l.isApproved === true);
 
         console.log(`✅ Total: ${allLecturers.length} | Pending: ${pending.length} | Approved: ${approved.length}`);
-        
-        if (allLecturers.length > 0) {
-            allLecturers.forEach((lecturer, index) => {
-                console.log(`   ${index + 1}. ${lecturer.fullName} (${lecturer.email}) - Status: ${lecturer.status || 'pending'}`);
-            });
-        }
 
         res.status(200).json({
             success: true,
@@ -113,115 +98,75 @@ exports.getPendingApplications = async (req, res) => {
     }
 };
 
-// Approve lecturer application (Admin only)
+// Approve lecturer (Admin only)
 exports.approveLecturer = async (req, res) => {
     try {
         const { id } = req.params;
-
-        console.log('=== APPROVING LECTURER APPLICATION ===');
-        console.log('ID:', id);
+        console.log('=== APPROVING LECTURER ===', id);
 
         const lecturer = await User.findById(id);
-        
         if (!lecturer) {
-            console.log('❌ Lecturer not found');
-            return res.status(404).json({
-                success: false,
-                message: 'Lecturer not found.'
-            });
+            return res.status(404).json({ success: false, message: 'Lecturer not found.' });
         }
-
         if (lecturer.role !== 'lecturer') {
-            console.log('❌ User is not a lecturer');
-            return res.status(400).json({
-                success: false,
-                message: 'User is not a lecturer.'
-            });
+            return res.status(400).json({ success: false, message: 'User is not a lecturer.' });
         }
-
         if (lecturer.status === 'approved') {
-            console.log('⚠️ Lecturer already approved');
-            return res.status(400).json({
-                success: false,
-                message: 'This lecturer has already been approved.'
-            });
+            return res.status(400).json({ success: false, message: 'Already approved.' });
         }
 
-        // Update lecturer status
         lecturer.isActive = true;
         lecturer.isApproved = true;
         lecturer.status = 'approved';
-        await lecturer.save();
 
-        console.log('✅ Lecturer approved successfully!');
-        console.log('   Name:', lecturer.fullName);
-        console.log('   Email:', lecturer.email);
-        console.log('   Staff ID:', lecturer.staffId);
+        // Use updateOne to avoid triggering pre-save password re-hash
+        await User.updateOne(
+            { _id: id },
+            { $set: { isActive: true, isApproved: true, status: 'approved' } }
+        );
+
+        console.log('✅ Lecturer approved:', lecturer.fullName);
 
         res.status(200).json({
             success: true,
-            message: 'Lecturer application approved successfully.',
+            message: 'Lecturer approved successfully.',
             data: {
                 id: lecturer._id,
                 fullName: lecturer.fullName,
                 email: lecturer.email,
                 staffId: lecturer.staffId,
-                status: lecturer.status
+                status: 'approved'
             }
         });
     } catch (error) {
-        console.error('❌ Approve lecturer error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to approve lecturer.',
-            error: error.message
-        });
+        console.error('❌ Approve error:', error);
+        res.status(500).json({ success: false, message: 'Failed to approve.', error: error.message });
     }
 };
 
-// Reject lecturer application (Admin only)
+// Reject lecturer (Admin only)
 exports.rejectLecturer = async (req, res) => {
     try {
         const { id } = req.params;
-
-        console.log('=== REJECTING LECTURER APPLICATION ===');
-        console.log('ID:', id);
+        console.log('=== REJECTING LECTURER ===', id);
 
         const lecturer = await User.findById(id);
-        
         if (!lecturer) {
-            console.log('❌ Lecturer not found');
-            return res.status(404).json({
-                success: false,
-                message: 'Lecturer not found.'
-            });
+            return res.status(404).json({ success: false, message: 'Lecturer not found.' });
         }
-
         if (lecturer.role !== 'lecturer') {
-            console.log('❌ User is not a lecturer');
-            return res.status(400).json({
-                success: false,
-                message: 'User is not a lecturer.'
-            });
+            return res.status(400).json({ success: false, message: 'User is not a lecturer.' });
         }
-
         if (lecturer.status === 'rejected') {
-            console.log('⚠️ Lecturer already rejected');
-            return res.status(400).json({
-                success: false,
-                message: 'This lecturer has already been rejected.'
-            });
+            return res.status(400).json({ success: false, message: 'Already rejected.' });
         }
 
-        // Update lecturer status
-        lecturer.status = 'rejected';
-        lecturer.isActive = false;
-        lecturer.isApproved = false;
-        await lecturer.save();
+        await User.updateOne(
+            { _id: id },
+            { $set: { isActive: false, isApproved: false, status: 'rejected' } }
+        );
 
-        console.log('❌ Lecturer rejected');
-        console.log('   Name:', lecturer.fullName);
-        console.log('   Email:', lecturer.email);
+        console.log('❌ Lecturer rejected:', lecturer.fullName);
 
         res.status(200).json({
             success: true,
@@ -231,16 +176,12 @@ exports.rejectLecturer = async (req, res) => {
                 fullName: lecturer.fullName,
                 email: lecturer.email,
                 staffId: lecturer.staffId,
-                status: lecturer.status
+                status: 'rejected'
             }
         });
     } catch (error) {
-        console.error('❌ Reject lecturer error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to reject lecturer.',
-            error: error.message
-        });
+        console.error('❌ Reject error:', error);
+        res.status(500).json({ success: false, message: 'Failed to reject.', error: error.message });
     }
 };
 
@@ -250,37 +191,23 @@ exports.createAdmin = async (req, res) => {
         const { fullName, email, password, department, secretCode } = req.body;
 
         console.log('=== CREATING ADMIN ===');
-        console.log('Name:', fullName);
         console.log('Email:', email);
 
-        // Verify admin secret code
         const ADMIN_SECRET = process.env.ADMIN_SECRET || 'FUTO-ADMIN-2025';
         if (secretCode !== ADMIN_SECRET) {
-            console.log('❌ Invalid admin secret code');
-            return res.status(403).json({
-                success: false,
-                message: 'Invalid admin secret code.'
-            });
+            return res.status(403).json({ success: false, message: 'Invalid admin secret code.' });
         }
 
-        // Check if admin already exists
         const existingAdmin = await User.findOne({ email });
         if (existingAdmin) {
-            console.log('❌ Admin already exists');
-            return res.status(400).json({
-                success: false,
-                message: 'Admin with this email already exists.'
-            });
+            return res.status(400).json({ success: false, message: 'Admin with this email already exists.' });
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create admin
+        // DO NOT hash manually — model pre-save hook handles it
         const admin = new User({
             fullName: fullName.trim(),
             email: email.trim().toLowerCase(),
-            password: hashedPassword,
+            password: password,        // plain text — model will hash it
             department: department || 'Information Technology',
             role: 'admin',
             isActive: true,
@@ -290,9 +217,7 @@ exports.createAdmin = async (req, res) => {
 
         await admin.save();
 
-        console.log('✅ Admin created successfully!');
-        console.log('   Name:', admin.fullName);
-        console.log('   Email:', admin.email);
+        console.log('✅ Admin created:', admin.fullName);
 
         res.status(201).json({
             success: true,
@@ -306,10 +231,6 @@ exports.createAdmin = async (req, res) => {
         });
     } catch (error) {
         console.error('❌ Create admin error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create admin.',
-            error: error.message
-        });
+        res.status(500).json({ success: false, message: 'Failed to create admin.', error: error.message });
     }
 };
