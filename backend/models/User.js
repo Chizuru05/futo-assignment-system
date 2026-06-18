@@ -7,15 +7,15 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['student', 'lecturer', 'admin'], required: true },
-    
+
     // Student-specific fields
     matricNumber: { type: String, unique: true, sparse: true },
     level: { type: String, enum: ['100', '200', '300', '400', '500'], default: '500' },
-    
+
     // Lecturer-specific fields
     staffId: { type: String, unique: true, sparse: true },
     rank: { type: String, default: 'Lecturer' },
-    
+
     // Common fields
     department: { type: String, default: 'Information Technology' },
     faculty: { type: String, default: 'Computing' },
@@ -29,16 +29,16 @@ const userSchema = new mongoose.Schema({
     bio: { type: String, default: '' },
     research: { type: String, default: '' },
     profilePic: { type: String, default: '' },
-    
+
     // Lecturer application fields
     isApproved: { type: Boolean, default: false },
-    status: { 
-        type: String, 
-        enum: ['pending', 'approved', 'rejected', 'active'], 
-        default: 'pending' 
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected', 'active'],
+        default: 'pending'
     },
     isActive: { type: Boolean, default: false },
-    
+
     // Student-specific
     stateOfOrigin: { type: String, default: '' },
     lga: { type: String, default: '' },
@@ -50,22 +50,15 @@ const userSchema = new mongoose.Schema({
     guardianPhone: { type: String, default: '' },
     guardianEmail: { type: String, default: '' },
     guardianAddress: { type: String, default: '' },
-    
+
     createdAt: { type: Date, default: Date.now }
 });
 
-// Pre-save hook to hash password
-userSchema.pre('save', async function (next) {
-    // Only hash if password is modified
-    if (!this.isModified('password')) return next();
-    
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-        next();
-    } catch (error) {
-        next(error);
-    }
+// Pre-save hook — async, no next() needed in Mongoose v6+
+userSchema.pre('save', async function () {
+    if (!this.isModified('password')) return;
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Compare password method
