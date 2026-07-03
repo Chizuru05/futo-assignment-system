@@ -391,18 +391,18 @@ function setupSidebar() {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const menuBtn = document.getElementById('menuBtn');
     
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        });
     }
-    if (menuBtn && sidebar) {
+    if (menuBtn) {
         menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
     }
-    
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 1024 && sidebar && !sidebar.contains(e.target) && !menuBtn?.contains(e.target)) {
-            sidebar.classList.remove('show');
-        }
-    });
 }
 
 function setupTheme() {
