@@ -1123,3 +1123,86 @@ body {
         font-size: 0.75rem;
     }
 }
+
+
+/* ========== CREATE ADMIN MODAL ========== */
+#createAdminModal .modal-content {
+    max-width: 500px;
+}
+
+#createAdminModal .password-wrapper {
+    position: relative;
+}
+
+#createAdminModal .password-wrapper input {
+    padding-right: 3rem;
+}
+
+#createAdminModal .password-toggle {
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.3rem;
+    transition: color 0.2s;
+}
+
+#createAdminModal .password-toggle:hover {
+    color: #2a7a4b;
+}
+
+#createAdminModal .info-box {
+    background: #e8f5e9;
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    align-items: flex-start;
+}
+
+#createAdminModal .info-box i {
+    color: #2a7a4b;
+    font-size: 1.2rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+#createAdminModal .info-box strong {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #1e293b;
+}
+
+#createAdminModal .info-box p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0;
+}
+
+#createAdminModal .required {
+    color: #ef4444;
+}
+
+#createAdminModal .form-group small {
+    display: block;
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.3rem;
+}
+
+/* Page Header Actions */
+.page-header .header-actions {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.page-header .btn-primary i {
+    font-size: 0.9rem;
+}
