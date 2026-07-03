@@ -92,6 +92,7 @@ async function loadDashboard() {
         const courses = statsData.success ? statsData.stats.courses : 0;
         
         contentWrapper.innerHTML = `
+            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-book"></i></div>
@@ -115,9 +116,14 @@ async function loadDashboard() {
                     </div>
                 </div>
             </div>
+            
+            <!-- Welcome Card with Create Admin Button -->
             <div class="welcome-card">
                 <div class="card-header">
                     <h3><i class="fa-solid fa-crown"></i> Welcome, ${localStorage.getItem('fullName') || 'Administrator'}!</h3>
+                    <button class="btn-primary" onclick="openCreateAdminModal()">
+                        <i class="fa-solid fa-user-plus"></i> Create Admin
+                    </button>
                 </div>
                 <div class="card-body">
                     <p>Current Academic Session: <strong>${currentSession} ${currentSemester}</strong></p>
@@ -127,7 +133,7 @@ async function loadDashboard() {
         `;
     } catch (error) {
         console.error('Error loading dashboard:', error);
-        contentWrapper.innerHTML = '<div class="error-message">Failed to load dashboard</div>';
+        contentWrapper.innerHTML = '<div class="error-message">Failed to load dashboard. Please refresh the page.</div>';
         showToast('Failed to load dashboard', 'danger');
     }
 }
@@ -552,7 +558,7 @@ async function loadStudents() {
                 <h3><i class="fa-solid fa-users"></i> Students</h3>
                 <div class="header-actions">
                     <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
-                        <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
+                        <i class="fa-regular fa-calendar"></i] ${currentSession} ${currentSemester}
                     </span>
                 </div>
             </div>
@@ -687,6 +693,114 @@ function toggleGroup(element) {
     }
 }
 
+// ========== CREATE ADMIN FUNCTIONS ==========
+function openCreateAdminModal() {
+    document.getElementById('adminFullName').value = '';
+    document.getElementById('adminEmail').value = '';
+    document.getElementById('adminDepartment').value = 'Information Technology';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('adminConfirmPassword').value = '';
+    document.getElementById('adminSecretCode').value = '';
+    document.getElementById('createAdminModal').classList.add('show');
+}
+
+function toggleAdminPassword() {
+    const input = document.getElementById('adminPassword');
+    const icon = document.querySelector('#adminPassword').nextElementSibling.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+function toggleAdminConfirmPassword() {
+    const input = document.getElementById('adminConfirmPassword');
+    const icon = document.querySelector('#adminConfirmPassword').nextElementSibling.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+async function createAdmin() {
+    const fullName = document.getElementById('adminFullName').value.trim();
+    const email = document.getElementById('adminEmail').value.trim();
+    const department = document.getElementById('adminDepartment').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const confirmPassword = document.getElementById('adminConfirmPassword').value;
+    const secretCode = document.getElementById('adminSecretCode').value.trim();
+
+    // Validate
+    if (!fullName) {
+        showToast('Full name is required', 'warning');
+        return;
+    }
+    if (!email) {
+        showToast('Email is required', 'warning');
+        return;
+    }
+    if (!password) {
+        showToast('Password is required', 'warning');
+        return;
+    }
+    if (password.length < 8) {
+        showToast('Password must be at least 8 characters', 'warning');
+        return;
+    }
+    if (password !== confirmPassword) {
+        showToast('Passwords do not match', 'warning');
+        return;
+    }
+    if (!secretCode) {
+        showToast('Admin secret code is required', 'warning');
+        return;
+    }
+
+    const createBtn = document.getElementById('createAdminBtn');
+    const originalText = createBtn.innerHTML;
+    createBtn.disabled = true;
+    createBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...';
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/create-admin`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fullName,
+                email,
+                password,
+                department,
+                secretCode
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast(`✅ Admin "${fullName}" created successfully!`, 'success');
+            closeModal('createAdminModal');
+            loadDashboard();
+        } else {
+            showToast(data.message || 'Failed to create admin', 'danger');
+        }
+    } catch (error) {
+        console.error('Error creating admin:', error);
+        showToast('Failed to connect to server', 'danger');
+    } finally {
+        createBtn.disabled = false;
+        createBtn.innerHTML = originalText;
+    }
+}
+
 // ========== UTILITY FUNCTIONS ==========
 function closeModal(modalId) {
     document.getElementById(modalId)?.classList.remove('show');
@@ -778,6 +892,8 @@ document.querySelectorAll('.nav-item[data-page]').forEach(nav => {
     });
 });
 
+document.getElementById('createAdminBtn')?.addEventListener('click', createAdmin);
+
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', async () => {
     initDarkMode();
@@ -799,6 +915,10 @@ window.openCourseModal = openCourseModal;
 window.saveCourse = saveCourse;
 window.editCourse = editCourse;
 window.confirmDeleteCourse = confirmDeleteCourse;
+window.openCreateAdminModal = openCreateAdminModal;
+window.createAdmin = createAdmin;
+window.toggleAdminPassword = toggleAdminPassword;
+window.toggleAdminConfirmPassword = toggleAdminConfirmPassword;
 window.closeModal = closeModal;
 window.logout = logout;
 window.showToast = showToast;

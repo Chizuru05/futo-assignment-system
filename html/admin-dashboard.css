@@ -484,14 +484,47 @@ body {
 }
 
 .welcome-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 1rem 1.5rem;
     background: var(--bg-body);
     border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .welcome-card .card-header h3 {
     font-size: 1rem;
     color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.welcome-card .card-header h3 i {
+    color: var(--primary);
+}
+
+.welcome-card .card-header .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.welcome-card .card-header .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(42, 122, 75, 0.2);
 }
 
 .welcome-card .card-body {
@@ -860,6 +893,77 @@ body {
     background: var(--bg-body);
 }
 
+/* ========== CREATE ADMIN MODAL ========== */
+#createAdminModal .modal-content {
+    max-width: 500px;
+}
+
+#createAdminModal .password-wrapper {
+    position: relative;
+}
+
+#createAdminModal .password-wrapper input {
+    padding-right: 3rem;
+}
+
+#createAdminModal .password-toggle {
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.3rem;
+    transition: color 0.2s;
+}
+
+#createAdminModal .password-toggle:hover {
+    color: #2a7a4b;
+}
+
+#createAdminModal .info-box {
+    background: #e8f5e9;
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    align-items: flex-start;
+}
+
+#createAdminModal .info-box i {
+    color: #2a7a4b;
+    font-size: 1.2rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+#createAdminModal .info-box strong {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #1e293b;
+}
+
+#createAdminModal .info-box p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0;
+}
+
+#createAdminModal .required {
+    color: #ef4444;
+}
+
+#createAdminModal .form-group small {
+    display: block;
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.3rem;
+}
+
 /* ========== FORM STYLES ========== */
 .form-group {
     margin-bottom: 1rem;
@@ -913,6 +1017,11 @@ body {
     color: var(--text-light);
 }
 
+.loading-spinner i {
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
 .empty-state {
     text-align: center;
     padding: 2rem;
@@ -922,6 +1031,7 @@ body {
 .empty-state i {
     font-size: 2rem;
     margin-bottom: 0.5rem;
+    opacity: 0.5;
     display: block;
 }
 
@@ -929,6 +1039,11 @@ body {
     text-align: center;
     padding: 2rem;
     color: var(--danger);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* ========== TOAST NOTIFICATIONS ========== */
