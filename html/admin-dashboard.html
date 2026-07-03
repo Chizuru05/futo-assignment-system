@@ -166,65 +166,6 @@
         </div>
     </div>
 
-    <!-- Create Admin Modal -->
-    <div class="modal" id="createAdminModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-user-tie"></i> Create New Admin</h3>
-                <button class="modal-close" onclick="closeModal('createAdminModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Full Name <span class="required">*</span></label>
-                    <input type="text" id="adminFullName" placeholder="e.g., John Doe">
-                </div>
-                <div class="form-group">
-                    <label>Email Address <span class="required">*</span></label>
-                    <input type="email" id="adminEmail" placeholder="admin@futo.edu.ng">
-                </div>
-                <div class="form-group">
-                    <label>Department</label>
-                    <input type="text" id="adminDepartment" value="Information Technology">
-                </div>
-                <div class="form-group">
-                    <label>Password <span class="required">*</span></label>
-                    <div class="password-wrapper">
-                        <input type="password" id="adminPassword" placeholder="Enter a strong password">
-                        <button type="button" class="password-toggle" onclick="toggleAdminPassword()">
-                            <i class="fa-regular fa-eye"></i>
-                        </button>
-                    </div>
-                    <small>Must be at least 8 characters with uppercase, lowercase, and a number</small>
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password <span class="required">*</span></label>
-                    <div class="password-wrapper">
-                        <input type="password" id="adminConfirmPassword" placeholder="Confirm password">
-                        <button type="button" class="password-toggle" onclick="toggleAdminConfirmPassword()">
-                            <i class="fa-regular fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Admin Secret Code <span class="required">*</span></label>
-                    <input type="password" id="adminSecretCode" placeholder="Enter the admin secret code">
-                    <small>Contact system administrator for the secret code</small>
-                </div>
-                <div class="info-box">
-                    <i class="fa-solid fa-info-circle"></i>
-                    <div>
-                        <strong>Note:</strong>
-                        <p>The admin secret code is required to create new admin accounts.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('createAdminModal')">Cancel</button>
-                <button class="btn-primary" id="createAdminBtn">Create Admin</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
