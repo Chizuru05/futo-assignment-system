@@ -207,6 +207,16 @@ function setupTheme() {
     if (localStorage.getItem('futoTheme') === 'dark') document.body.classList.add('dark');
 }
 
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('futoTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        });
+    }
+}
+
 function setupSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -223,6 +233,7 @@ function setupSidebar() {
 document.addEventListener('DOMContentLoaded', () => {
     setupTheme();
     setupSidebar();
+    setupThemeToggle();
     loadApplications();
 });
 

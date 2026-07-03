@@ -934,6 +934,7 @@ body {
 }
 
 @media (max-width: 768px) {
+    
     .content-wrapper {
         padding: 1rem;
     }
@@ -946,18 +947,24 @@ body {
     .form-row {
         grid-template-columns: 1fr;
     }
-    
     .rubric-criterion {
-        flex-direction: column;
-        align-items: stretch;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem;
     }
     
     .criterion-name {
+        flex: 1 1 100%;
         width: 100%;
     }
     
     .criterion-score {
-        justify-content: flex-end;
+        flex: 1;
+        justify-content: flex-start;
+    }
+    
+    .remove-criterion {
+        margin-left: auto;
     }
     
     .form-actions {
@@ -979,3 +986,4 @@ body {
         text-align: center;
     }
 }
+

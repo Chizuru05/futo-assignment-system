@@ -327,6 +327,15 @@ body {
     min-width: 0;
 }
 
+.menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
 /* ========== PAGE HEADER ========== */
 .page-header {
     padding: 1.5rem 2rem;
@@ -600,7 +609,7 @@ body {
         left: -280px;
         height: 100vh;
         z-index: 200;
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--shadow-lg)
     }
     
     .sidebar.show {

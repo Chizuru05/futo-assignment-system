@@ -76,78 +76,88 @@
         </aside>
 
         <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2>Settings</h2>
+                </div>
+            </header>
+
             <div class="page-header">
                 <h1 class="page-title">System Settings</h1>
                 <p class="page-subtitle">Configure academic session and semester settings</p>
-                <!-- HAMBURGER MENU REMOVED -->
             </div>
+            <div class="content-wrapper">
 
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-calendar"></i> Current Academic Session</h3>
-                    <p>Set the active session and semester for course registration</p>
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-calendar"></i> Current Academic Session</h3>
+                        <p>Set the active session and semester for course registration</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Active Academic Session</label>
+                            <select id="activeSession">
+                                <option value="2023-2024">2023-2024</option>
+                                <option value="2024-2025">2024-2025</option>
+                                <option value="2025-2026">2025-2026</option>
+                                <option value="2026-2027">2026-2027</option>
+                                <option value="2027-2028">2027-2028</option>
+                            </select>
+                            <small>Only courses for this session will be available for registration</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Active Semester</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="semester" value="Harmattan">
+                                    <span>Harmattan (First Semester)</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="semester" value="Rain">
+                                    <span>Rain (Second Semester)</span>
+                                </label>
+                            </div>
+                            <small>Only courses for this semester will be available for registration</small>
+                        </div>
+
+                        <div class="info-box">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <div>
+                                <strong>Important Note:</strong>
+                                <p>When you change the active session or semester, all students and lecturers will immediately see only courses matching these settings for registration.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn-primary" id="saveSettingsBtn">
+                                <i class="fa-solid fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Active Academic Session</label>
-                        <select id="activeSession">
-                            <option value="2023-2024">2023-2024</option>
-                            <option value="2024-2025">2024-2025</option>
-                            <option value="2025-2026">2025-2026</option>
-                            <option value="2026-2027">2026-2027</option>
-                            <option value="2027-2028">2027-2028</option>
-                        </select>
-                        <small>Only courses for this session will be available for registration</small>
-                    </div>
 
-                    <div class="form-group">
-                        <label>Active Semester</label>
-                        <div class="radio-group">
-                            <label class="radio-label">
-                                <input type="radio" name="semester" value="Harmattan">
-                                <span>Harmattan (First Semester)</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="semester" value="Rain">
-                                <span>Rain (Second Semester)</span>
-                            </label>
-                        </div>
-                        <small>Only courses for this semester will be available for registration</small>
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-clock"></i> Current System Status</h3>
                     </div>
-
-                    <div class="info-box">
-                        <i class="fa-solid fa-info-circle"></i>
-                        <div>
-                            <strong>Important Note:</strong>
-                            <p>When you change the active session or semester, all students and lecturers will immediately see only courses matching these settings for registration.</p>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button class="btn-primary" id="saveSettingsBtn">
-                            <i class="fa-solid fa-save"></i> Save Settings
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-clock"></i> Current System Status</h3>
-                </div>
-                <div class="card-body">
-                    <div class="status-grid">
-                        <div class="status-item">
-                            <span class="status-label">Active Session:</span>
-                            <span class="status-value" id="displaySession">Loading...</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Active Semester:</span>
-                            <span class="status-value" id="displaySemester">Loading...</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Last Updated:</span>
-                            <span class="status-value" id="lastUpdated">Loading...</span>
+                    <div class="card-body">
+                        <div class="status-grid">
+                            <div class="status-item">
+                                <span class="status-label">Active Session:</span>
+                                <span class="status-value" id="displaySession">Loading...</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Active Semester:</span>
+                                <span class="status-value" id="displaySemester">Loading...</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Last Updated:</span>
+                                <span class="status-value" id="lastUpdated">Loading...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
