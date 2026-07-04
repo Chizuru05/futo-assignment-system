@@ -1015,6 +1015,10 @@ body {
     text-align: center;
     padding: 2rem;
     color: var(--text-light);
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .loading-spinner i {
