@@ -277,33 +277,29 @@ exports.bulkUnregisterCourses = async (req, res) => {
 
 // ============ GET LECTURER COURSES ============
 
-// Lecturer: Get my registered courses for current semester
+// ============ GET MY COURSES - FIXED (removed duplicate res.json) ============
 exports.getMyCourses = async (req, res) => {
     try {
         const lecturerId = req.user.id;
-        
-        // Get active settings from database
+
         const activeSettings = await getActiveSettings();
         const activeSession = activeSettings.session;
         const activeSemester = activeSettings.semester;
-        
+
         console.log('=== GET MY COURSES ===');
         console.log('Lecturer ID:', lecturerId);
         console.log('Active Session:', activeSession);
         console.log('Active Semester:', activeSemester);
-        
-        let query = { 
-            lecturerId, 
+
+        const courses = await LecturerCourse.find({
+            lecturerId,
             status: 'active',
             session: activeSession,
             semester: activeSemester
-        };
-        
-        const courses = await LecturerCourse.find(query).sort({ level: 1, courseCode: 1 });
-        
+        }).sort({ level: 1, courseCode: 1 });
+
         console.log(`Found ${courses.length} courses`);
-        
-        // Get student count and assignment stats for each course
+
         const coursesWithStats = await Promise.all(courses.map(async (course) => {
             const studentCount = await Enrollment.countDocuments({
                 courseId: course.courseId,
@@ -311,15 +307,15 @@ exports.getMyCourses = async (req, res) => {
                 semester: activeSemester,
                 status: 'active'
             });
-            
+
             const assignments = await Assignment.find({ course: course.courseCode });
             const assignmentCount = assignments.length;
-            
+
             const pendingSubmissions = await Submission.countDocuments({
                 assignmentId: { $in: assignments.map(a => a._id) },
                 status: 'pending'
             });
-            
+
             return {
                 ...course.toObject(),
                 studentCount,
@@ -327,32 +323,26 @@ exports.getMyCourses = async (req, res) => {
                 pendingSubmissions
             };
         }));
+
         // Count unique students across ALL courses
         const allCourseIds = courses.map(c => c.courseId);
-        const uniqueStudents = await Enrollment.distinct('studentId', {
+        const uniqueStudentIds = await Enrollment.distinct('studentId', {
             courseId: { $in: allCourseIds },
             session: activeSession,
             semester: activeSemester,
             status: 'active'
         });
 
+        // Single response — no duplicate
         res.status(200).json({
             success: true,
             count: coursesWithStats.length,
             courses: coursesWithStats,
-            uniqueStudentCount: uniqueStudents.length,  // ADD THIS
+            uniqueStudentCount: uniqueStudentIds.length,
             activeSession,
             activeSemester
         });
-        
-        res.status(200).json({
-            success: true,
-            count: coursesWithStats.length,
-            courses: coursesWithStats,
-            activeSession,
-            activeSemester
-        });
-        
+
     } catch (error) {
         console.error('Get my courses error:', error);
         res.status(500).json({
@@ -361,6 +351,7 @@ exports.getMyCourses = async (req, res) => {
         });
     }
 };
+
 
 // Lecturer: Get available courses to register
 exports.getAvailableCourses = async (req, res) => {
@@ -556,29 +547,27 @@ exports.updateCourseStatus = async (req, res) => {
 
 // ============ GET STUDENTS FOR LECTURER'S COURSES ============
 
-// Get all students enrolled in lecturer's courses
+// ============ GET MY STUDENTS - FIXED submission matching ============
 exports.getMyStudents = async (req, res) => {
     try {
         const lecturerId = req.user.id;
-        
-        // Get active settings from database
+
         const activeSettings = await getActiveSettings();
         const activeSession = activeSettings.session;
         const activeSemester = activeSettings.semester;
-        
+
         console.log('=== GET MY STUDENTS DEBUG ===');
         console.log('Lecturer ID:', lecturerId);
         console.log('Active Session:', activeSession);
         console.log('Active Semester:', activeSemester);
-        
-        // Get all courses taught by this lecturer
+
         const lecturerCourses = await LecturerCourse.find({
             lecturerId,
             session: activeSession,
             semester: activeSemester,
             status: 'active'
         });
-        
+
         if (!lecturerCourses.length) {
             return res.status(200).json({
                 success: true,
@@ -586,20 +575,19 @@ exports.getMyStudents = async (req, res) => {
                 message: 'No courses found for this lecturer'
             });
         }
-        
+
         const courseIds = lecturerCourses.map(c => c.courseId);
         const courseCodes = lecturerCourses.map(c => c.courseCode);
-        
+
         console.log('Teaching courses:', courseCodes);
-        
-        // Get all enrollments for these courses
+
         const enrollments = await Enrollment.find({
             courseId: { $in: courseIds },
             session: activeSession,
             semester: activeSemester,
             status: 'active'
         }).populate('studentId', 'fullName email matricNumber level');
-        
+
         if (!enrollments.length) {
             return res.status(200).json({
                 success: true,
@@ -607,48 +595,59 @@ exports.getMyStudents = async (req, res) => {
                 message: 'No students enrolled in your courses'
             });
         }
-        
-        // Get all assignments for these courses
+
+        // Get assignments for these courses
         const assignments = await Assignment.find({
             course: { $in: courseCodes }
         });
-        
-        // Get all submissions for these courses
+
+        // Convert assignment IDs to strings for reliable comparison
+        const assignmentIdStrings = assignments.map(a => a._id.toString());
+
+        // Get ALL submissions for these assignments in one query
         const submissions = await Submission.find({
             assignmentId: { $in: assignments.map(a => a._id) }
         });
-        
-        // Build student data (one row per enrollment)
+
+        console.log(`Total assignments: ${assignments.length}, Total submissions: ${submissions.length}`);
+
+        // Build student data
         const students = [];
-        
+
         for (const enrollment of enrollments) {
             const student = enrollment.studentId;
             if (!student) continue;
-            
-            const course = lecturerCourses.find(c => c.courseId.toString() === enrollment.courseId.toString());
-            if (!course) continue;
-            
-            // Get course-specific assignments
-            const courseAssignments = assignments.filter(a => a.course === course.courseCode);
-            const courseAssignmentIds = courseAssignments.map(a => a._id);
-            
-            // Get student's submissions for this course
-            const studentSubmissions = submissions.filter(s => 
-                s.studentId.toString() === student._id.toString() && 
-                courseAssignmentIds.includes(s.assignmentId.toString())
+
+            const course = lecturerCourses.find(
+                c => c.courseId.toString() === enrollment.courseId.toString()
             );
-            
+            if (!course) continue;
+
+            // Get assignments for this specific course — compare as strings
+            const courseAssignments = assignments.filter(
+                a => a.course === course.courseCode
+            );
+            const courseAssignmentIdStrings = courseAssignments.map(a => a._id.toString());
+
+            // FIXED: Compare both studentId and assignmentId as strings
+            const studentSubmissions = submissions.filter(s =>
+                s.studentId.toString() === student._id.toString() &&
+                courseAssignmentIdStrings.includes(s.assignmentId.toString())
+            );
+
             const submittedCount = studentSubmissions.length;
             const totalAssignments = courseAssignments.length;
             const pendingCount = studentSubmissions.filter(s => s.status === 'pending').length;
-            
+
+            console.log(`Student ${student.fullName} | Course ${course.courseCode} | Assignments: ${totalAssignments} | Submitted: ${submittedCount}`);
+
             let studentStatus = 'pending';
             if (submittedCount === totalAssignments && totalAssignments > 0) {
                 studentStatus = 'completed';
             } else if (submittedCount > 0) {
                 studentStatus = 'in-progress';
             }
-            
+
             students.push({
                 userId: student._id,
                 name: student.fullName,
@@ -657,26 +656,28 @@ exports.getMyStudents = async (req, res) => {
                 level: student.level || '500',
                 courseCode: course.courseCode,
                 courseTitle: course.courseTitle,
-                totalAssignments: totalAssignments,
-                submittedCount: submittedCount,
+                totalAssignments,
+                submittedCount,
                 pendingSubmissions: pendingCount,
                 status: studentStatus
             });
         }
-        
+
         console.log(`Found ${students.length} student enrollments across ${courseCodes.length} courses`);
-        
+
         res.status(200).json({
             success: true,
             count: students.length,
-            students: students,
+            students,
             courses: lecturerCourses.map(c => ({
                 courseCode: c.courseCode,
                 courseTitle: c.courseTitle,
-                studentCount: enrollments.filter(e => e.courseId.toString() === c.courseId.toString()).length
+                studentCount: enrollments.filter(
+                    e => e.courseId.toString() === c.courseId.toString()
+                ).length
             }))
         });
-        
+
     } catch (error) {
         console.error('Get my students error:', error);
         res.status(500).json({
@@ -685,6 +686,7 @@ exports.getMyStudents = async (req, res) => {
         });
     }
 };
+
 
 // Get specific student details with all courses
 exports.getStudentDetails = async (req, res) => {
