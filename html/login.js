@@ -2,7 +2,6 @@
 
 const studentRoleBtn = document.getElementById('studentRoleBtn');
 const lecturerRoleBtn = document.getElementById('lecturerRoleBtn');
-const adminRoleBtn = document.getElementById('adminRoleBtn');
 const identifierInput = document.getElementById('identifier');
 const identifierLabel = document.getElementById('identifierLabel');
 const identifierHint = document.getElementById('identifierHint');
@@ -26,11 +25,6 @@ function updateIdentifierField() {
         identifierHint.textContent = 'Enter your staff ID (e.g., STAFF/2024/001) or email';
         identifierInput.placeholder = 'STAFF/2024/001 or lecturer@gmail.com';
         loginBtnText.textContent = 'Login as Lecturer';
-    } else if (currentRole === 'admin') {
-        identifierLabel.textContent = 'Email';
-        identifierHint.textContent = 'Enter your admin email';
-        identifierInput.placeholder = 'admin@gmail.com';
-        loginBtnText.textContent = 'Login as Admin';
     }
     clearErrors();
 }
@@ -39,7 +33,6 @@ if (studentRoleBtn) {
     studentRoleBtn.addEventListener('click', () => {
         studentRoleBtn.classList.add('active');
         lecturerRoleBtn.classList.remove('active');
-        adminRoleBtn.classList.remove('active');
         currentRole = 'student';
         updateIdentifierField();
     });
@@ -49,18 +42,7 @@ if (lecturerRoleBtn) {
     lecturerRoleBtn.addEventListener('click', () => {
         lecturerRoleBtn.classList.add('active');
         studentRoleBtn.classList.remove('active');
-        adminRoleBtn.classList.remove('active');
         currentRole = 'lecturer';
-        updateIdentifierField();
-    });
-}
-
-if (adminRoleBtn) {
-    adminRoleBtn.addEventListener('click', () => {
-        adminRoleBtn.classList.add('active');
-        studentRoleBtn.classList.remove('active');
-        lecturerRoleBtn.classList.remove('active');
-        currentRole = 'admin';
         updateIdentifierField();
     });
 }
@@ -141,7 +123,7 @@ function showToast(message, type = 'success', duration = 3000) {
             <div class="toast-title">${type === 'success' ? 'Success' : type === 'danger' ? 'Error' : 'Info'}</div>
             <div class="toast-message">${message}</div>
         </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
     `;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);
@@ -155,8 +137,6 @@ async function handleLogin(e) {
     const password = passwordInput.value;
     const rememberMe = rememberMeCheckbox?.checked || false;
 
-    console.log('🔐 Login attempt:', { identifier, role: currentRole });
-
     loginBtn.disabled = true;
     const originalText = loginBtn.innerHTML;
     loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
@@ -168,16 +148,20 @@ async function handleLogin(e) {
             body: JSON.stringify({ identifier, password })
         });
 
-        console.log('📥 Response status:', response.status);
-        
         const data = await response.json();
-        console.log('📥 Response data:', data);
 
         if (data.success) {
+            // Block admin from logging in through this page
+            if (data.user.role === 'admin') {
+                showToast('Admins must use the admin login portal.', 'danger');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = originalText;
+                return;
+            }
+
             localStorage.clear();
 
             const role = data.user.role;
-
             localStorage.setItem(`${role}_token`, data.token);
             localStorage.setItem('token', data.token);
             localStorage.setItem('userRole', role);
@@ -203,17 +187,16 @@ async function handleLogin(e) {
             setTimeout(() => {
                 if (role === 'student') window.location.href = 'student-dashboard.html';
                 else if (role === 'lecturer') window.location.href = 'lecturer-dashboard.html';
-                else if (role === 'admin') window.location.href = 'admin-dashboard.html';
             }, 1000);
+
         } else {
-            console.log('❌ Login failed:', data.message);
             showToast(data.message || 'Login failed. Please check your credentials.', 'danger');
             loginBtn.disabled = false;
             loginBtn.innerHTML = originalText;
         }
 
     } catch (error) {
-        console.error('❌ Login error:', error);
+        console.error('Login error:', error);
         showToast('Cannot connect to server. Make sure backend is running.', 'danger');
         loginBtn.disabled = false;
         loginBtn.innerHTML = originalText;
@@ -239,7 +222,6 @@ function loadRememberedCredentials() {
         identifierInput.value = rememberedIdentifier;
         if (rememberedRole === 'student' && studentRoleBtn) studentRoleBtn.click();
         else if (rememberedRole === 'lecturer' && lecturerRoleBtn) lecturerRoleBtn.click();
-        else if (rememberedRole === 'admin' && adminRoleBtn) adminRoleBtn.click();
         if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
     }
 }
