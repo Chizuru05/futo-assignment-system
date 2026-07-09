@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUTO · Verify Email</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="verify-email.css" />
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-card">
+            <div class="logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>FUTO</span>
+            </div>
+            <div class="signup-header">
+                <h1>Verify Your Email</h1>
+                <p id="verifySubtext">Enter the 6-digit code we sent to your email</p>
+            </div>
+
+            <form id="verifyForm" class="signup-form">
+                <div class="form-group">
+                    <label for="otpInput">Verification Code *</label>
+                    <input type="text" id="otpInput" maxlength="6" placeholder="000000"
+                        style="letter-spacing:8px;font-size:24px;text-align:center;" required />
+                    <div class="error-message" id="otpError"></div>
+                </div>
+                <button type="submit" class="btn-submit" id="verifyBtn">
+                    <i class="fa-solid fa-check"></i> Verify Email
+                </button>
+            </form>
+
+            <p class="login-link">
+                Didn't get a code? <a href="#" id="resendLink">Resend code</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+    <script src="api-config.js"></script>
+    <script src="verify-email.js"></script>
+</body>
+</html>

@@ -452,11 +452,24 @@ function editGrade(submissionId) {
     }
 }
 
-function notifyStudent(submissionId) {
+async function notifyStudent(submissionId) {
     const submission = submissionsData.find(s => s._id === submissionId);
-    if (submission) {
-        showToast(`ðŸ“§ Sending notification to ${submission.studentName}...`, 'info');
-        setTimeout(() => showToast(`âœ… Email sent to ${submission.studentName}`, 'success'), 1500);
+    if (!submission) return;
+
+    showToast(`📧 Sending notification to ${submission.studentName}...`, 'info');
+    try {
+        const response = await fetch(`${API_URL}/api/submissions/${submissionId}/notify`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast(`✅ Email sent to ${submission.studentName}`, 'success');
+        } else {
+            showToast(data.message || 'Failed to send email', 'danger');
+        }
+    } catch (error) {
+        showToast('Failed to send notification', 'danger');
     }
 }
 

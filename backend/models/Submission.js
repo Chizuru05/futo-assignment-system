@@ -14,6 +14,10 @@ const fileSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    publicId: { 
+        type: String, 
+        default: '' 
+    }, 
     mimetype: {
         type: String,
         default: ''

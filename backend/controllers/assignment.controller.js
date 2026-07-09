@@ -4,6 +4,8 @@ const Enrollment = require('../models/Enrollment');
 const LecturerCourse = require('../models/LecturerCourse');
 const Submission = require('../models/Submission');
 const Settings = require('../models/Settings');
+const User = require('../models/User');
+const { sendEmail, emailTemplates } = require('../config/email');
 
 // Helper to get active settings
 async function getActiveSettings() {
@@ -22,34 +24,25 @@ exports.createAssignment = async (req, res) => {
             dueTime, totalMarks, rubric, allowMultipleFiles, allowLateSubmissions,
             session, semester
         } = req.body;
-        
+
         const lecturerId = req.user.id;
-        
-        // Get active settings if not provided
+
         let activeSession = session;
         let activeSemester = semester;
-        
+
         if (!activeSession || !activeSemester) {
             const settings = await getActiveSettings();
             activeSession = settings.session;
             activeSemester = settings.semester;
         }
-        
-        console.log('=== CREATE ASSIGNMENT ===');
-        console.log('Course:', course);
-        console.log('Title:', title);
-        console.log('Due Date:', dueDate);
-        console.log('Total Marks:', totalMarks);
-        console.log('Session:', activeSession);
-        console.log('Semester:', activeSemester);
-        
+
         if (!course || !title || !dueDate || !totalMarks) {
             return res.status(400).json({
                 success: false,
                 message: 'Course, title, due date, and total marks are required'
             });
         }
-        
+
         const assignment = new Assignment({
             course,
             courseName: courseName || course,
@@ -66,17 +59,22 @@ exports.createAssignment = async (req, res) => {
             semester: activeSemester,
             lecturerId
         });
-        
+
         await assignment.save();
-        
+
         console.log(`✅ Assignment created: ${title} for ${course} (${activeSession} ${activeSemester})`);
-        
+
+        // Respond right away — don't make the lecturer wait on email sending
         res.status(201).json({
             success: true,
             message: 'Assignment created successfully',
             assignment
         });
-        
+
+        // Fire-and-forget: notify enrolled students
+        notifyEnrolledStudents(assignment, activeSession, activeSemester)
+            .catch(err => console.error('Assignment notification error:', err.message));
+
     } catch (error) {
         console.error('Create assignment error:', error);
         res.status(500).json({
@@ -85,6 +83,46 @@ exports.createAssignment = async (req, res) => {
         });
     }
 };
+
+// Helper — sends assignment-created email to all enrolled students
+async function notifyEnrolledStudents(assignment, session, semester) {
+    const enrollments = await Enrollment.find({
+        courseCode: assignment.course,
+        session,
+        semester,
+        status: 'active'
+    });
+
+    if (enrollments.length === 0) {
+        console.log('No enrolled students to notify for', assignment.course);
+        return;
+    }
+
+    const studentIds = enrollments.map(e => e.studentId);
+    const students = await User.find({ _id: { $in: studentIds } });
+
+    console.log(`Sending assignment notification to ${students.length} students...`);
+
+    for (const student of students) {
+        try {
+            await sendEmail(
+                student.email,
+                `📘 New Assignment: ${assignment.title}`,
+                emailTemplates.assignmentCreated(
+                    student.fullName,
+                    assignment.title,
+                    assignment.courseName,
+                    assignment.dueDate,
+                    assignment.dueTime,
+                    assignment.totalMarks
+                )
+            );
+        } catch (err) {
+            console.error(`Failed to email ${student.email}:`, err.message);
+        }
+    }
+    console.log('✅ Assignment notifications complete');
+}
 
 // ============ GET ASSIGNMENTS FOR LECTURER (FILTERED BY ACTIVE SESSION/SEMESTER) ============
 exports.getLecturerAssignments = async (req, res) => {

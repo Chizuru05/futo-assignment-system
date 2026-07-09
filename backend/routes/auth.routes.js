@@ -6,6 +6,8 @@ const { authMiddleware, requireRole } = require('../middleware/auth');
 
 // Public routes
 router.post('/register', authController.register);
+router.post('/verify-otp', authController.verifyOTP);
+router.post('/resend-otp', authController.resendOTP);
 router.post('/login', authController.login);
 router.post('/lecturer-apply', lecturerApplicationController.applyLecturer);
 

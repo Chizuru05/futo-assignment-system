@@ -39,6 +39,11 @@ const userSchema = new mongoose.Schema({
     },
     isActive: { type: Boolean, default: false },
 
+    // Email verification (NEW)
+    emailVerified: { type: Boolean, default: false },
+    otp: { type: String, default: null },
+    otpExpiry: { type: Date, default: null },
+
     // Student-specific
     stateOfOrigin: { type: String, default: '' },
     lga: { type: String, default: '' },
@@ -54,14 +59,12 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-// Pre-save hook — async, no next() needed in Mongoose v6+
 userSchema.pre('save', async function () {
     if (!this.isModified('password')) return;
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
     try {
         return await bcrypt.compare(candidatePassword, this.password);

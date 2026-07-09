@@ -270,10 +270,10 @@ studentForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Student account created successfully!', 'success');
+            showToast('Account created! Please check your email for a verification code.', 'success');
             setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 2000);
+                window.location.href = `verify-email.html?email=${encodeURIComponent(studentData.email)}`;
+            }, 1500);
         } else {
             showToast(data.message || 'Registration failed', 'error');
             studentSubmitBtn.disabled = false;

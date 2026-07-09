@@ -1,12 +1,16 @@
 // backend/config/email.js
 const nodemailer = require('nodemailer');
 
-// Email transporter configuration with your credentials
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error('EMAIL_USER and EMAIL_PASS must be set as environment variables.');
+}
+
+// Email transporter configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER || 'qualituo4@gmail.com',
-        pass: process.env.EMAIL_PASS || 'uoge sdev yynv zmag'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -95,6 +99,48 @@ const emailTemplates = {
                 </div>
             </div>
         `;
+    },
+
+    // OTP verification email
+    otpVerification: (name, otp) => {
+        return `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f7fb; border-radius: 10px;">
+                <div style="text-align: center; padding: 20px; background-color: #2a7a4b; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">Verify Your Email</h1>
+                </div>
+                <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px; text-align: center;">
+                    <h2 style="color: #2a7a4b;">Hello ${name},</h2>
+                    <p>Use the code below to verify your email address:</p>
+                    <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2a7a4b; padding: 20px; background: #e8f5e9; border-radius: 8px; margin: 20px 0;">
+                        ${otp}
+                    </div>
+                    <p style="color: #64748b;">This code expires in 10 minutes.</p>
+                    <p style="color: #64748b;">If you didn't request this, you can safely ignore this email.</p>
+                </div>
+            </div>
+        `;
+    },
+
+    // Sent to enrolled students when a lecturer creates an assignment
+    assignmentCreated: (studentName, assignmentTitle, courseName, dueDate, dueTime, totalMarks) => {
+        return `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f7fb; border-radius: 10px;">
+                <div style="text-align: center; padding: 20px; background-color: #2a7a4b; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">New Assignment Posted</h1>
+                </div>
+                <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <h2 style="color: #2a7a4b;">Hello ${studentName},</h2>
+                    <p>A new assignment has been posted for one of your courses:</p>
+                    <p><strong>Course:</strong> ${courseName}</p>
+                    <p><strong>Assignment:</strong> ${assignmentTitle}</p>
+                    <p><strong>Due:</strong> ${dueDate} at ${dueTime}</p>
+                    <p><strong>Total Marks:</strong> ${totalMarks}</p>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5500'}/assgnment.html" style="background-color: #2a7a4b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Assignment</a>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 };
 
@@ -102,7 +148,7 @@ const emailTemplates = {
 const sendEmail = async (to, subject, html) => {
     try {
         const mailOptions = {
-            from: `"FUTO IT Department" <${process.env.EMAIL_USER || 'qualituo4@gmail.com'}>`,
+            from: `"FUTO IT Department" <${process.env.EMAIL_USER}>`,
             to,
             subject,
             html

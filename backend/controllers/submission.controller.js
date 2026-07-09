@@ -5,7 +5,19 @@ const User = require('../models/User');
 const LecturerCourse = require('../models/LecturerCourse');
 const Settings = require('../models/Settings');
 const { sendEmail, emailTemplates } = require('../config/email');
-const fs = require('fs');
+const cloudinary = require('../config/cloudinary'); // NEW
+
+// NEW: delete already-uploaded Cloudinary files if a submission fails validation
+async function cleanupCloudinaryFiles(files) {
+    if (!files || files.length === 0) return;
+    await Promise.all(
+        files.map(file =>
+            cloudinary.uploader.destroy(file.filename, { resource_type: 'auto' }).catch(err => {
+                console.error(`Failed to clean up Cloudinary file ${file.filename}:`, err.message);
+            })
+        )
+    );
+}
 
 // Helper to get active settings
 async function getActiveSettings() {
@@ -33,9 +45,7 @@ exports.submitAssignment = async (req, res) => {
         
         if (!assignmentId) {
             if (files.length > 0) {
-                files.forEach(file => {
-                    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-                });
+                await cleanupCloudinaryFiles(files);
             }
             return res.status(400).json({
                 success: false,
@@ -47,9 +57,7 @@ exports.submitAssignment = async (req, res) => {
         const assignment = await Assignment.findById(assignmentId);
         if (!assignment) {
             if (files.length > 0) {
-                files.forEach(file => {
-                    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-                });
+                await cleanupCloudinaryFiles(files);
             }
             return res.status(404).json({
                 success: false,
@@ -63,9 +71,7 @@ exports.submitAssignment = async (req, res) => {
         
         if (assignmentSession !== activeSettings.session || assignmentSemester !== activeSettings.semester) {
             if (files.length > 0) {
-                files.forEach(file => {
-                    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-                });
+                await cleanupCloudinaryFiles(files);
             }
             return res.status(403).json({
                 success: false,
@@ -83,9 +89,7 @@ exports.submitAssignment = async (req, res) => {
         
         if (existingSubmission) {
             if (files.length > 0) {
-                files.forEach(file => {
-                    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-                });
+                await cleanupCloudinaryFiles(files);
             }
             return res.status(400).json({
                 success: false,
@@ -102,7 +106,8 @@ exports.submitAssignment = async (req, res) => {
         const uploadedFiles = files.map(file => ({
             name: file.originalname,
             size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-            path: file.path,
+            path: file.path,           // now the Cloudinary secure URL
+            publicId: file.filename,   // Cloudinary public_id — needed to delete later
             mimetype: file.mimetype,
             originalName: file.originalname
         }));
@@ -157,9 +162,7 @@ exports.submitAssignment = async (req, res) => {
     } catch (error) {
         console.error('Submit error:', error);
         if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
-                if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-            });
+            await cleanupCloudinaryFiles(req.files);
         }
         res.status(500).json({
             success: false,
@@ -328,6 +331,30 @@ exports.gradeSubmission = async (req, res) => {
         });
     }
 };
+// submission.controller.js — add this export
+exports.resendNotification = async (req, res) => {
+    try {
+        const { submissionId } = req.params;
+        const submission = await Submission.findById(submissionId);
+        if (!submission || submission.status !== 'graded') {
+            return res.status(400).json({ success: false, message: 'Submission not graded yet' });
+        }
+        const assignment = await Assignment.findById(submission.assignmentId);
+        const student = await User.findById(submission.studentId);
+        const percentage = ((submission.totalScore || 0) / assignment.totalMarks * 100).toFixed(1);
+
+        await sendEmail(
+            student.email,
+            `⭐ Grade Released: ${assignment.title}`,
+            emailTemplates.gradeReleased(student.fullName, assignment.title, assignment.courseName, submission.totalScore, assignment.totalMarks, percentage, submission.feedback)
+        );
+
+        res.status(200).json({ success: true, message: 'Notification sent' });
+    } catch (error) {
+        console.error('Resend notification error:', error);
+        res.status(500).json({ success: false, message: 'Failed to send notification' });
+    }
+};
 
 // Get single submission by ID
 exports.getSubmissionById = async (req, res) => {
@@ -428,38 +455,23 @@ exports.getPendingCount = async (req, res) => {
 exports.downloadFile = async (req, res) => {
     try {
         const { submissionId, fileIndex } = req.params;
-        
+
         const submission = await Submission.findById(submissionId);
         if (!submission) {
-            return res.status(404).json({
-                success: false,
-                message: 'Submission not found'
-            });
+            return res.status(404).json({ success: false, message: 'Submission not found' });
         }
-        
+
         const file = submission.files[parseInt(fileIndex)];
-        if (!file) {
-            return res.status(404).json({
-                success: false,
-                message: 'File not found'
-            });
+        if (!file || !file.path) {
+            return res.status(404).json({ success: false, message: 'File not found' });
         }
-        
-        if (!fs.existsSync(file.path)) {
-            return res.status(404).json({
-                success: false,
-                message: 'File not found on server'
-            });
-        }
-        
-        res.download(file.path, file.name);
-        
+
+        // file.path is now a Cloudinary URL — redirect the browser straight to it
+        return res.redirect(file.path);
+
     } catch (error) {
         console.error('Download error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 

@@ -51,12 +51,15 @@ exports.updateProfile = async (req, res) => {
 exports.updateProfilePicture = async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-        const profilePicUrl = `/uploads/profiles/${req.file.filename}`;
+
+        const profilePicUrl = req.file.path; // Cloudinary secure URL, ready to use as-is
+
         const user = await User.findByIdAndUpdate(
             req.user.id,
             { profilePic: profilePicUrl },
             { new: true }
         ).select('-password');
+
         res.status(200).json({ success: true, message: 'Profile picture updated', profilePic: profilePicUrl, user });
     } catch (error) {
         console.error('Update profile picture error:', error);

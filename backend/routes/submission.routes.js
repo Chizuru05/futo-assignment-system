@@ -40,5 +40,7 @@ router.post('/', upload.array('files', 5), submissionController.submitAssignment
 
 // Lecturer: Grade a submission
 router.put('/:submissionId/grade', submissionController.gradeSubmission);
+// submission.routes.js — add near the grade route
+router.post('/:submissionId/notify', submissionController.resendNotification);
 
 module.exports = router;
