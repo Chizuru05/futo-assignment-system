@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
 const profileController = require('../controllers/profile.controller');
-const upload = require('../config/upload');
+const upload = require('../middleware/upload'); // Import the multer instance, not the storage
 
 // All profile routes require authentication
 router.use(authMiddleware);
