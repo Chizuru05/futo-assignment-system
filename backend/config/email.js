@@ -5,16 +5,20 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     throw new Error('EMAIL_USER and EMAIL_PASS must be set as environment variables.');
 }
 
-// Email transporter configuration
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    family: 4, // force IPv4 — fixes ENETUNREACH on networks with broken IPv6 routing
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     }
 });
 
-// Email templates
+// ... keep the rest of your emailTemplates and sendEmail exactly as before
+
+// Email templates (same as before, just using SendGrid)
 const emailTemplates = {
     // Welcome email template
     welcome: (name, role) => {
@@ -144,21 +148,37 @@ const emailTemplates = {
     }
 };
 
-// Send email function
+// Send email function using SendGrid
 const sendEmail = async (to, subject, html) => {
+    console.log(`📧 Attempting to send email to: ${to}`);
+    console.log(`   Subject: ${subject}`);
+
+    if (!sendGridApiKey) {
+        console.error('❌ Cannot send email: SENDGRID_API_KEY not configured');
+        return false;
+    }
+
     try {
-        const mailOptions = {
-            from: `"FUTO IT Department" <${process.env.EMAIL_USER}>`,
-            to,
-            subject,
-            html
+        const msg = {
+            to: to,
+            from: fromEmail, // Must be a verified sender in SendGrid
+            subject: subject,
+            html: html
         };
-        
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`Email sent: ${info.messageId}`);
+
+        const response = await sgMail.send(msg);
+        console.log(`✅ Email sent successfully to ${to}`);
+        console.log(`   Status Code: ${response[0]?.statusCode || 'N/A'}`);
         return true;
     } catch (error) {
-        console.error('Email error:', error);
+        console.error(`❌ Email sending FAILED for ${to}:`);
+        
+        if (error.response) {
+            console.error(`   Status: ${error.response.statusCode}`);
+            console.error(`   Body: ${JSON.stringify(error.response.body, null, 2)}`);
+        } else {
+            console.error(`   Error: ${error.message}`);
+        }
         return false;
     }
 };
