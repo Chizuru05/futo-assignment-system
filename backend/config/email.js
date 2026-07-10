@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 
 // ... keep the rest of your emailTemplates and sendEmail exactly as before
 
-// Email templates (same as before, just using SendGrid)
+// Email templates 
 const emailTemplates = {
     // Welcome email template
     welcome: (name, role) => {
@@ -148,37 +148,24 @@ const emailTemplates = {
     }
 };
 
-// Send email function using SendGrid
+
 const sendEmail = async (to, subject, html) => {
     console.log(`📧 Attempting to send email to: ${to}`);
     console.log(`   Subject: ${subject}`);
 
-    if (!sendGridApiKey) {
-        console.error('❌ Cannot send email: SENDGRID_API_KEY not configured');
-        return false;
-    }
-
     try {
-        const msg = {
-            to: to,
-            from: fromEmail, // Must be a verified sender in SendGrid
-            subject: subject,
-            html: html
+        const mailOptions = {
+            from: `"FUTO IT Department" <${process.env.EMAIL_USER}>`,
+            to,
+            subject,
+            html
         };
 
-        const response = await sgMail.send(msg);
-        console.log(`✅ Email sent successfully to ${to}`);
-        console.log(`   Status Code: ${response[0]?.statusCode || 'N/A'}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✅ Email sent: ${info.messageId}`);
         return true;
     } catch (error) {
-        console.error(`❌ Email sending FAILED for ${to}:`);
-        
-        if (error.response) {
-            console.error(`   Status: ${error.response.statusCode}`);
-            console.error(`   Body: ${JSON.stringify(error.response.body, null, 2)}`);
-        } else {
-            console.error(`   Error: ${error.message}`);
-        }
+        console.error(`❌ Email sending FAILED for ${to}:`, error.message);
         return false;
     }
 };
