@@ -1,5 +1,10 @@
 // backend/config/email.js
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+
+// Force Node's DNS resolution to prefer IPv4 — fixes ENETUNREACH on hosts
+// (like Render) where IPv6 egress routing to Gmail's SMTP servers is broken
+dns.setDefaultResultOrder('ipv4first');
 
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     throw new Error('EMAIL_USER and EMAIL_PASS must be set as environment variables.');
@@ -7,18 +12,16 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    family: 4, // force IPv4 — fixes ENETUNREACH on networks with broken IPv6 routing
+    port: 587,
+    secure: false, // STARTTLS on 587, not implicit TLS
+    requireTLS: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     }
 });
 
-// ... keep the rest of your emailTemplates and sendEmail exactly as before
-
-// Email templates 
+// Email templates
 const emailTemplates = {
     // Welcome email template
     welcome: (name, role) => {
@@ -59,7 +62,7 @@ const emailTemplates = {
             </div>
         `;
     },
-    
+
     // Submission confirmation email
     submissionConfirmation: (studentName, assignmentTitle, courseName, submittedDate, fileCount) => {
         return `
@@ -82,7 +85,7 @@ const emailTemplates = {
             </div>
         `;
     },
-    
+
     // Grade released email
     gradeReleased: (studentName, assignmentTitle, courseName, score, totalMarks, percentage, feedback) => {
         return `
@@ -147,7 +150,6 @@ const emailTemplates = {
         `;
     }
 };
-
 
 const sendEmail = async (to, subject, html) => {
     console.log(`📧 Attempting to send email to: ${to}`);
