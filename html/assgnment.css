@@ -164,9 +164,12 @@ body {
 
 .sidebar-nav {
     flex: 1;
-    padding: 1rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
     overflow-y: auto;
     overflow-x: hidden;
+    padding-right: 4px;
     min-height: 0;
 }
 
@@ -1740,9 +1743,3 @@ textarea:focus {
     }
 }
 
-@media (max-width: 1024px) {
-    .sidebar-footer {
-        flex-shrink: 0;
-        min-height: 0;
-    }
-}
