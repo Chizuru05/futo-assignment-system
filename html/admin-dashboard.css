@@ -200,6 +200,7 @@ body {
     padding: 1rem 0.8rem;
     overflow-y: auto;
     overflow-x: hidden;
+    min-height: 0;
 }
 
 /* Custom scrollbar for sidebar */
@@ -1256,5 +1257,12 @@ body {
     }
     .sidebar.collapsed.show {
         width: 280px !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .sidebar-footer {
+        flex-shrink: 0;
+        min-height: 0;
     }
 }
