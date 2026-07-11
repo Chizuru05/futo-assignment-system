@@ -1,4 +1,4 @@
-﻿// lecturer-dashboard.js - COMPLETE FIXED VERSION
+﻿// lecturer-dashboard.js - COMPLETE FIXED VERSION WITH SIDEBAR FIXES
 
 
 // ========== TOKEN MANAGEMENT ==========
@@ -267,12 +267,33 @@ function setupSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const menuBtn = document.getElementById('menuBtn');
-    
+
     if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        sidebarToggle.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        });
     }
     if (menuBtn && sidebar) {
         menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+    }
+
+    // Close sidebar when tapping outside it (mobile)
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 1024 && sidebar && menuBtn) {
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        }
+    });
+
+    // Force sidebar to full width on mobile regardless of desktop "collapsed" state,
+    // so the logout label (and all nav labels) are never hidden on small screens
+    if (window.innerWidth <= 1024) {
+        sidebar.classList.remove('collapsed');
     }
 }
 

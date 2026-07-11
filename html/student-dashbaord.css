@@ -954,3 +954,19 @@ html, body {
     background: var(--primary-light);
     color: var(--primary);
 }
+
+/* Guard: never let icon-only collapsed mode apply on mobile —
+   this is what was hiding the logout label on small screens */
+@media (max-width: 1024px) {
+    .sidebar.collapsed .logo span,
+    .sidebar.collapsed .profile-info,
+    .sidebar.collapsed .nav-item span,
+    .sidebar.collapsed .semester-info div,
+    .sidebar.collapsed .logout-link span,
+    .sidebar.collapsed .badge-nav {
+        display: revert !important;
+    }
+    .sidebar.collapsed.show {
+        width: 280px !important;
+    }
+}
