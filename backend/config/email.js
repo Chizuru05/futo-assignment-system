@@ -1,29 +1,14 @@
 // backend/config/email.js
-const nodemailer = require('nodemailer');
-const dns = require('dns');
+const { BrevoClient } = require('@getbrevo/brevo');
 
-// Force Node's DNS resolution to prefer IPv4 — fixes ENETUNREACH on hosts
-// (like Render) where IPv6 egress routing to Gmail's SMTP servers is broken
-dns.setDefaultResultOrder('ipv4first');
-
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error('EMAIL_USER and EMAIL_PASS must be set as environment variables.');
+if (!process.env.BREVO_API_KEY || !process.env.EMAIL_USER) {
+    throw new Error('BREVO_API_KEY and EMAIL_USER must be set as environment variables.');
 }
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // STARTTLS on 587, not implicit TLS
-    requireTLS: true,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
 
 // Email templates
 const emailTemplates = {
-    // Welcome email template
     welcome: (name, role) => {
         const roleText = role === 'student' ? 'student' : (role === 'lecturer' ? 'lecturer' : 'administrator');
         return `
@@ -63,7 +48,6 @@ const emailTemplates = {
         `;
     },
 
-    // Submission confirmation email
     submissionConfirmation: (studentName, assignmentTitle, courseName, submittedDate, fileCount) => {
         return `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f7fb; border-radius: 10px;">
@@ -86,7 +70,6 @@ const emailTemplates = {
         `;
     },
 
-    // Grade released email
     gradeReleased: (studentName, assignmentTitle, courseName, score, totalMarks, percentage, feedback) => {
         return `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f7fb; border-radius: 10px;">
@@ -108,7 +91,6 @@ const emailTemplates = {
         `;
     },
 
-    // OTP verification email
     otpVerification: (name, otp) => {
         return `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f7fb; border-radius: 10px;">
@@ -128,7 +110,6 @@ const emailTemplates = {
         `;
     },
 
-    // Sent to enrolled students when a lecturer creates an assignment
     assignmentCreated: (studentName, assignmentTitle, courseName, dueDate, dueTime, totalMarks) => {
         return `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f7fb; border-radius: 10px;">
@@ -156,18 +137,17 @@ const sendEmail = async (to, subject, html) => {
     console.log(`   Subject: ${subject}`);
 
     try {
-        const mailOptions = {
-            from: `"FUTO IT Department" <${process.env.EMAIL_USER}>`,
-            to,
+        const result = await brevo.transactionalEmails.sendTransacEmail({
             subject,
-            html
-        };
+            htmlContent: html,
+            sender: { name: 'FUTO IT Department', email: process.env.EMAIL_USER },
+            to: [{ email: to }]
+        });
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`✅ Email sent: ${info.messageId}`);
+        console.log(`✅ Email sent:`, result?.messageId || result);
         return true;
     } catch (error) {
-        console.error(`❌ Email sending FAILED for ${to}:`, error.message);
+        console.error(`❌ Email sending FAILED for ${to}:`, error.message || error);
         return false;
     }
 };
