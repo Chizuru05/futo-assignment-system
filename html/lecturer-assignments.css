@@ -58,7 +58,7 @@ body {
     flex-direction: column;
     transition: all 0.3s ease;
     box-shadow: var(--shadow);
-    height: 100vh;
+    height:100dvh;
     overflow-y: auto;
     flex-shrink: 0;
 }
@@ -197,12 +197,10 @@ body {
     background: var(--warning);
 }
 
-.sidebar-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--white);
-    z-index: 1;
+.sidebar-footer{
     margin-top: auto;
+    position: relative;
+    flex-shrink:0;
 }
 
 .logout-link {

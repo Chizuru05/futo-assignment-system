@@ -55,7 +55,7 @@ body {
     z-index: 100;
     overflow: hidden;
     flex-shrink: 0;
-    height: 100vh;
+    height:100dvh;
 }
 
 .sidebar.collapsed {
@@ -260,12 +260,10 @@ body {
     flex-shrink: 0;
 }
 
-.sidebar-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--white);
-    z-index: 1;
+.sidebar-footer{
     margin-top: auto;
+    position: relative;
+    flex-shrink: 0;
 }
 
 .semester-info {

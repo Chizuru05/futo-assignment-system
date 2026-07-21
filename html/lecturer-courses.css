@@ -54,6 +54,7 @@ body {
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    height:100dvh;
     transition: 0.3s;
     z-index: 100;
 }
@@ -188,12 +189,10 @@ body {
     background: #f59e0b;
 }
 
-.sidebar-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--white);
-    z-index: 1;
+.sidebar-footer{
     margin-top: auto;
+    position: relative;
+    flex-shrink:0;
 }
 .logout-link {
     display: flex;

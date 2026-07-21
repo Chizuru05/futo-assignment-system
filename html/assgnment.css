@@ -61,7 +61,7 @@ body {
     box-shadow: var(--shadow);
     position: sticky;
     top: 0;
-    height: 100vh;
+    height:100dvh;
     overflow-y: auto;
 }
 
@@ -210,12 +210,10 @@ body {
     margin-left: auto;
 }
 
-.sidebar-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--white);
-    z-index: 1;
+.sidebar-footer{
     margin-top: auto;
+    position: relative;
+    flex-shrink:0;
 }
 
 .semester-info {
