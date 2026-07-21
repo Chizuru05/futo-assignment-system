@@ -145,7 +145,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
-    overflow-y: auto;
+    overflow-y: auto !important;
     overflow-x: hidden;
     padding-right: 4px;
     min-height: 0;
@@ -188,8 +188,11 @@ body {
 }
 
 .sidebar-footer {
-    padding: 1rem;
-    border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+    background: var(--white);
+    z-index: 1;
+    margin-top: auto;
 }
 
 .logout-link {
