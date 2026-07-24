@@ -34,17 +34,24 @@
     --bg-body: #0f172a;
 }
 
+html {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 body {
     background: var(--bg-body);
     color: var(--text-dark);
     height: 100dvh;
     overflow: hidden;
+    max-width: 100%;
 }
 
-/* Layout */
 .app-container {
     display: flex;
     height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 /* Sidebar */
@@ -308,6 +315,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 0;   /* critical: stops flex item from growing to fit the 1000px table */
 }
 
 .main-header {
@@ -383,6 +391,9 @@ body {
     flex: 1;
     padding: 2rem;
     overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
+    max-width: 100%;
 }
 
 /* Breadcrumb */

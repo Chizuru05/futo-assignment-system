@@ -96,7 +96,7 @@ async function loadAvailableCourses() {
             allCourses = data.courses || [];
             renderCourseList();
             if (coursesCard) coursesCard.style.display = 'block';
-            coursesCard?.scrollIntoView({ behavior: 'smooth' });
+            coursesCard?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             showToast(`Loaded ${allCourses.length} available courses`, 'success');
         } else {
             showToast(data.message || 'Failed to load courses', 'danger');
