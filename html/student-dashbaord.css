@@ -39,7 +39,7 @@
 body {
     background: var(--bg-body);
     color: var(--text-dark);
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -752,14 +752,9 @@ html, body {
     .sidebar {
         position: fixed;
         left: -280px;
-        top: 0;
-        height: 100vh;
-        z-index: 1000;
-        transition: left 0.3s ease, width 0.3s ease;
-        width: 280px;
-        background: var(--white);
-        box-shadow: var(--shadow-hover);
-        overflow: hidden;
+        height: 100dvh;   /* was 100vh */
+        z-index: 200;
+        box-shadow: var(--shadow-lg);
     }
     
     .sidebar.show {

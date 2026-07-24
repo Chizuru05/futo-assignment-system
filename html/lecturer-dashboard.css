@@ -1372,7 +1372,7 @@ body {
     .sidebar {
         position: fixed;
         left: -280px;
-        height: 100vh;
+        height: 100dvh;
         z-index: 1000;
         transition: left 0.3s;
     }

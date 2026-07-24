@@ -37,7 +37,7 @@
 body {
     background: var(--bg-body);
     color: var(--text-dark);
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -903,8 +903,9 @@ body {
     .sidebar {
         position: fixed;
         left: -280px;
-        z-index: 100;
-        height: 100vh;
+        height: 100dvh;   /* was 100vh */
+        z-index: 200;
+        box-shadow: var(--shadow-lg);
     }
     
     .sidebar.show {

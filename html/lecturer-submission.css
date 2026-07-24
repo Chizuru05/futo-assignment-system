@@ -42,7 +42,7 @@
 body {
     background: linear-gradient(135deg, #f0f7f2 0%, #e2efe5 100%);
     color: var(--text-dark);
-    min-height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -1481,10 +1481,9 @@ body {
     .sidebar {
         position: fixed;
         left: -280px;
-        height: 100vh;
-        z-index: 1000;
-        transition: left 0.3s;
-        box-shadow: none;
+        height: 100dvh;   /* was 100vh */
+        z-index: 200;
+        box-shadow: var(--shadow-lg);
     }
     
     .sidebar.show {
