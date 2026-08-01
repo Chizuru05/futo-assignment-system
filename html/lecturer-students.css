@@ -526,6 +526,7 @@ body {
 .filter-group i {
     color: var(--primary);
     font-size: 0.9rem;
+    flex-shrink: 0;
 }
 
 .filter-group select {
@@ -552,6 +553,7 @@ body {
 
 .search-box i {
     color: var(--primary);
+    flex-shrink: 0;
 }
 
 .search-box input {
@@ -573,8 +575,10 @@ body {
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     transition: 0.2s;
+    flex-shrink: 0;
 }
 
 .btn-refresh:hover {
@@ -1043,10 +1047,25 @@ body {
     .filter-bar {
         flex-direction: column;
         align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .filter-group {
+        width: 100%;
+    }
+    
+    .filter-group select {
+        flex: 1;
+        width: 100%;
     }
     
     .search-box {
         width: 100%;
+    }
+    
+    .btn-refresh {
+        width: 100%;
+        justify-content: center;
     }
     
     .stats-grid {
@@ -1069,4 +1088,3 @@ body {
         width: 280px !important;
     }
 }
-
