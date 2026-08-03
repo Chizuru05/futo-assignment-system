@@ -126,26 +126,7 @@ exports.submitAssignment = async (req, res) => {
         
         await submission.save();
         
-        // Send confirmation email
-        try {
-            const emailHtml = emailTemplates.submissionConfirmation(
-                studentName,
-                assignment.title,
-                assignment.courseName,
-                new Date().toLocaleString(),
-                uploadedFiles.length
-            );
-            
-            await sendEmail(
-                student.email,
-                `✅ Submission Received: ${assignment.title}`,
-                emailHtml
-            );
-        } catch (emailError) {
-            console.error('Submission email error:', emailError.message);
-        }
-        
-        res.status(201).json({
+       res.status(201).json({
             success: true,
             message: 'Assignment submitted successfully',
             submission: {
@@ -293,35 +274,38 @@ exports.gradeSubmission = async (req, res) => {
         
         await submission.save();
         
-        // Send grade notification email
-        try {
-            const student = await User.findById(submission.studentId);
-            const percentage = ((totalScore || 0) / assignment.totalMarks * 100).toFixed(1);
-            
-            const emailHtml = emailTemplates.gradeReleased(
-                student.fullName,
-                assignment.title,
-                assignment.courseName,
-                totalScore || 0,
-                assignment.totalMarks,
-                percentage,
-                feedback
-            );
-            
-            await sendEmail(
-                student.email,
-                `⭐ Grade Released: ${assignment.title}`,
-                emailHtml
-            );
-        } catch (emailError) {
-            console.error('Grade email error:', emailError.message);
-        }
-        
+        // Respond right away — don't make the lecturer wait on email sending
         res.status(200).json({
             success: true,
             message: 'Submission graded successfully',
             submission
         });
+        
+        // Fire-and-forget: send grade notification email
+        (async () => {
+            try {
+                const student = await User.findById(submission.studentId);
+                const percentage = ((totalScore || 0) / assignment.totalMarks * 100).toFixed(1);
+                
+                const emailHtml = emailTemplates.gradeReleased(
+                    student.fullName,
+                    assignment.title,
+                    assignment.courseName,
+                    totalScore || 0,
+                    assignment.totalMarks,
+                    percentage,
+                    feedback
+                );
+                
+                await sendEmail(
+                    student.email,
+                    `⭐ Grade Released: ${assignment.title}`,
+                    emailHtml
+                );
+            } catch (emailError) {
+                console.error('Grade email error:', emailError.message);
+            }
+        })();
         
     } catch (error) {
         console.error('Grade submission error:', error);
@@ -331,6 +315,7 @@ exports.gradeSubmission = async (req, res) => {
         });
     }
 };
+
 // submission.controller.js — add this export
 exports.resendNotification = async (req, res) => {
     try {

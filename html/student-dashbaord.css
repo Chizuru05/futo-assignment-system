@@ -597,8 +597,6 @@ body {
 /* Courses List */
 .courses-list {
     padding: 0.5rem 0;
-    max-height: 300px;
-    overflow-y: auto;
 }
 
 .course-item {
@@ -633,8 +631,6 @@ body {
 /* Assignments List */
 .assignments-list {
     padding: 0.5rem 0;
-    max-height: 300px;
-    overflow-y: auto;
 }
 
 .pending-item {

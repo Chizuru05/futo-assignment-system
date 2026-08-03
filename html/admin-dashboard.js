@@ -1,9 +1,24 @@
-﻿// admin-dashboard.js - COMPLETE UPDATED VERSION WITH SIDEBAR FIXES
+﻿// admin-dashboard.js - COMPLETE UPDATED VERSION WITH SIDEBAR FIXES + TIMEOUT HANDLING
 
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
     return localStorage.getItem(`${userRole}_token`) || localStorage.getItem('token');
+}
+
+// ========== FETCH WITH TIMEOUT ==========
+// Wraps fetch() so a dead/sleeping backend fails after timeoutMs instead of hanging forever.
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
 }
 
 const token = getAuthToken();
@@ -35,16 +50,16 @@ let currentSemester = '';
 // ========== FETCH ACTIVE SETTINGS FROM BACKEND ==========
 async function fetchActiveSettings() {
     try {
-        const response = await fetch(`${API_URL}/api/settings`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/settings`, {
             headers: { Authorization: `Bearer ${token}` }
-        });
+        }, 15000);
         const data = await response.json();
-        
+
         if (data.success) {
             currentSession = data.settings.activeSession;
             currentSemester = data.settings.activeSemester;
             console.log('✅ Active settings from backend:', currentSession, currentSemester);
-            
+
             const sidebarSession = document.getElementById('sidebarSession');
             if (sidebarSession) {
                 sidebarSession.innerHTML = `${currentSession} ${currentSemester}`;
@@ -61,36 +76,46 @@ async function fetchActiveSettings() {
 async function loadDashboard() {
     const contentWrapper = document.getElementById('contentWrapper');
     if (!contentWrapper) return;
-    
+
+    contentWrapper.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Connecting to server...</div>';
+
+    // If the backend hasn't responded after 6s, tell the user why (Render cold start etc.)
+    const slowNotice = setTimeout(() => {
+        if (contentWrapper.querySelector('.loading-spinner')) {
+            contentWrapper.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Server is waking up, this can take up to a minute on first load...</div>';
+        }
+    }, 6000);
+
     await fetchActiveSettings();
-    
-    contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading dashboard...</div>';
-    
+    clearTimeout(slowNotice);
+
+    contentWrapper.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading dashboard...</div>';
+
     try {
         // Fetch stats from admin API
-        const statsRes = await fetch(`${API_URL}/api/admin/stats?session=${currentSession}&semester=${currentSemester}`, {
+        const statsRes = await fetchWithTimeout(`${API_URL}/api/admin/stats?session=${currentSession}&semester=${currentSemester}`, {
             headers: { Authorization: `Bearer ${token}` }
-        });
+        }, 15000);
         const statsData = await statsRes.json();
-        
+
         // Fetch all users to get correct counts
-        const usersRes = await fetch(`${API_URL}/api/admin/users/all`, {
+        const usersRes = await fetchWithTimeout(`${API_URL}/api/admin/users/all`, {
             headers: { Authorization: `Bearer ${token}` }
-        });
+        }, 15000);
         const usersData = await usersRes.json();
-        
+
         // Count students (all students)
         let totalStudents = 0;
         let approvedLecturers = 0;
-        
+
         if (usersData.success && usersData.users) {
             totalStudents = usersData.users.filter(u => u.role === 'student').length;
             approvedLecturers = usersData.users.filter(u => u.role === 'lecturer' && u.isApproved === true).length;
         }
-        
+
         // Get courses count
         const courses = statsData.success ? statsData.stats.courses : 0;
-        
+
         contentWrapper.innerHTML = `
             <!-- Stats Grid -->
             <div class="stats-grid">
@@ -116,7 +141,7 @@ async function loadDashboard() {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Welcome Card with Create Admin Button -->
             <div class="welcome-card">
                 <div class="card-header">
@@ -133,7 +158,8 @@ async function loadDashboard() {
         `;
     } catch (error) {
         console.error('Error loading dashboard:', error);
-        contentWrapper.innerHTML = '<div class="error-message">Failed to load dashboard. Please refresh the page.</div>';
+        const isTimeout = error.name === 'AbortError';
+        contentWrapper.innerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond. It may be waking up from sleep &mdash; please refresh in a moment.' : 'Failed to load dashboard. Please refresh the page.'}</div>`;
         showToast('Failed to load dashboard', 'danger');
     }
 }
@@ -142,9 +168,9 @@ async function loadDashboard() {
 async function loadCourses() {
     const contentWrapper = document.getElementById('contentWrapper');
     if (!contentWrapper) return;
-    
+
     await fetchActiveSettings();
-    
+
     contentWrapper.innerHTML = `
         <div class="card">
             <div class="card-header">
@@ -155,31 +181,32 @@ async function loadCourses() {
                     </button>
                 </div>
             </div>
-            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>
+            <div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading courses...</div>
         </div>
     `;
-    
+
     await refreshCoursesList();
 }
 
 async function refreshCoursesList() {
     try {
-        const response = await fetch(`${API_URL}/api/admin/courses/all?session=${currentSession}&semester=${currentSemester}`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses/all?session=${currentSession}&semester=${currentSemester}`, {
             headers: { Authorization: `Bearer ${token}` }
-        });
+        }, 15000);
         const data = await response.json();
-        
+
         if (data.success) {
             allCourses = data.courses || [];
             renderCoursesTable();
         } else {
-            document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-                '<div class="error-message">Failed to load courses</div>';
+            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+            if (spinner) spinner.outerHTML = '<div class="error-message">Failed to load courses</div>';
         }
     } catch (error) {
         console.error('Error loading courses:', error);
-        document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-            '<div class="error-message">Failed to connect to server</div>';
+        const isTimeout = error.name === 'AbortError';
+        const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+        if (spinner) spinner.outerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond.' : 'Failed to connect to server'}</div>`;
         showToast('Failed to load courses', 'danger');
     }
 }
@@ -187,11 +214,11 @@ async function refreshCoursesList() {
 function renderCoursesTable() {
     const card = document.querySelector('#contentWrapper .card');
     if (!card) return;
-    
+
     let totalCount = allCourses.length;
     let harmattanCount = allCourses.filter(c => c.semester === 'Harmattan' || c.semester === 'Both').length;
     let rainCount = allCourses.filter(c => c.semester === 'Rain' || c.semester === 'Both').length;
-    
+
     if (allCourses.length === 0) {
         card.innerHTML = `
             <div class="card-header">
@@ -215,7 +242,7 @@ function renderCoursesTable() {
         `;
         return;
     }
-    
+
     card.innerHTML = `
         <div class="card-header">
             <h3><i class="fa-solid fa-book"></i> Manage Courses</h3>
@@ -268,9 +295,9 @@ function openCourseModal() {
     document.getElementById('courseTitle').value = '';
     document.getElementById('courseLevel').value = '400';
     document.getElementById('courseCredits').value = '3';
-    
+
     document.getElementById('courseModal').classList.add('show');
-    
+
     const saveBtn = document.getElementById('saveCourseBtn');
     const newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
@@ -284,28 +311,28 @@ async function saveCourse() {
         level: document.getElementById('courseLevel').value,
         credits: parseInt(document.getElementById('courseCredits').value)
     };
-    
+
     if (!courseData.courseCode || !courseData.courseTitle) {
         showToast('Please fill all fields', 'warning');
         return;
     }
-    
+
     const saveBtn = document.getElementById('saveCourseBtn');
     const originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-    
+
     try {
-        const response = await fetch(`${API_URL}/api/admin/courses`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses`, {
             method: 'POST',
-            headers: { 
-                'Authorization': `Bearer ${token}`, 
-                'Content-Type': 'application/json' 
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(courseData)
-        });
+        }, 15000);
         const data = await response.json();
-        
+
         if (data.success) {
             showToast(`✅ Course added successfully for ${currentSemester} semester!`, 'success');
             closeModal('courseModal');
@@ -325,16 +352,16 @@ async function saveCourse() {
 function editCourse(courseId) {
     const course = allCourses.find(c => c._id === courseId);
     if (!course) return;
-    
+
     document.getElementById('courseCode').value = course.courseCode;
     document.getElementById('courseCode').readOnly = true;
     document.getElementById('courseTitle').value = course.courseTitle;
     document.getElementById('courseLevel').value = course.level;
     document.getElementById('courseCredits').value = course.credits || 3;
-    
+
     document.querySelector('#courseModal .modal-header h3').textContent = 'Edit Course';
     document.getElementById('courseModal').classList.add('show');
-    
+
     const saveBtn = document.getElementById('saveCourseBtn');
     const newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
@@ -347,28 +374,28 @@ async function updateCourse(courseId) {
         level: document.getElementById('courseLevel').value,
         credits: parseInt(document.getElementById('courseCredits').value)
     };
-    
+
     if (!courseData.courseTitle) {
         showToast('Course title is required', 'warning');
         return;
     }
-    
+
     const saveBtn = document.getElementById('saveCourseBtn');
     const originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating...';
-    
+
     try {
-        const response = await fetch(`${API_URL}/api/admin/courses/${courseId}`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses/${courseId}`, {
             method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${token}`, 
-                'Content-Type': 'application/json' 
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(courseData)
-        });
+        }, 15000);
         const data = await response.json();
-        
+
         if (data.success) {
             showToast('Course updated successfully!', 'success');
             closeModal('courseModal');
@@ -389,7 +416,7 @@ function confirmDeleteCourse(courseId, courseCode) {
     currentDeleteId = courseId;
     document.getElementById('deleteCourseName').textContent = courseCode;
     document.getElementById('deleteCourseModal').classList.add('show');
-    
+
     const confirmBtn = document.getElementById('confirmDeleteCourseBtn');
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
@@ -401,12 +428,12 @@ function confirmDeleteCourse(courseId, courseCode) {
 
 async function deleteCourse(courseId) {
     try {
-        const response = await fetch(`${API_URL}/api/admin/courses/${courseId}`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses/${courseId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
-        });
+        }, 15000);
         const data = await response.json();
-        
+
         if (data.success) {
             showToast('Course deleted successfully', 'success');
             loadCourses();
@@ -423,9 +450,9 @@ async function deleteCourse(courseId) {
 async function loadLecturers() {
     const contentWrapper = document.getElementById('contentWrapper');
     if (!contentWrapper) return;
-    
+
     await fetchActiveSettings();
-    
+
     contentWrapper.innerHTML = `
         <div class="card">
             <div class="card-header">
@@ -436,33 +463,33 @@ async function loadLecturers() {
                     </span>
                 </div>
             </div>
-            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading lecturers...</div>
+            <div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading lecturers...</div>
         </div>
     `;
-    
+
     try {
-        const usersRes = await fetch(`${API_URL}/api/admin/users/all`, {
+        const usersRes = await fetchWithTimeout(`${API_URL}/api/admin/users/all`, {
             headers: { Authorization: `Bearer ${token}` }
-        });
+        }, 15000);
         const usersData = await usersRes.json();
         // Only show approved lecturers
         const allLecturers = usersData.users?.filter(u => u.role === 'lecturer' && u.isApproved === true) || [];
-        
+
         if (allLecturers.length === 0) {
-            document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-                '<div class="empty-state">No approved lecturers registered</div>';
+            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+            if (spinner) spinner.outerHTML = '<div class="empty-state">No approved lecturers registered</div>';
             return;
         }
-        
+
         const lecturersWithCourses = [];
-        
+
         for (const lecturer of allLecturers) {
             const url = `${API_URL}/api/admin/lecturer/${lecturer._id}/courses?session=${currentSession}&semester=${currentSemester}`;
-            const coursesRes = await fetch(url, {
+            const coursesRes = await fetchWithTimeout(url, {
                 headers: { Authorization: `Bearer ${token}` }
-            });
+            }, 15000);
             const coursesData = await coursesRes.json();
-            
+
             if (coursesData.success && coursesData.courses && coursesData.courses.length > 0) {
                 lecturersWithCourses.push({
                     ...lecturer,
@@ -470,19 +497,20 @@ async function loadLecturers() {
                 });
             }
         }
-        
+
         if (lecturersWithCourses.length === 0) {
-            document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-                `<div class="empty-state">No lecturers with courses for ${currentSession} ${currentSemester}</div>`;
+            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+            if (spinner) spinner.outerHTML = `<div class="empty-state">No lecturers with courses for ${currentSession} ${currentSemester}</div>`;
             return;
         }
-        
+
         renderLecturersTable(lecturersWithCourses);
-        
+
     } catch (error) {
         console.error('Error loading lecturers:', error);
-        document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-            '<div class="error-message">Failed to load lecturers</div>';
+        const isTimeout = error.name === 'AbortError';
+        const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+        if (spinner) spinner.outerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond.' : 'Failed to load lecturers'}</div>`;
         showToast('Failed to load lecturers', 'danger');
     }
 }
@@ -490,7 +518,7 @@ async function loadLecturers() {
 function renderLecturersTable(lecturers) {
     const card = document.querySelector('#contentWrapper .card');
     if (!card) return;
-    
+
     let html = `
         <div class="card-header">
             <h3><i class="fa-solid fa-chalkboard-user"></i> Lecturers & Their Courses</h3>
@@ -502,10 +530,10 @@ function renderLecturersTable(lecturers) {
         </div>
         <div class="grouped-list">
     `;
-    
+
     for (const lecturer of lecturers) {
         const courses = lecturer.courses || [];
-        
+
         html += `
             <div class="level-group">
                 <div class="level-header" onclick="toggleGroup(this)">
@@ -540,7 +568,7 @@ function renderLecturersTable(lecturers) {
             </div>
         `;
     }
-    
+
     html += `</div>`;
     card.innerHTML = html;
 }
@@ -549,39 +577,40 @@ function renderLecturersTable(lecturers) {
 async function loadStudents() {
     const contentWrapper = document.getElementById('contentWrapper');
     if (!contentWrapper) return;
-    
+
     await fetchActiveSettings();
-    
+
     contentWrapper.innerHTML = `
         <div class="card">
             <div class="card-header">
                 <h3><i class="fa-solid fa-users"></i> Students</h3>
                 <div class="header-actions">
                     <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
-                        <i class="fa-regular fa-calendar"></i] ${currentSession} ${currentSemester}
+                        <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                     </span>
                 </div>
             </div>
-            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading students...</div>
+            <div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading students...</div>
         </div>
     `;
-    
+
     try {
-        const response = await fetch(`${API_URL}/api/admin/students/grouped?session=${currentSession}&semester=${currentSemester}`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/admin/students/grouped?session=${currentSession}&semester=${currentSemester}`, {
             headers: { Authorization: `Bearer ${token}` }
-        });
+        }, 15000);
         const data = await response.json();
-        
+
         if (data.success && data.data) {
             renderStudentsGrouped(data.data);
         } else {
-            document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-                `<div class="empty-state">No students registered for ${currentSession} ${currentSemester}</div>`;
+            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+            if (spinner) spinner.outerHTML = `<div class="empty-state">No students registered for ${currentSession} ${currentSemester}</div>`;
         }
     } catch (error) {
         console.error('Error loading students:', error);
-        document.querySelector('#contentWrapper .card .loading-spinner').outerHTML = 
-            '<div class="error-message">Failed to load students</div>';
+        const isTimeout = error.name === 'AbortError';
+        const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+        if (spinner) spinner.outerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond.' : 'Failed to load students'}</div>`;
         showToast('Failed to load students', 'danger');
     }
 }
@@ -589,7 +618,7 @@ async function loadStudents() {
 function renderStudentsGrouped(groupedData) {
     const card = document.querySelector('#contentWrapper .card');
     if (!card) return;
-    
+
     if (!groupedData || groupedData.length === 0) {
         card.innerHTML = `
             <div class="card-header">
@@ -604,7 +633,7 @@ function renderStudentsGrouped(groupedData) {
         `;
         return;
     }
-    
+
     let html = `
         <div class="card-header">
             <h3><i class="fa-solid fa-users"></i> Students</h3>
@@ -616,7 +645,7 @@ function renderStudentsGrouped(groupedData) {
         </div>
         <div class="grouped-list">
     `;
-    
+
     for (const levelGroup of groupedData) {
         html += `
             <div class="level-group">
@@ -627,9 +656,9 @@ function renderStudentsGrouped(groupedData) {
                 </div>
                 <div class="level-content" style="display: none;">
         `;
-        
+
         const courses = levelGroup.courses || [];
-        
+
         for (const course of courses) {
             const studentsList = course.students || [];
             html += `
@@ -658,10 +687,10 @@ function renderStudentsGrouped(groupedData) {
                 </div>
             `;
         }
-        
+
         html += `</div></div>`;
     }
-    
+
     html += `</div>`;
     card.innerHTML = html;
 }
@@ -681,7 +710,7 @@ function toggleGroup(element) {
     const parent = element.parentElement;
     const content = parent.querySelector('.level-content, .course-content');
     const icon = element.querySelector('i');
-    
+
     if (content) {
         if (content.style.display === 'none' || !content.style.display) {
             content.style.display = 'block';
@@ -768,7 +797,7 @@ async function createAdmin() {
     createBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...';
 
     try {
-        const response = await fetch(`${API_URL}/api/admin/create-admin`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/admin/create-admin`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -781,7 +810,7 @@ async function createAdmin() {
                 department,
                 secretCode
             })
-        });
+        }, 15000);
 
         const data = await response.json();
 
@@ -814,7 +843,7 @@ function showToast(message, type = 'success') {
         container.id = 'toastContainer';
         document.body.appendChild(container);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}<button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
@@ -840,11 +869,11 @@ function logout() {
 function loadPage(page) {
     const pageTitle = document.getElementById('pageTitle');
     if (pageTitle) pageTitle.textContent = page.charAt(0).toUpperCase() + page.slice(1);
-    
+
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     const activeNav = document.querySelector(`.nav-item[data-page="${page}"]`);
     if (activeNav) activeNav.classList.add('active');
-    
+
     if (page === 'dashboard') loadDashboard();
     else if (page === 'courses') loadCourses();
     else if (page === 'lecturers') loadLecturers();
@@ -858,7 +887,7 @@ function initSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const menuBtn = document.getElementById('menuBtn');
-    
+
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             if (window.innerWidth <= 1024) {
@@ -914,7 +943,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initDarkMode();
     initSidebar();
     await fetchActiveSettings();
-    
+
     const savedPage = localStorage.getItem('adminPage');
     if (savedPage && savedPage !== 'dashboard') {
         localStorage.removeItem('adminPage');

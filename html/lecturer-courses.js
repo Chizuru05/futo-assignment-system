@@ -1,11 +1,25 @@
-﻿// lecturer-courses.js
-
+﻿// lecturer-courses.js - WITH TIMEOUT HANDLING
 
 // ========== ROLE-SPECIFIC TOKEN RETRIEVAL ==========
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
     return localStorage.getItem(`${userRole}_token`);
+}
+
+// ========== FETCH WITH TIMEOUT ==========
+// Wraps fetch() so a dead/sleeping backend fails after timeoutMs instead of hanging forever.
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
 }
 
 const token = getAuthToken();
@@ -44,14 +58,22 @@ let courseToDelete = null;
 
 // ========== FETCH COURSES ==========
 async function fetchCourses() {
+    // Give immediate feedback, then a slower notice if the backend is taking a while.
+    if (coursesGrid) coursesGrid.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Connecting to server...</div>';
+
+    const slowNotice = setTimeout(() => {
+        if (coursesGrid && coursesGrid.querySelector('.loading-spinner')) {
+            coursesGrid.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Server is waking up, this can take up to a minute on first load...</div>';
+        }
+    }, 6000);
+
     try {
-        showToast('Loading courses...', 'info');
-        if (coursesGrid) coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>';
-        
-        const response = await fetch(`${API_URL}/api/lecturer/my-courses?session=${currentSession}&semester=${currentSemester}`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/lecturer/my-courses?session=${currentSession}&semester=${currentSemester}`, {
             headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
+        }, 15000);
+
+        clearTimeout(slowNotice);
+
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.courses) {
@@ -66,13 +88,15 @@ async function fetchCourses() {
             allCourses = [];
             showToast('Failed to load courses', 'danger');
         }
-        
+
         renderCourses();
         updateStats();
-        
+
     } catch (error) {
+        clearTimeout(slowNotice);
         console.error('Error fetching courses:', error);
-        showToast('Failed to connect to server', 'danger');
+        const isTimeout = error.name === 'AbortError';
+        showToast(isTimeout ? 'Server took too long to respond' : 'Failed to connect to server', 'danger');
         allCourses = [];
         renderCourses();
         updateStats();
@@ -81,32 +105,32 @@ async function fetchCourses() {
 
 function renderCourses() {
     if (!coursesGrid) return;
-    
+
     let filtered = [...allCourses];
-    
+
     if (currentFilter === 'active') {
         filtered = filtered.filter(c => c.status !== 'completed');
     } else if (currentFilter === 'completed') {
         filtered = filtered.filter(c => c.status === 'completed');
     }
-    
+
     if (levelValue !== 'all') {
         filtered = filtered.filter(c => c.level === parseInt(levelValue));
     }
-    
+
     if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(c => 
-            (c.courseCode || '').toLowerCase().includes(query) || 
+        filtered = filtered.filter(c =>
+            (c.courseCode || '').toLowerCase().includes(query) ||
             (c.courseTitle || '').toLowerCase().includes(query)
         );
     }
-    
+
     if (filtered.length === 0) {
         coursesGrid.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No courses found</p></div>`;
         return;
     }
-    
+
     coursesGrid.innerHTML = filtered.map(course => {
         const code = course.courseCode;
         const title = course.courseTitle;
@@ -115,7 +139,7 @@ function renderCourses() {
         const credits = course.credits || 3;
         const students = course.studentCount || 0;
         const status = course.status || 'active';
-        
+
         return `
         <div class="course-card" data-level="${level}" data-status="${status}">
             <div class="course-header">
@@ -142,7 +166,7 @@ function renderCourses() {
                 <div class="detail-item"><i class="fa-regular fa-users"></i> <span>${students} student${students !== 1 ? 's' : ''}</span></div>
                 <div class="detail-item"><i class="fa-regular fa-star"></i> <span>${credits} Credits</span></div>
                 <div class="detail-item"><i class="fa-regular fa-layer-group"></i> <span>${level} Level</span></div>
-                <div class="detail-item"><i class="fa-regular fa-calendar"></i> <span>${currentSession} Â· ${currentSemester}</span></div>
+                <div class="detail-item"><i class="fa-regular fa-calendar"></i> <span>${currentSession} · ${currentSemester}</span></div>
             </div>
             <div class="course-footer">
                 <a href="lecturer-assignments.html?course=${code}" class="btn-small">
@@ -159,15 +183,15 @@ function renderCourses() {
 function updateStats() {
     const totalCourses = allCourses.length;
     const totalStudents = window._uniqueStudentCount || 0;
-    
+
     const totalCoursesEl = document.getElementById('totalCourses');
     const totalStudentsEl = document.getElementById('totalStudents');
-    
+
     if (totalCoursesEl) totalCoursesEl.textContent = totalCourses;
     if (totalStudentsEl) totalStudentsEl.textContent = totalStudents;
-    
+
     if (currentSemesterDisplay) {
-        currentSemesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} Â· ${currentSemester}`;
+        currentSemesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} · ${currentSemester}`;
     }
 }
 
@@ -182,7 +206,7 @@ function clearFilters() {
     levelValue = 'all';
     searchQuery = '';
     currentFilter = 'all';
-    
+
     filterTabs.forEach(tab => {
         if (tab.dataset.filter === 'all') {
             tab.classList.add('active');
@@ -190,7 +214,7 @@ function clearFilters() {
             tab.classList.remove('active');
         }
     });
-    
+
     renderCourses();
     showToast('Filters cleared', 'success');
 }
@@ -209,7 +233,7 @@ function handleTabClick(filter) {
 
 async function unregisterCourse(courseId, courseCode) {
     try {
-        const response = await fetch(`${API_URL}/api/lecturer/unregister-course`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/lecturer/unregister-course`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -220,15 +244,15 @@ async function unregisterCourse(courseId, courseCode) {
                 session: currentSession,
                 semester: currentSemester
             })
-        });
-        
+        }, 15000);
+
         if (response.ok) {
             const data = await response.json();
             if (data.success) {
                 allCourses = allCourses.filter(c => (c._id || c.courseId) !== courseId);
                 renderCourses();
                 updateStats();
-                showToast(`âœ… Successfully unregistered from ${courseCode}`, 'success');
+                showToast(`✅ Successfully unregistered from ${courseCode}`, 'success');
                 return true;
             }
         }
@@ -236,7 +260,8 @@ async function unregisterCourse(courseId, courseCode) {
         return false;
     } catch (error) {
         console.error('Unregister error:', error);
-        showToast(`Error unregistering from ${courseCode}`, 'danger');
+        const isTimeout = error.name === 'AbortError';
+        showToast(isTimeout ? 'Server took too long to respond' : `Error unregistering from ${courseCode}`, 'danger');
         return false;
     }
 }
@@ -254,32 +279,32 @@ function closeDeleteModal() {
 
 async function confirmDelete() {
     if (!courseToDelete) return;
-    
+
     const { courseId, courseCode, isUnregister } = courseToDelete;
-    
+
     if (confirmDeleteBtn) {
         confirmDeleteBtn.disabled = true;
         confirmDeleteBtn.textContent = 'Processing...';
     }
-    
+
     if (isUnregister) {
         await unregisterCourse(courseId, courseCode);
     }
-    
+
     if (confirmDeleteBtn) {
         confirmDeleteBtn.disabled = false;
         confirmDeleteBtn.textContent = 'Yes, Unregister Course';
     }
-    
+
     closeDeleteModal();
 }
 
-window.viewCourse = (courseId) => { 
-    window.location.href = `lecturer-course-details.html?id=${courseId}`; 
+window.viewCourse = (courseId) => {
+    window.location.href = `lecturer-course-details.html?id=${courseId}`;
 };
 
-window.viewStudents = (courseId) => { 
-    window.location.href = `lecturer-students.html?course=${courseId}`; 
+window.viewStudents = (courseId) => {
+    window.location.href = `lecturer-students.html?course=${courseId}`;
 };
 
 window.openDeleteModal = openDeleteModal;
@@ -294,21 +319,21 @@ function showToast(message, type = 'success') {
         container.id = 'toastContainer';
         document.body.appendChild(container);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
+
     let icon = 'fa-check-circle';
     if (type === 'danger') icon = 'fa-exclamation-circle';
     if (type === 'info') icon = 'fa-info-circle';
     if (type === 'warning') icon = 'fa-triangle-exclamation';
-    
+
     toast.innerHTML = `
         <i class="fa-solid ${icon}"></i>
         <span>${escapeHtml(message)}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
     `;
-    
+
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -336,15 +361,15 @@ function initUI() {
         });
         if (localStorage.getItem('futoTheme') === 'dark') document.body.classList.add('dark');
     }
-    
+
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
     }
-    
+
     if (menuBtn) {
         menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
     }
-    
+
     document.addEventListener('click', (e) => {
         if (window.innerWidth <= 768 && sidebar.classList.contains('show')) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
@@ -352,27 +377,27 @@ function initUI() {
             }
         }
     });
-    
+
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             logout();
         });
     }
-    
+
     if (notifBtn && notifPanel) {
         notifBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notifPanel.classList.toggle('show');
         });
-        
+
         document.addEventListener('click', (e) => {
             if (!notifBtn.contains(e.target) && !notifPanel.contains(e.target)) {
                 notifPanel.classList.remove('show');
             }
         });
     }
-    
+
     if (levelFilter) levelFilter.addEventListener('change', applyFilters);
     if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
     if (searchInput) {
@@ -381,21 +406,21 @@ function initUI() {
             renderCourses();
         });
     }
-    
+
     filterTabs.forEach(tab => {
         tab.addEventListener('click', () => handleTabClick(tab.dataset.filter));
     });
-    
+
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', confirmDelete);
     }
-    
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && deleteModal && deleteModal.classList.contains('show')) {
             closeDeleteModal();
         }
     });
-    
+
     if (deleteModal) {
         deleteModal.addEventListener('click', (e) => {
             if (e.target === deleteModal) {

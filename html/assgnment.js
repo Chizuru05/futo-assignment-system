@@ -46,6 +46,11 @@ let lastUpdateTimestamp = Date.now();
 let currentSession = '';
 let currentSemester = '';
 
+function getDueDateTime(assignment) {
+    const datePart = (assignment.dueDateISO || '').split('T')[0]; // strips any time/zone if present
+    return new Date(`${datePart} ${assignment.dueTime || '23:59'}`);
+}
+
 // ========== DOM ELEMENTS ==========
 const assignmentContainer = document.getElementById('assignmentList');
 const statTotal = document.getElementById('totalAssignments');
@@ -123,7 +128,7 @@ async function refreshPage() {
     
     // Force fresh fetch with cache busting
     await fetchData(true);
-    showToast('âœ… Assignments refreshed!', 'success');
+    showToast(' Assignments refreshed!', 'success');
 }
 
 // ========== FETCH DATA WITH CACHE BUSTING ==========
@@ -187,7 +192,7 @@ async function fetchData(forceRefresh = false) {
             mySubmissions = submissionsData.submissions || [];
             
             if (statSubmitted) statSubmitted.textContent = mySubmissions.length;
-            console.log(`ðŸ“Š Submitted assignments for ${currentSession} ${currentSemester}: ${mySubmissions.length}`);
+            console.log(` Submitted assignments for ${currentSession} ${currentSemester}: ${mySubmissions.length}`);
 
             const pendingCount = allAssignments.length - mySubmissions.length;
             const finalPending = pendingCount > 0 ? pendingCount : 0;
@@ -196,7 +201,7 @@ async function fetchData(forceRefresh = false) {
             if (sidebarBadge) sidebarBadge.textContent = finalPending > 0 ? finalPending : '';
             if (notifCount) notifCount.textContent = finalPending > 0 ? (finalPending > 9 ? '9+' : finalPending) : '0';
             
-            console.log(`ðŸ“Š Pending assignments: ${finalPending}`);
+            console.log(` Pending assignments: ${finalPending}`);
         }
 
         renderAssignments();
@@ -263,7 +268,7 @@ async function checkForUpdates() {
             
             if (hasChanges) {
                 console.log('Detected assignment changes, refreshing...');
-                showToast('ðŸ“… Assignment deadlines have been updated!', 'info');
+                showToast(' Assignment deadlines have been updated!', 'info');
                 await fetchData();
             }
         }
@@ -351,7 +356,7 @@ function displayAssignmentModal(assignment) {
     const submission = mySubmissions.find(s => s.assignmentId?._id === assignment._id);
     const isGraded = submission?.status === 'graded';
     
-    const dueDate = new Date(assignment.dueDateISO);
+    const dueDate = new Date(assignment.dueDateISO);   // ← change to getDueDateTime(assignment)
     const today = new Date();
     const diffTime = dueDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -493,10 +498,12 @@ function displayAssignmentModal(assignment) {
     }
     
     assignmentModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeAssignmentModal() {
-    if (assignmentModal) assignmentModal.classList.remove('show');
+   if (assignmentModal) assignmentModal.classList.remove('show');
+    document.body.style.overflow = '';
 }
 
 function submitFromModal() {
@@ -514,7 +521,7 @@ function openSubmitModal(assignmentId) {
         return;
     }
     
-    const dueDate = new Date(assignment.dueDateISO);
+    const dueDate = new Date(assignment.dueDateISO);   // ← change to getDueDateTime(assignment)
     const today = new Date();
     const isOverdue = dueDate < today;
     const allowLate = assignment.allowLate !== false;
@@ -525,7 +532,7 @@ function openSubmitModal(assignmentId) {
     }
     
     if (isOverdue && allowLate) {
-        showToast('âš ï¸ Late submission - penalty may apply', 'warning');
+        showToast('Late submission - penalty may apply', 'warning');
     }
     
     currentAssignmentForSubmission = assignment;
@@ -553,10 +560,12 @@ function openSubmitModal(assignmentId) {
     if (fileInput) fileInput.value = '';
     
     submissionModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeSubmissionModal() {
     if (submissionModal) submissionModal.classList.remove('show');
+    document.body.style.overflow = '';
     currentAssignmentForSubmission = null;
 }
 
@@ -583,6 +592,7 @@ async function uploadAssignment() {
         uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
         uploadBtn.disabled = true;
     }
+    showToast('Uploading — this can take up to a minute if the server was idle', 'info', 8000);
     
     const formData = new FormData();
     formData.append('assignmentId', currentAssignmentForSubmission._id);
@@ -682,6 +692,7 @@ async function viewGrade(assignmentId) {
         }
         
         gradeModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
         
     } catch (error) {
         console.error('Error viewing grade:', error);
@@ -691,6 +702,7 @@ async function viewGrade(assignmentId) {
 
 function closeGradeModal() {
     if (gradeModal) gradeModal.classList.remove('show');
+    document.body.style.overflow = '';
 }
 
 // ========== RENDER ASSIGNMENTS ==========
@@ -742,7 +754,7 @@ function renderAssignments() {
         const submission = mySubmissions.find(s => s.assignmentId?._id === assignment._id);
         const isGraded = submission?.status === 'graded';
         
-        const dueDate = new Date(assignment.dueDateISO);
+        const dueDate = new Date(assignment.dueDateISO);   // ← change to getDueDateTime(assignment)
         const today = new Date();
         const diffTime = dueDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
