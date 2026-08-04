@@ -51,6 +51,14 @@ function getDueDateTime(assignment) {
     return new Date(`${datePart} ${assignment.dueTime || '23:59'}`);
 }
 
+// Wraps fetch with a timeout so a slow/cold backend fails visibly instead of hanging forever
+function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(timeout));
+}
+
 // ========== DOM ELEMENTS ==========
 const assignmentContainer = document.getElementById('assignmentList');
 const statTotal = document.getElementById('totalAssignments');
@@ -87,12 +95,12 @@ async function fetchActiveSettings() {
             currentSemester = data.settings.activeSemester;
             localStorage.setItem('currentSession', currentSession);
             localStorage.setItem('currentSemester', currentSemester);
-            console.log('âœ… Active settings loaded:', currentSession, currentSemester);
+            console.log('✅ Active settings loaded:', currentSession, currentSemester);
             
             // Update banner text if exists
             const bannerText = document.getElementById('bannerText');
             if (bannerText) {
-                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> Â· ${currentSession} ${currentSemester}`;
+                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> · ${currentSession} ${currentSemester}`;
             }
             
             // Update sidebar session info
@@ -128,7 +136,7 @@ async function refreshPage() {
     
     // Force fresh fetch with cache busting
     await fetchData(true);
-    showToast(' Assignments refreshed!', 'success');
+    showToast('✅ Assignments refreshed!', 'success');
 }
 
 // ========== FETCH DATA WITH CACHE BUSTING ==========
@@ -176,7 +184,7 @@ async function fetchData(forceRefresh = false) {
             });
             
             if (statTotal) statTotal.textContent = allAssignments.length;
-            console.log(`ðŸ“Š Total assignments for ${currentSession} ${currentSemester}: ${allAssignments.length}`);
+            console.log(`📊 Total assignments for ${currentSession} ${currentSemester}: ${allAssignments.length}`);
         }
 
         // Fetch submissions - Backend now filters by session/semester
@@ -192,7 +200,7 @@ async function fetchData(forceRefresh = false) {
             mySubmissions = submissionsData.submissions || [];
             
             if (statSubmitted) statSubmitted.textContent = mySubmissions.length;
-            console.log(` Submitted assignments for ${currentSession} ${currentSemester}: ${mySubmissions.length}`);
+            console.log(`📊 Submitted assignments for ${currentSession} ${currentSemester}: ${mySubmissions.length}`);
 
             const pendingCount = allAssignments.length - mySubmissions.length;
             const finalPending = pendingCount > 0 ? pendingCount : 0;
@@ -201,7 +209,7 @@ async function fetchData(forceRefresh = false) {
             if (sidebarBadge) sidebarBadge.textContent = finalPending > 0 ? finalPending : '';
             if (notifCount) notifCount.textContent = finalPending > 0 ? (finalPending > 9 ? '9+' : finalPending) : '0';
             
-            console.log(` Pending assignments: ${finalPending}`);
+            console.log(`📊 Pending assignments: ${finalPending}`);
         }
 
         renderAssignments();
@@ -268,7 +276,7 @@ async function checkForUpdates() {
             
             if (hasChanges) {
                 console.log('Detected assignment changes, refreshing...');
-                showToast(' Assignment deadlines have been updated!', 'info');
+                showToast('📅 Assignment deadlines have been updated!', 'info');
                 await fetchData();
             }
         }
@@ -356,7 +364,7 @@ function displayAssignmentModal(assignment) {
     const submission = mySubmissions.find(s => s.assignmentId?._id === assignment._id);
     const isGraded = submission?.status === 'graded';
     
-    const dueDate = new Date(assignment.dueDateISO);   // ← change to getDueDateTime(assignment)
+    const dueDate = getDueDateTime(assignment);
     const today = new Date();
     const diffTime = dueDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -392,13 +400,13 @@ function displayAssignmentModal(assignment) {
                     <tbody>
                         ${assignment.rubric.map(r => `
                             <tr>
-                                <td>${escapeHtml(r.name)}</div>
-                                <td class="text-center">${r.maxScore}</div>
+                                <td>${escapeHtml(r.name)}</td>
+                                <td class="text-center">${r.maxScore}</td>
                             </tr>
                         `).join('')}
                         <tr class="rubric-total-row">
-                            <td><strong>Total</strong></div>
-                            <td class="text-center"><strong>${assignment.totalMarks || 0}</strong></div>
+                            <td><strong>Total</strong></td>
+                            <td class="text-center"><strong>${assignment.totalMarks || 0}</strong></td>
                         </tr>
                     </tbody>
                 </table>
@@ -502,7 +510,7 @@ function displayAssignmentModal(assignment) {
 }
 
 function closeAssignmentModal() {
-   if (assignmentModal) assignmentModal.classList.remove('show');
+    if (assignmentModal) assignmentModal.classList.remove('show');
     document.body.style.overflow = '';
 }
 
@@ -521,7 +529,7 @@ function openSubmitModal(assignmentId) {
         return;
     }
     
-    const dueDate = new Date(assignment.dueDateISO);   // ← change to getDueDateTime(assignment)
+    const dueDate = getDueDateTime(assignment);
     const today = new Date();
     const isOverdue = dueDate < today;
     const allowLate = assignment.allowLate !== false;
@@ -554,10 +562,15 @@ function openSubmitModal(assignmentId) {
     const fileListDiv = document.getElementById('submissionFileList');
     const commentsTextarea = document.getElementById('submissionComments');
     const fileInput = document.getElementById('submissionFiles');
+    const uploadBtn = document.getElementById('uploadBtn');
     
     if (fileListDiv) fileListDiv.innerHTML = '';
     if (commentsTextarea) commentsTextarea.value = '';
     if (fileInput) fileInput.value = '';
+    if (uploadBtn) {
+        uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit';
+        uploadBtn.disabled = false;
+    }
     
     submissionModal.classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -603,16 +616,16 @@ async function uploadAssignment() {
     }
     
     try {
-        const response = await fetch(`${API_URL}/api/submissions`, {
+        const response = await fetchWithTimeout(`${API_URL}/api/submissions`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` },
             body: formData
-        });
+        }, 25000);
         
         const data = await response.json();
         
         if (response.ok && data.success) {
-            showToast('âœ… Assignment submitted successfully!', 'success');
+            showToast('✅ Assignment submitted successfully!', 'success');
             closeSubmissionModal();
             await fetchData(true);
         } else {
@@ -620,7 +633,11 @@ async function uploadAssignment() {
         }
     } catch (error) {
         console.error('Upload error:', error);
-        showToast('Failed to submit assignment. Please try again.', 'danger');
+        if (error.name === 'AbortError') {
+            showToast('Upload timed out — the server may be slow. Please try again.', 'danger');
+        } else {
+            showToast('Failed to submit assignment. Please try again.', 'danger');
+        }
     } finally {
         if (uploadBtn) {
             uploadBtn.innerHTML = originalText;
@@ -673,8 +690,8 @@ async function viewGrade(assignmentId) {
                                 <tbody>
                                     ${Object.entries(submission.scores).map(([criterion, score]) => `
                                         <tr>
-                                            <td>${escapeHtml(criterion)}</div>
-                                            <td>${score}</div>
+                                            <td>${escapeHtml(criterion)}</td>
+                                            <td>${score}</td>
                                             <td>-</td>
                                         </tr>
                                     `).join('')}
@@ -730,7 +747,7 @@ function renderAssignments() {
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
         filtered = filtered.filter(a => {
-            const due = new Date(a.dueDateISO);
+            const due = getDueDateTime(a);
             return due >= today && due <= nextWeek;
         });
     }
@@ -754,7 +771,7 @@ function renderAssignments() {
         const submission = mySubmissions.find(s => s.assignmentId?._id === assignment._id);
         const isGraded = submission?.status === 'graded';
         
-        const dueDate = new Date(assignment.dueDateISO);   // ← change to getDueDateTime(assignment)
+        const dueDate = getDueDateTime(assignment);
         const today = new Date();
         const diffTime = dueDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -800,7 +817,7 @@ function renderAssignments() {
                         <span class="course-code">${assignment.course}</span>
                         ${!isSubmitted ? 
                             `<span class="due-badge ${dueClass}">${dueText}</span>` : 
-                            `<span class="status-badge">${isGraded ? 'Graded âœ“' : 'Submitted'}</span>`}
+                            `<span class="status-badge">${isGraded ? 'Graded ✓' : 'Submitted'}</span>`}
                     </div>
                     <h3 class="assignment-title">${escapeHtml(assignment.title)}</h3>
                     <div class="assignment-meta">
@@ -847,17 +864,17 @@ function renderDeadlines() {
         .filter(a => {
             const isSubmitted = submittedIds.has(a._id);
             if (isSubmitted) return false;
-            const isOverdue = new Date(a.dueDateISO) < today;
+            const isOverdue = getDueDateTime(a) < today;
             const allowLate = a.allowLate !== false;
             return !isOverdue || (isOverdue && allowLate);
         })
-        .sort((a, b) => new Date(a.dueDateISO) - new Date(b.dueDateISO))
+        .sort((a, b) => getDueDateTime(a) - getDueDateTime(b))
         .slice(0, 4);
     
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
     const dueThisWeek = allAssignments.filter(a => {
-        const due = new Date(a.dueDateISO);
+        const due = getDueDateTime(a);
         return !submittedIds.has(a._id) && due >= today && due <= nextWeek;
     }).length;
     
@@ -869,7 +886,7 @@ function renderDeadlines() {
     }
     
     deadlineContainer.innerHTML = upcoming.map(assignment => {
-        const due = new Date(assignment.dueDateISO);
+        const due = getDueDateTime(assignment);
         const diffMs = due - today;
         const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
@@ -979,7 +996,7 @@ function updateFileList(files, fileListDiv) {
         
         fileItem.innerHTML = `
             <span><i class="${icon}"></i> ${file.name} (${fileSize} KB)</span>
-            <span class="file-remove" onclick="this.parentElement.remove()">âœ•</span>
+            <span class="file-remove" onclick="this.parentElement.remove()">&times;</span>
         `;
         fileListDiv.appendChild(fileItem);
     });
