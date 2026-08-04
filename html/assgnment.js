@@ -1,11 +1,8 @@
-﻿// assignment.js - COMPLETE UPDATED VERSION WITH FIXED STATS
-
-
-// ========== TOKEN FUNCTION ==========
+﻿// ========== TOKEN FUNCTION ==========
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
-    return localStorage.getItem(`${userRole}_token`) || localStorage.getItem('token');
+    return localStorage.getItem(userRole + '_token') || localStorage.getItem('token');
 }
 
 // ========== GET TOKEN AT PAGE LOAD ==========
@@ -46,17 +43,28 @@ let lastUpdateTimestamp = Date.now();
 let currentSession = '';
 let currentSemester = '';
 
+// ========== HELPER FUNCTIONS ==========
 function getDueDateTime(assignment) {
-    const datePart = (assignment.dueDateISO || '').split('T')[0]; // strips any time/zone if present
-    return new Date(`${datePart} ${assignment.dueTime || '23:59'}`);
+    const datePart = (assignment.dueDateISO || '').split('T')[0];
+    return new Date(datePart + ' ' + (assignment.dueTime || '23:59'));
 }
 
-// Wraps fetch with a timeout so a slow/cold backend fails visibly instead of hanging forever
-function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function fetchWithTimeout(url, options, timeoutMs) {
+    if (timeoutMs === undefined) timeoutMs = 20000;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    return fetch(url, { ...options, signal: controller.signal })
-        .finally(() => clearTimeout(timeout));
+    const timeout = setTimeout(function() { controller.abort(); }, timeoutMs);
+    return fetch(url, Object.assign({}, options, { signal: controller.signal }))
+        .finally(function() { clearTimeout(timeout); });
 }
 
 // ========== DOM ELEMENTS ==========
@@ -73,42 +81,40 @@ const notifCount = document.getElementById('notifCount');
 const assignmentModal = document.getElementById('assignmentModal');
 const submissionModal = document.getElementById('submissionModal');
 const gradeModal = document.getElementById('gradeModal');
+const searchInput = document.getElementById('searchInput');
 
 // ========== UPDATE SIDEBAR SESSION INFO ==========
 function updateSidebarSessionInfo() {
-    const semesterInfoDiv = document.querySelector('.semester-info p');
-    if (semesterInfoDiv && currentSession && currentSemester) {
-        semesterInfoDiv.innerHTML = `${currentSession} ${currentSemester}`;
+    const sessionInfo = document.getElementById('sessionInfo');
+    if (sessionInfo && currentSession && currentSemester) {
+        sessionInfo.textContent = currentSession + ' ' + currentSemester;
     }
 }
 
 // ========== FETCH ACTIVE SETTINGS ==========
 async function fetchActiveSettings() {
     try {
-        const response = await fetch(`${API_URL}/api/settings`, {
-            headers: { Authorization: `Bearer ${token}` }
+        const response = await fetch(API_URL + '/api/settings', {
+            headers: { Authorization: 'Bearer ' + token }
         });
         const data = await response.json();
-        
+
         if (data.success) {
             currentSession = data.settings.activeSession;
             currentSemester = data.settings.activeSemester;
             localStorage.setItem('currentSession', currentSession);
             localStorage.setItem('currentSemester', currentSemester);
-            console.log('✅ Active settings loaded:', currentSession, currentSemester);
-            
-            // Update banner text if exists
+            console.log('Active settings loaded:', currentSession, currentSemester);
+
             const bannerText = document.getElementById('bannerText');
             if (bannerText) {
-                bannerText.innerHTML = `You are in <strong>${userLevel} Level</strong> · ${currentSession} ${currentSemester}`;
+                bannerText.innerHTML = 'You are in <strong>' + userLevel + ' Level</strong> · ' + currentSession + ' ' + currentSemester;
             }
-            
-            // Update sidebar session info
+
             updateSidebarSessionInfo();
         }
     } catch (error) {
         console.error('Error fetching active settings:', error);
-        // Fallback to localStorage
         currentSession = localStorage.getItem('currentSession') || '2025-2026';
         currentSemester = localStorage.getItem('currentSemester') || 'Harmattan';
         updateSidebarSessionInfo();
@@ -120,45 +126,42 @@ function updateProfileDisplay() {
     const profileName = document.getElementById('profileName');
     const profileMatric = document.getElementById('profileMatric');
     const profileLevel = document.getElementById('profileLevel');
-    
+
     if (profileName) profileName.textContent = userName;
     if (profileMatric) profileMatric.textContent = userMatric;
-    if (profileLevel) profileLevel.textContent = `${userLevel} Level`;
+    if (profileLevel) profileLevel.textContent = userLevel + ' Level';
 }
 
-// ========== MANUAL REFRESH FUNCTION WITH CACHE CLEAR ==========
+// ========== MANUAL REFRESH FUNCTION ==========
 async function refreshPage() {
     showToast('Checking for deadline updates...', 'info');
-    
-    // Clear local cache
     allAssignments = [];
     mySubmissions = [];
-    
-    // Force fresh fetch with cache busting
     await fetchData(true);
-    showToast('✅ Assignments refreshed!', 'success');
+    showToast('Assignments refreshed!', 'success');
 }
 
-// ========== FETCH DATA WITH CACHE BUSTING ==========
-async function fetchData(forceRefresh = false) {
+// ========== FETCH DATA ==========
+async function fetchData(forceRefresh) {
+    if (forceRefresh === undefined) forceRefresh = false;
     if (!assignmentContainer) return;
-    assignmentContainer.innerHTML = '<div class="loading-spinner">Loading assignments...</div>';
-    
-    const timestamp = Date.now();
+    assignmentContainer.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading assignments...</div>';
+
+    var timestamp = Date.now();
     lastUpdateTimestamp = timestamp;
-    
+
     try {
         // Fetch enrolled courses
-        const coursesRes = await fetch(
-            `${API_URL}/api/student/my-courses?session=${currentSession}&semester=${currentSemester}&_=${timestamp}`,
-            { 
-                headers: { 
-                    Authorization: `Bearer ${token}`,
+        var coursesRes = await fetch(
+            API_URL + '/api/student/my-courses?session=' + currentSession + '&semester=' + currentSemester + '&_=' + timestamp,
+            {
+                headers: {
+                    Authorization: 'Bearer ' + token,
                     'Cache-Control': 'no-cache, no-store, must-revalidate'
-                } 
+                }
             }
         );
-        const coursesData = await coursesRes.json();
+        var coursesData = await coursesRes.json();
 
         if (coursesData.success) {
             enrolledCourses = coursesData.courses || [];
@@ -166,50 +169,50 @@ async function fetchData(forceRefresh = false) {
         }
 
         // Fetch ALL assignments
-        const assignmentsRes = await fetch(`${API_URL}/api/assignments/all?_=${timestamp}`, {
-            headers: { 
-                Authorization: `Bearer ${token}`,
+        var assignmentsRes = await fetch(API_URL + '/api/assignments/all?_=' + timestamp, {
+            headers: {
+                Authorization: 'Bearer ' + token,
                 'Cache-Control': 'no-cache, no-store, must-revalidate'
             }
         });
-        const assignmentsData = await assignmentsRes.json();
+        var assignmentsData = await assignmentsRes.json();
 
         if (assignmentsData.success) {
-            const allFetchedAssignments = assignmentsData.assignments || [];
-            
-            allAssignments = allFetchedAssignments.filter(assignment => {
-                const assignmentSession = assignment.session || '2025-2026';
-                const assignmentSemester = assignment.semester || 'Harmattan';
+            var allFetchedAssignments = assignmentsData.assignments || [];
+
+            allAssignments = allFetchedAssignments.filter(function(assignment) {
+                var assignmentSession = assignment.session || '2025-2026';
+                var assignmentSemester = assignment.semester || 'Harmattan';
                 return assignmentSession === currentSession && assignmentSemester === currentSemester;
             });
-            
+
             if (statTotal) statTotal.textContent = allAssignments.length;
-            console.log(`📊 Total assignments for ${currentSession} ${currentSemester}: ${allAssignments.length}`);
+            console.log('Total assignments for ' + currentSession + ' ' + currentSemester + ': ' + allAssignments.length);
         }
 
-        // Fetch submissions - Backend now filters by session/semester
-        const submissionsRes = await fetch(`${API_URL}/api/submissions/my-submissions?_=${timestamp}`, {
-            headers: { 
-                Authorization: `Bearer ${token}`,
+        // Fetch submissions
+        var submissionsRes = await fetch(API_URL + '/api/submissions/my-submissions?_=' + timestamp, {
+            headers: {
+                Authorization: 'Bearer ' + token,
                 'Cache-Control': 'no-cache, no-store, must-revalidate'
             }
         });
-        const submissionsData = await submissionsRes.json();
+        var submissionsData = await submissionsRes.json();
 
         if (submissionsData.success) {
             mySubmissions = submissionsData.submissions || [];
-            
-            if (statSubmitted) statSubmitted.textContent = mySubmissions.length;
-            console.log(`📊 Submitted assignments for ${currentSession} ${currentSemester}: ${mySubmissions.length}`);
 
-            const pendingCount = allAssignments.length - mySubmissions.length;
-            const finalPending = pendingCount > 0 ? pendingCount : 0;
+            if (statSubmitted) statSubmitted.textContent = mySubmissions.length;
+            console.log('Submitted assignments for ' + currentSession + ' ' + currentSemester + ': ' + mySubmissions.length);
+
+            var pendingCount = allAssignments.length - mySubmissions.length;
+            var finalPending = pendingCount > 0 ? pendingCount : 0;
 
             if (statPending) statPending.textContent = finalPending;
             if (sidebarBadge) sidebarBadge.textContent = finalPending > 0 ? finalPending : '';
             if (notifCount) notifCount.textContent = finalPending > 0 ? (finalPending > 9 ? '9+' : finalPending) : '0';
-            
-            console.log(`📊 Pending assignments: ${finalPending}`);
+
+            console.log('Pending assignments: ' + finalPending);
         }
 
         renderAssignments();
@@ -230,53 +233,53 @@ async function fetchData(forceRefresh = false) {
 // ========== CHECK FOR ASSIGNMENT UPDATES (POLLING) ==========
 async function checkForUpdates() {
     if (!document.hasFocus()) return;
-    
-    const timestamp = Date.now();
-    
+
+    var timestamp = Date.now();
+
     try {
-        const response = await fetch(`${API_URL}/api/assignments/all?_=${timestamp}`, {
-            headers: { 
-                Authorization: `Bearer ${token}`,
+        var response = await fetch(API_URL + '/api/assignments/all?_=' + timestamp, {
+            headers: {
+                Authorization: 'Bearer ' + token,
                 'Cache-Control': 'no-cache'
             }
         });
-        
-        const data = await response.json();
-        
+
+        var data = await response.json();
+
         if (data.success && data.assignments) {
-            const currentAssignments = data.assignments.filter(assignment => {
-                const assignmentSession = assignment.session || '2025-2026';
-                const assignmentSemester = assignment.semester || 'Harmattan';
+            var currentAssignments = data.assignments.filter(function(assignment) {
+                var assignmentSession = assignment.session || '2025-2026';
+                var assignmentSemester = assignment.semester || 'Harmattan';
                 return assignmentSession === currentSession && assignmentSemester === currentSemester;
             });
-            
-            let hasChanges = false;
-            
+
+            var hasChanges = false;
+
             if (currentAssignments.length !== allAssignments.length) {
                 hasChanges = true;
             } else {
-                for (let i = 0; i < currentAssignments.length; i++) {
-                    const newAssignment = currentAssignments[i];
-                    const oldAssignment = allAssignments.find(a => a._id === newAssignment._id);
-                    
+                for (var i = 0; i < currentAssignments.length; i++) {
+                    var newAssignment = currentAssignments[i];
+                    var oldAssignment = allAssignments.find(function(a) { return a._id === newAssignment._id; });
+
                     if (!oldAssignment) {
                         hasChanges = true;
                         break;
                     }
-                    
+
                     if (oldAssignment.dueDateISO !== newAssignment.dueDateISO ||
                         oldAssignment.dueTime !== newAssignment.dueTime ||
                         oldAssignment.title !== newAssignment.title) {
                         hasChanges = true;
-                        console.log(`Assignment changed: ${newAssignment.title}`);
+                        console.log('Assignment changed: ' + newAssignment.title);
                         break;
                     }
                 }
             }
-            
+
             if (hasChanges) {
                 console.log('Detected assignment changes, refreshing...');
-                showToast('📅 Assignment deadlines have been updated!', 'info');
+                showToast('Assignment deadlines have been updated!', 'info');
                 await fetchData();
             }
         }
@@ -298,47 +301,48 @@ function stopPolling() {
     }
 }
 
+// ========== UPDATE COURSE FILTER ==========
 function updateCourseFilter() {
     if (!courseFilter) return;
     courseFilter.innerHTML = '<option value="all">All Courses</option>';
-    enrolledCourses.forEach(course => {
-        const option = document.createElement('option');
+    enrolledCourses.forEach(function(course) {
+        var option = document.createElement('option');
         option.value = course.courseCode;
-        option.textContent = `${course.courseCode} - ${course.courseTitle}`;
+        option.textContent = course.courseCode + ' - ' + course.courseTitle;
         courseFilter.appendChild(option);
     });
 }
 
-// ========== VIEW ASSIGNMENT DETAILS WITH FRESH DATA ==========
+// ========== VIEW ASSIGNMENT DETAILS ==========
 async function viewAssignmentDetails(assignmentId) {
     try {
         showToast('Loading assignment details...', 'info');
-        
-        const response = await fetch(`${API_URL}/api/assignments/${assignmentId}?_=${Date.now()}`, {
-            headers: { 
-                Authorization: `Bearer ${token}`,
+
+        var response = await fetch(API_URL + '/api/assignments/' + assignmentId + '?_=' + Date.now(), {
+            headers: {
+                Authorization: 'Bearer ' + token,
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache'
             }
         });
-        
-        const data = await response.json();
-        
+
+        var data = await response.json();
+
         if (data.success && data.assignment) {
-            const index = allAssignments.findIndex(a => a._id === assignmentId);
+            var index = allAssignments.findIndex(function(a) { return a._id === assignmentId; });
             if (index !== -1) {
                 allAssignments[index] = data.assignment;
             } else {
                 allAssignments.push(data.assignment);
             }
-            
+
             displayAssignmentModal(data.assignment);
             currentAssignmentForSubmission = data.assignment;
-            
+
             renderAssignments();
             renderDeadlines();
         } else {
-            const assignment = allAssignments.find(a => a._id === assignmentId);
+            var assignment = allAssignments.find(function(a) { return a._id === assignmentId; });
             if (assignment) {
                 displayAssignmentModal(assignment);
                 currentAssignmentForSubmission = assignment;
@@ -352,28 +356,29 @@ async function viewAssignmentDetails(assignmentId) {
     }
 }
 
+// ========== DISPLAY ASSIGNMENT MODAL ==========
 function displayAssignmentModal(assignment) {
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-    
+    var modalTitle = document.getElementById('modalTitle');
+    var modalBody = document.getElementById('modalBody');
+
     if (!modalTitle || !modalBody) return;
-    
-    modalTitle.innerHTML = `<i class="fa-regular fa-file-lines"></i> ${assignment.course} - ${assignment.title}`;
-    
-    const isSubmitted = mySubmissions.some(s => s.assignmentId?._id === assignment._id);
-    const submission = mySubmissions.find(s => s.assignmentId?._id === assignment._id);
-    const isGraded = submission?.status === 'graded';
-    
-    const dueDate = getDueDateTime(assignment);
-    const today = new Date();
-    const diffTime = dueDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const isOverdue = diffTime < 0;
-    
-    const allowLate = assignment.allowLate !== false;
-    const canSubmit = !isOverdue || (isOverdue && allowLate);
-    
-    let dueStatusHtml = '';
+
+    modalTitle.innerHTML = '<i class="fa-regular fa-file-lines"></i> ' + assignment.course + ' - ' + assignment.title;
+
+    var isSubmitted = mySubmissions.some(function(s) { return s.assignmentId && s.assignmentId._id === assignment._id; });
+    var submission = mySubmissions.find(function(s) { return s.assignmentId && s.assignmentId._id === assignment._id; });
+    var isGraded = submission && submission.status === 'graded';
+
+    var dueDate = getDueDateTime(assignment);
+    var today = new Date();
+    var diffTime = dueDate - today;
+    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    var isOverdue = diffTime < 0;
+
+    var allowLate = assignment.allowLate !== false;
+    var canSubmit = !isOverdue || (isOverdue && allowLate);
+
+    var dueStatusHtml = '';
     if (isOverdue) {
         if (allowLate) {
             dueStatusHtml = '<span class="status-badge warning"><i class="fa-solid fa-clock"></i> Late Submission Allowed</span>';
@@ -383,12 +388,12 @@ function displayAssignmentModal(assignment) {
     } else if (diffDays === 0) {
         dueStatusHtml = '<span class="status-badge urgent"><i class="fa-solid fa-clock"></i> Due Today!</span>';
     } else if (diffDays <= 3) {
-        dueStatusHtml = `<span class="status-badge warning"><i class="fa-solid fa-hourglass-half"></i> ${diffDays} days left</span>`;
+        dueStatusHtml = '<span class="status-badge warning"><i class="fa-solid fa-hourglass-half"></i> ' + diffDays + ' days left</span>';
     } else {
-        dueStatusHtml = `<span class="status-badge normal"><i class="fa-regular fa-calendar"></i> ${diffDays} days left</span>`;
+        dueStatusHtml = '<span class="status-badge normal"><i class="fa-regular fa-calendar"></i> ' + diffDays + ' days left</span>';
     }
-    
-    let rubricHtml = '';
+
+    var rubricHtml = '';
     if (assignment.rubric && assignment.rubric.length > 0) {
         rubricHtml = `
             <div class="rubric-section">
@@ -398,12 +403,9 @@ function displayAssignmentModal(assignment) {
                         <tr><th>Criterion</th><th>Max Points</th></tr>
                     </thead>
                     <tbody>
-                        ${assignment.rubric.map(r => `
-                            <tr>
-                                <td>${escapeHtml(r.name)}</td>
-                                <td class="text-center">${r.maxScore}</td>
-                            </tr>
-                        `).join('')}
+                        ${assignment.rubric.map(function(r) {
+                            return '<tr><td>' + escapeHtml(r.name) + '</td><td class="text-center">' + r.maxScore + '</td></tr>';
+                        }).join('')}
                         <tr class="rubric-total-row">
                             <td><strong>Total</strong></td>
                             <td class="text-center"><strong>${assignment.totalMarks || 0}</strong></td>
@@ -413,18 +415,18 @@ function displayAssignmentModal(assignment) {
             </div>
         `;
     }
-    
-    let submissionHtml = '';
+
+    var submissionHtml = '';
     if (isSubmitted && submission) {
         if (isGraded) {
-            const percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(1);
-            let gradeLetter = 'F';
+            var percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(1);
+            var gradeLetter = 'F';
             if (percentage >= 70) gradeLetter = 'A';
             else if (percentage >= 60) gradeLetter = 'B';
             else if (percentage >= 50) gradeLetter = 'C';
             else if (percentage >= 45) gradeLetter = 'D';
             else if (percentage >= 40) gradeLetter = 'E';
-            
+
             submissionHtml = `
                 <div class="graded-info">
                     <h4><i class="fa-solid fa-chart-line"></i> Your Grade</h4>
@@ -451,7 +453,7 @@ function displayAssignmentModal(assignment) {
             `;
         }
     }
-    
+
     modalBody.innerHTML = `
         <div class="assignment-details-container">
             <div class="detail-header">
@@ -468,20 +470,20 @@ function displayAssignmentModal(assignment) {
                     </div>
                 </div>
             </div>
-            
+
             <div class="detail-description">
                 <h4><i class="fa-regular fa-rectangle-list"></i> Description / Instructions</h4>
                 <div class="description-content">
                     ${escapeHtml(assignment.description || 'No description provided.').replace(/\n/g, '<br>')}
                 </div>
             </div>
-            
+
             ${rubricHtml}
             ${submissionHtml}
         </div>
     `;
-    
-    const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+
+    var modalSubmitBtn = document.getElementById('modalSubmitBtn');
     if (modalSubmitBtn) {
         if (isSubmitted) {
             modalSubmitBtn.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> Update Submission';
@@ -499,21 +501,23 @@ function displayAssignmentModal(assignment) {
             modalSubmitBtn.style.opacity = '1';
             modalSubmitBtn.style.cursor = 'pointer';
         }
-        
-        const newBtn = modalSubmitBtn.cloneNode(true);
+
+        var newBtn = modalSubmitBtn.cloneNode(true);
         modalSubmitBtn.parentNode.replaceChild(newBtn, modalSubmitBtn);
-        newBtn.addEventListener('click', () => submitFromModal());
+        newBtn.addEventListener('click', function() { submitFromModal(); });
     }
-    
+
     assignmentModal.classList.add('show');
     document.body.style.overflow = 'hidden';
 }
 
+// ========== CLOSE ASSIGNMENT MODAL ==========
 function closeAssignmentModal() {
     if (assignmentModal) assignmentModal.classList.remove('show');
     document.body.style.overflow = '';
 }
 
+// ========== SUBMIT FROM MODAL ==========
 function submitFromModal() {
     closeAssignmentModal();
     if (currentAssignmentForSubmission) {
@@ -523,29 +527,29 @@ function submitFromModal() {
 
 // ========== OPEN SUBMIT MODAL ==========
 function openSubmitModal(assignmentId) {
-    const assignment = allAssignments.find(a => a._id === assignmentId);
+    var assignment = allAssignments.find(function(a) { return a._id === assignmentId; });
     if (!assignment) {
         showToast('Assignment not found', 'danger');
         return;
     }
-    
-    const dueDate = getDueDateTime(assignment);
-    const today = new Date();
-    const isOverdue = dueDate < today;
-    const allowLate = assignment.allowLate !== false;
-    
+
+    var dueDate = getDueDateTime(assignment);
+    var today = new Date();
+    var isOverdue = dueDate < today;
+    var allowLate = assignment.allowLate !== false;
+
     if (isOverdue && !allowLate) {
         showToast('This assignment is past the due date and late submissions are not allowed.', 'warning');
         return;
     }
-    
+
     if (isOverdue && allowLate) {
         showToast('Late submission - penalty may apply', 'warning');
     }
-    
+
     currentAssignmentForSubmission = assignment;
-    
-    const submissionAssignmentInfo = document.getElementById('submissionAssignmentInfo');
+
+    var submissionAssignmentInfo = document.getElementById('submissionAssignmentInfo');
     if (submissionAssignmentInfo) {
         submissionAssignmentInfo.innerHTML = `
             <div class="submission-info">
@@ -558,12 +562,12 @@ function openSubmitModal(assignmentId) {
             </div>
         `;
     }
-    
-    const fileListDiv = document.getElementById('submissionFileList');
-    const commentsTextarea = document.getElementById('submissionComments');
-    const fileInput = document.getElementById('submissionFiles');
-    const uploadBtn = document.getElementById('uploadBtn');
-    
+
+    var fileListDiv = document.getElementById('submissionFileList');
+    var commentsTextarea = document.getElementById('submissionComments');
+    var fileInput = document.getElementById('submissionFiles');
+    var uploadBtn = document.getElementById('uploadBtn');
+
     if (fileListDiv) fileListDiv.innerHTML = '';
     if (commentsTextarea) commentsTextarea.value = '';
     if (fileInput) fileInput.value = '';
@@ -571,11 +575,12 @@ function openSubmitModal(assignmentId) {
         uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit';
         uploadBtn.disabled = false;
     }
-    
+
     submissionModal.classList.add('show');
     document.body.style.overflow = 'hidden';
 }
 
+// ========== CLOSE SUBMISSION MODAL ==========
 function closeSubmissionModal() {
     if (submissionModal) submissionModal.classList.remove('show');
     document.body.style.overflow = '';
@@ -588,44 +593,44 @@ async function uploadAssignment() {
         showToast('No assignment selected', 'danger');
         return;
     }
-    
-    const fileInput = document.getElementById('submissionFiles');
-    const files = fileInput ? fileInput.files : [];
-    const comments = document.getElementById('submissionComments')?.value || '';
-    
+
+    var fileInput = document.getElementById('submissionFiles');
+    var files = fileInput ? fileInput.files : [];
+    var comments = document.getElementById('submissionComments') ? document.getElementById('submissionComments').value : '';
+
     if (files.length === 0) {
         showToast('Please select at least one file to upload', 'warning');
         return;
     }
-    
-    const uploadBtn = document.getElementById('uploadBtn');
-    const originalText = uploadBtn ? uploadBtn.innerHTML : 'Submit';
-    
+
+    var uploadBtn = document.getElementById('uploadBtn');
+    var originalText = uploadBtn ? uploadBtn.innerHTML : 'Submit';
+
     if (uploadBtn) {
         uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
         uploadBtn.disabled = true;
     }
     showToast('Uploading — this can take up to a minute if the server was idle', 'info', 8000);
-    
-    const formData = new FormData();
+
+    var formData = new FormData();
     formData.append('assignmentId', currentAssignmentForSubmission._id);
     formData.append('comments', comments);
-    
-    for (let i = 0; i < files.length; i++) {
+
+    for (var i = 0; i < files.length; i++) {
         formData.append('files', files[i]);
     }
-    
+
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/submissions`, {
+        var response = await fetchWithTimeout(API_URL + '/api/submissions', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': 'Bearer ' + token },
             body: formData
         }, 25000);
-        
-        const data = await response.json();
-        
+
+        var data = await response.json();
+
         if (response.ok && data.success) {
-            showToast('✅ Assignment submitted successfully!', 'success');
+            showToast('Assignment submitted successfully!', 'success');
             closeSubmissionModal();
             await fetchData(true);
         } else {
@@ -649,25 +654,26 @@ async function uploadAssignment() {
 // ========== VIEW GRADE ==========
 async function viewGrade(assignmentId) {
     try {
-        const submission = mySubmissions.find(s => s.assignmentId?._id === assignmentId);
-        const assignment = allAssignments.find(a => a._id === assignmentId);
-        
+        var submission = mySubmissions.find(function(s) { return s.assignmentId && s.assignmentId._id === assignmentId; });
+        var assignment = allAssignments.find(function(a) { return a._id === assignmentId; });
+
         if (!submission || !assignment) {
             showToast('Grade information not found', 'danger');
             return;
         }
-        
-        const percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(1);
-        let gradeLetter = 'F';
-        let gradeClass = 'grade-f';
-        
-        if (percentage >= 70) { gradeLetter = 'A'; gradeClass = 'grade-a'; }
-        else if (percentage >= 60) { gradeLetter = 'B'; gradeClass = 'grade-b'; }
-        else if (percentage >= 50) { gradeLetter = 'C'; gradeClass = 'grade-c'; }
-        else if (percentage >= 45) { gradeLetter = 'D'; gradeClass = 'grade-d'; }
-        else if (percentage >= 40) { gradeLetter = 'E'; gradeClass = 'grade-e'; }
-        
-        const gradeModalBody = document.getElementById('gradeModalBody');
+
+        var percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(1);
+        var gradeLetter = 'F';
+        var gradeClass = 'grade-f';
+
+        if (percentage >= 70) { gradeLetter = 'A';
+            gradeClass = 'grade-a'; } else if (percentage >= 60) { gradeLetter = 'B';
+            gradeClass = 'grade-b'; } else if (percentage >= 50) { gradeLetter = 'C';
+            gradeClass = 'grade-c'; } else if (percentage >= 45) { gradeLetter = 'D';
+            gradeClass = 'grade-d'; } else if (percentage >= 40) { gradeLetter = 'E';
+            gradeClass = 'grade-e'; }
+
+        var gradeModalBody = document.getElementById('gradeModalBody');
         if (gradeModalBody) {
             gradeModalBody.innerHTML = `
                 <div class="grade-details-modal">
@@ -679,7 +685,7 @@ async function viewGrade(assignmentId) {
                         <div class="grade-percentage-large">${percentage}%</div>
                         <div class="grade-letter-large">${gradeLetter}</div>
                     </div>
-                    
+
                     <div class="grade-breakdown">
                         <h4>Score Breakdown</h4>
                         ${submission.scores && Object.keys(submission.scores).length > 0 ? `
@@ -688,18 +694,14 @@ async function viewGrade(assignmentId) {
                                     <tr><th>Criterion</th><th>Score</th><th>Max</th></tr>
                                 </thead>
                                 <tbody>
-                                    ${Object.entries(submission.scores).map(([criterion, score]) => `
-                                        <tr>
-                                            <td>${escapeHtml(criterion)}</td>
-                                            <td>${score}</td>
-                                            <td>-</td>
-                                        </tr>
-                                    `).join('')}
+                                    ${Object.entries(submission.scores).map(function(entry) {
+                                        return '<tr><td>' + escapeHtml(entry[0]) + '</td><td>' + entry[1] + '</td><td>-</td></tr>';
+                                    }).join('')}
                                 </tbody>
                             </table>
                         ` : '<p>No breakdown available</p>'}
                     </div>
-                    
+
                     <div class="grade-feedback-modal">
                         <h4>Lecturer\'s Feedback</h4>
                         <p>${escapeHtml(submission.feedback || 'No feedback provided.')}</p>
@@ -707,117 +709,124 @@ async function viewGrade(assignmentId) {
                 </div>
             `;
         }
-        
+
         gradeModal.classList.add('show');
         document.body.style.overflow = 'hidden';
-        
+
     } catch (error) {
         console.error('Error viewing grade:', error);
         showToast('Failed to load grade details', 'danger');
     }
 }
 
+// ========== CLOSE GRADE MODAL ==========
 function closeGradeModal() {
     if (gradeModal) gradeModal.classList.remove('show');
     document.body.style.overflow = '';
 }
 
 // ========== RENDER ASSIGNMENTS ==========
+// ========== RENDER ASSIGNMENTS ==========
 function renderAssignments() {
     if (!assignmentContainer) return;
-    
-    let filtered = [...allAssignments];
-    const submittedIds = new Set(mySubmissions.map(s => s.assignmentId?._id));
-    
+
+    var filtered = allAssignments.slice();
+    var submittedIds = new Set(mySubmissions.map(function(s) { return s.assignmentId ? s.assignmentId._id : null; }));
+
     if (currentCourseFilter !== 'all') {
-        filtered = filtered.filter(a => a.course === currentCourseFilter);
+        filtered = filtered.filter(function(a) { return a.course === currentCourseFilter; });
     }
-    
+
     if (currentFilter === 'pending') {
-        filtered = filtered.filter(a => !submittedIds.has(a._id));
+        filtered = filtered.filter(function(a) { return !submittedIds.has(a._id); });
     } else if (currentFilter === 'submitted') {
-        filtered = filtered.filter(a => submittedIds.has(a._id));
+        filtered = filtered.filter(function(a) { return submittedIds.has(a._id); });
     } else if (currentFilter === 'graded') {
-        filtered = filtered.filter(a => {
-            const sub = mySubmissions.find(s => s.assignmentId?._id === a._id);
+        filtered = filtered.filter(function(a) {
+            var sub = mySubmissions.find(function(s) { return s.assignmentId && s.assignmentId._id === a._id; });
             return sub && sub.status === 'graded';
         });
     } else if (currentFilter === 'thisweek') {
-        const today = new Date();
-        const nextWeek = new Date(today);
+        var today = new Date();
+        var nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
-        filtered = filtered.filter(a => {
-            const due = getDueDateTime(a);
+        filtered = filtered.filter(function(a) {
+            var due = getDueDateTime(a);
             return due >= today && due <= nextWeek;
         });
     }
-    
-    const searchInput = document.getElementById('searchInput');
-    const searchQuery = searchInput?.value.toLowerCase() || '';
+
+    var searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
     if (searchQuery) {
-        filtered = filtered.filter(a => 
-            a.title.toLowerCase().includes(searchQuery) || 
-            a.course.toLowerCase().includes(searchQuery)
-        );
+        filtered = filtered.filter(function(a) {
+            return a.title.toLowerCase().includes(searchQuery) ||
+                a.course.toLowerCase().includes(searchQuery);
+        });
     }
-    
+
     if (filtered.length === 0) {
-        assignmentContainer.innerHTML = `<div class="empty-state">No assignments found for ${currentSession} ${currentSemester}</div>`;
+        assignmentContainer.innerHTML = '<div class="empty-state">No assignments found for ' + currentSession + ' ' + currentSemester + '</div>';
         return;
     }
-    
-    assignmentContainer.innerHTML = filtered.map(assignment => {
-        const isSubmitted = submittedIds.has(assignment._id);
-        const submission = mySubmissions.find(s => s.assignmentId?._id === assignment._id);
-        const isGraded = submission?.status === 'graded';
+
+    assignmentContainer.innerHTML = filtered.map(function(assignment) {
+        var isSubmitted = submittedIds.has(assignment._id);
+        var submission = mySubmissions.find(function(s) { return s.assignmentId && s.assignmentId._id === assignment._id; });
+        var isGraded = submission && submission.status === 'graded';
+
+        var dueDate = getDueDateTime(assignment);
+        var today = new Date();
+        var diffTime = dueDate - today;
+        var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        var diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+        var isOverdue = dueDate < today;
+        var allowLate = assignment.allowLate !== false;
         
-        const dueDate = getDueDateTime(assignment);
-        const today = new Date();
-        const diffTime = dueDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-        const isOverdue = dueDate < today;
-        const allowLate = assignment.allowLate !== false;
-        const isLocked = isOverdue && !allowLate;
-        
-        let dueClass = '';
-        let dueText = '';
-        
+        // FIX: Check if assignment is locked (overdue AND late submissions not allowed)
+        var isLocked = isOverdue && !allowLate;
+
+        var dueClass = '';
+        var dueText = '';
+
+        // FIX: Priority order - check locked first, then overdue, then due dates
         if (isLocked) {
             dueClass = 'locked';
             dueText = 'Submission Closed';
         } else if (isOverdue && allowLate) {
             dueClass = 'warning';
-            dueText = `Late (${Math.abs(diffHours)}h overdue)`;
+            dueText = 'Late (' + Math.abs(diffHours) + 'h overdue)';
         } else if (diffDays === 0) {
             dueClass = 'urgent';
-            dueText = diffHours <= 1 ? `Due in ${diffHours} hour` : `Due in ${diffHours} hours`;
+            dueText = diffHours <= 1 ? 'Due in ' + diffHours + ' hour' : 'Due in ' + diffHours + ' hours';
         } else if (diffDays === 1) {
             dueClass = 'warning';
             dueText = 'Due tomorrow';
         } else if (diffDays <= 3) {
             dueClass = 'warning';
-            dueText = `Due in ${diffDays} days`;
+            dueText = 'Due in ' + diffDays + ' days';
         } else {
             dueClass = 'normal';
-            dueText = `Due in ${diffDays} days`;
+            dueText = 'Due in ' + diffDays + ' days';
         }
-        
-        let gradeInfo = '';
+
+        var gradeInfo = '';
         if (isGraded && submission) {
-            const percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(0);
-            gradeInfo = `<div class="assignment-grade-preview"><span class="grade-label">Grade:</span><span class="grade-value">${submission.totalScore}/${assignment.totalMarks}</span><span class="grade-percentage">${percentage}%</span></div>`;
+            var percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(0);
+            gradeInfo = '<div class="assignment-grade-preview"><span class="grade-label">Grade:</span><span class="grade-value">' + submission.totalScore + '/' + assignment.totalMarks + '</span><span class="grade-percentage">' + percentage + '%</span></div>';
         }
-        
+
+        var statusClass = isLocked ? 'locked' : '';
+        var statusBarClass = isLocked ? 'locked' : (isGraded ? 'graded' : (isSubmitted ? 'submitted' : dueClass));
+
         return `
-            <div class="assignment-card ${isLocked ? 'locked' : ''}">
-                <div class="assignment-status ${dueClass}"></div>
+            <div class="assignment-card ${statusClass}">
+                <div class="assignment-status ${statusBarClass}"></div>
                 <div class="assignment-content">
                     <div class="assignment-header">
                         <span class="course-code">${assignment.course}</span>
-                        ${!isSubmitted ? 
-                            `<span class="due-badge ${dueClass}">${dueText}</span>` : 
-                            `<span class="status-badge">${isGraded ? 'Graded ✓' : 'Submitted'}</span>`}
+                        ${!isSubmitted ?
+                            '<span class="due-badge ' + dueClass + '">' + dueText + '</span>' :
+                            '<span class="status-badge">' + (isGraded ? 'Graded' : 'Submitted') + '</span>'}
                     </div>
                     <h3 class="assignment-title">${escapeHtml(assignment.title)}</h3>
                     <div class="assignment-meta">
@@ -834,11 +843,11 @@ function renderAssignments() {
                                 <i class="fa-solid fa-upload"></i> Submit
                             </button>
                         ` : isLocked && !isSubmitted ? `
-                            <button class="btn-outline" disabled style="opacity:0.5; cursor: not-allowed;">
+                            <button class="btn-outline" disabled>
                                 <i class="fa-solid fa-lock"></i> Closed
                             </button>
                         ` : isSubmitted && !isGraded ? `
-                            <button class="btn-outline" disabled style="opacity:0.5">
+                            <button class="btn-outline" disabled>
                                 <i class="fa-regular fa-clock"></i> Pending Review
                             </button>
                         ` : isGraded ? `
@@ -856,67 +865,67 @@ function renderAssignments() {
 // ========== RENDER DEADLINES ==========
 function renderDeadlines() {
     if (!deadlineContainer) return;
-    
-    const today = new Date();
-    const submittedIds = new Set(mySubmissions.map(s => s.assignmentId?._id));
-    
-    const upcoming = allAssignments
-        .filter(a => {
-            const isSubmitted = submittedIds.has(a._id);
+
+    var today = new Date();
+    var submittedIds = new Set(mySubmissions.map(function(s) { return s.assignmentId ? s.assignmentId._id : null; }));
+
+    var upcoming = allAssignments
+        .filter(function(a) {
+            var isSubmitted = submittedIds.has(a._id);
             if (isSubmitted) return false;
-            const isOverdue = getDueDateTime(a) < today;
-            const allowLate = a.allowLate !== false;
+            var isOverdue = getDueDateTime(a) < today;
+            var allowLate = a.allowLate !== false;
             return !isOverdue || (isOverdue && allowLate);
         })
-        .sort((a, b) => getDueDateTime(a) - getDueDateTime(b))
+        .sort(function(a, b) { return getDueDateTime(a) - getDueDateTime(b); })
         .slice(0, 4);
-    
-    const nextWeek = new Date(today);
+
+    var nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
-    const dueThisWeek = allAssignments.filter(a => {
-        const due = getDueDateTime(a);
+    var dueThisWeek = allAssignments.filter(function(a) {
+        var due = getDueDateTime(a);
         return !submittedIds.has(a._id) && due >= today && due <= nextWeek;
     }).length;
-    
-    if (deadlineBadge) deadlineBadge.textContent = `${dueThisWeek} This Week`;
-    
+
+    if (deadlineBadge) deadlineBadge.textContent = dueThisWeek + ' This Week';
+
     if (upcoming.length === 0) {
         deadlineContainer.innerHTML = '<div class="empty-state">No upcoming deadlines</div>';
         return;
     }
-    
-    deadlineContainer.innerHTML = upcoming.map(assignment => {
-        const due = getDueDateTime(assignment);
-        const diffMs = due - today;
-        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
-        const isOverdue = due < today;
-        const allowLate = assignment.allowLate !== false;
-        
-        let itemClass = '';
-        let badgeText = '';
-        
+
+    deadlineContainer.innerHTML = upcoming.map(function(assignment) {
+        var due = getDueDateTime(assignment);
+        var diffMs = due - today;
+        var diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        var diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+        var isOverdue = due < today;
+        var allowLate = assignment.allowLate !== false;
+
+        var itemClass = '';
+        var badgeText = '';
+
         if (isOverdue && allowLate) {
             itemClass = 'warning';
-            badgeText = `LATE (${Math.abs(diffHours)}h)`;
+            badgeText = 'LATE (' + Math.abs(diffHours) + 'h)';
         } else if (diffDays === 0) {
             if (diffHours <= 1) {
                 itemClass = 'urgent';
                 badgeText = '1 hour left';
             } else {
                 itemClass = 'urgent';
-                badgeText = `${diffHours} hours left`;
+                badgeText = diffHours + ' hours left';
             }
         } else if (diffDays === 1) {
             itemClass = 'warning';
             badgeText = 'Tomorrow';
         } else if (diffDays <= 3) {
             itemClass = 'warning';
-            badgeText = `${diffDays} days left`;
+            badgeText = diffDays + ' days left';
         } else {
-            badgeText = `${diffDays} days left`;
+            badgeText = diffDays + ' days left';
         }
-        
+
         return `
             <div class="deadline-item ${itemClass}" onclick="viewAssignmentDetails('${assignment._id}')" style="cursor: pointer;">
                 <div class="deadline-time">
@@ -927,7 +936,7 @@ function renderDeadlines() {
                     <span class="course">${assignment.course}</span>
                     <span class="assignment">${escapeHtml(assignment.title)}</span>
                 </div>
-                <span class="deadline-badge ${itemClass}">${badgeText}</span>
+                <span class="deadline-badge-sm ${itemClass}">${badgeText}</span>
             </div>
         `;
     }).join('');
@@ -935,91 +944,94 @@ function renderDeadlines() {
 
 // ========== FILE UPLOAD HANDLERS ==========
 function setupFileUpload() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('submissionFiles');
-    const fileListDiv = document.getElementById('submissionFileList');
-    
+    var uploadArea = document.getElementById('uploadArea');
+    var fileInput = document.getElementById('submissionFiles');
+    var fileListDiv = document.getElementById('submissionFileList');
+
     if (!uploadArea || !fileInput) return;
-    
-    uploadArea.addEventListener('click', () => fileInput.click());
-    
-    uploadArea.addEventListener('dragover', (e) => {
+
+    uploadArea.addEventListener('click', function() { fileInput.click(); });
+
+    uploadArea.addEventListener('dragover', function(e) {
         e.preventDefault();
         uploadArea.style.background = 'rgba(42, 122, 75, 0.1)';
         uploadArea.style.borderColor = '#2a7a4b';
     });
-    
-    uploadArea.addEventListener('dragleave', () => {
+
+    uploadArea.addEventListener('dragleave', function() {
         uploadArea.style.background = '';
         uploadArea.style.borderColor = '';
     });
-    
-    uploadArea.addEventListener('drop', (e) => {
+
+    uploadArea.addEventListener('drop', function(e) {
         e.preventDefault();
         uploadArea.style.background = '';
         uploadArea.style.borderColor = '';
-        const files = e.dataTransfer.files;
-        fileInput.files = files;
-        updateFileList(files, fileListDiv);
+        fileInput.files = e.dataTransfer.files;
+        updateFileList(fileInput.files, fileListDiv);
     });
-    
-    fileInput.addEventListener('change', () => {
+
+    fileInput.addEventListener('change', function() {
         updateFileList(fileInput.files, fileListDiv);
     });
 }
 
 function updateFileList(files, fileListDiv) {
     if (!fileListDiv) return;
-    
+
     if (files.length === 0) {
         fileListDiv.innerHTML = '';
         return;
     }
-    
+
     fileListDiv.innerHTML = '';
-    Array.from(files).forEach(file => {
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
         if (file.size > 50 * 1024 * 1024) {
-            showToast(`File ${file.name} is too large. Max 50MB.`, 'warning');
-            return;
+            showToast('File ' + file.name + ' is too large. Max 50MB.', 'warning');
+            continue;
         }
-        
-        const fileItem = document.createElement('div');
+
+        var fileItem = document.createElement('div');
         fileItem.className = 'file-item';
-        
-        let icon = 'fa-regular fa-file';
-        const ext = file.name.split('.').pop().toLowerCase();
+
+        var icon = 'fa-regular fa-file';
+        var ext = file.name.split('.').pop().toLowerCase();
         if (ext === 'pdf') icon = 'fa-regular fa-file-pdf';
-        else if (['doc', 'docx'].includes(ext)) icon = 'fa-regular fa-file-word';
-        else if (['zip', 'rar'].includes(ext)) icon = 'fa-regular fa-file-zipper';
-        
-        const fileSize = (file.size / 1024).toFixed(2);
-        
+        else if (ext === 'doc' || ext === 'docx') icon = 'fa-regular fa-file-word';
+        else if (ext === 'zip' || ext === 'rar') icon = 'fa-regular fa-file-zipper';
+
+        var fileSize = (file.size / 1024).toFixed(2);
+
         fileItem.innerHTML = `
             <span><i class="${icon}"></i> ${file.name} (${fileSize} KB)</span>
             <span class="file-remove" onclick="this.parentElement.remove()">&times;</span>
         `;
         fileListDiv.appendChild(fileItem);
-    });
+    }
 }
 
 // ========== TOAST NOTIFICATION ==========
-function showToast(message, type = 'success', duration = 4000) {
-    let container = document.getElementById('toastContainer');
+function showToast(message, type, duration) {
+    if (type === undefined) type = 'success';
+    if (duration === undefined) duration = 4000;
+
+    var container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
         container.className = 'toast-container';
         container.id = 'toastContainer';
         document.body.appendChild(container);
     }
-    
-    const toast = document.createElement('div');
-    const colors = {
+
+    var toast = document.createElement('div');
+    var colors = {
         success: '#2a7a4b',
         danger: '#ef4444',
         warning: '#f59e0b',
         info: '#3b82f6'
     };
-    
+
     toast.style.cssText = `
         background: white;
         border-radius: 8px;
@@ -1035,85 +1047,90 @@ function showToast(message, type = 'success', duration = 4000) {
         z-index: 10000;
         position: relative;
     `;
-    
-    const icons = {
+
+    var icons = {
         success: 'fa-check-circle',
         danger: 'fa-exclamation-circle',
         warning: 'fa-triangle-exclamation',
         info: 'fa-info-circle'
     };
-    
+
     toast.innerHTML = `
         <i class="fa-solid ${icons[type] || icons.success}" style="color: ${colors[type] || colors.success}"></i>
         <span style="flex: 1;">${message}</span>
         <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #94a3b8;">&times;</button>
     `;
-    
+
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), duration);
+    setTimeout(function() { toast.remove(); }, duration);
 }
 
 // ========== SIDEBAR & THEME FUNCTIONS ==========
 function setupSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const menuBtn = document.getElementById('menuBtn');
-    const toggleIcon = sidebarToggle?.querySelector('i');
-    
+    var sidebar = document.getElementById('sidebar');
+    var sidebarToggle = document.getElementById('sidebarToggle');
+    var menuBtn = document.getElementById('menuBtn');
+    var toggleIcon = sidebarToggle ? sidebarToggle.querySelector('i') : null;
+
     if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => {
+        sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             if (toggleIcon) {
-                toggleIcon.style.transform = sidebar.classList.contains('collapsed') 
-                    ? 'rotate(180deg)' 
-                    : 'rotate(0deg)';
+                toggleIcon.style.transform = sidebar.classList.contains('collapsed') ?
+                    'rotate(180deg)' :
+                    'rotate(0deg)';
             }
         });
     }
+
     if (menuBtn && sidebar) {
-        menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        menuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+        });
     }
+
+    // Close sidebar on outside click on mobile
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 1024 && sidebar && menuBtn) {
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        }
+    });
 }
 
 function setupTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    const body = document.body;
-    
+    var themeToggle = document.getElementById('themeToggle');
+    var body = document.body;
+
     if (localStorage.getItem('futoTheme') === 'dark') {
         body.classList.add('dark');
     }
-    
+
     if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
+        themeToggle.addEventListener('click', function() {
             body.classList.toggle('dark');
             localStorage.setItem('futoTheme', body.classList.contains('dark') ? 'dark' : 'light');
         });
     }
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
+// ========== EXPORT GRADES ==========
 function exportGrades() {
     showToast('Exporting grades...', 'info');
 }
 
+// ========== VIEW ALL DEADLINES ==========
 function viewAllDeadlines() {
     currentFilter = 'pending';
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('.filter-btn').forEach(function(btn) {
         btn.classList.remove('active');
         if (btn.textContent === 'Pending') btn.classList.add('active');
     });
     renderAssignments();
 }
 
+// ========== LOGOUT ==========
 function logout() {
     stopPolling();
     localStorage.clear();
@@ -1121,7 +1138,7 @@ function logout() {
 }
 
 // ========== AUTO-REFRESH WHEN PAGE BECOMES VISIBLE ==========
-document.addEventListener('visibilitychange', () => {
+document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
         console.log('Page became visible, refreshing data...');
         fetchData(true);
@@ -1129,98 +1146,60 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ========== INITIALIZE PAGE ==========
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Assignments page loaded - UPDATED VERSION WITH ACTIVE SETTINGS');
-    
-    // Clear old data on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Assignments page loaded');
+
     allAssignments = [];
     mySubmissions = [];
     enrolledCourses = [];
-    
-    // First fetch active settings
+
     await fetchActiveSettings();
-    
+
     updateProfileDisplay();
     setupSidebar();
     setupTheme();
     setupFileUpload();
     await fetchData();
     startPolling();
-    
-    // Setup logout button
-    const logoutBtn = document.getElementById('logoutBtn');
+
+    var logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
-    
+
     // Setup filters
     if (filterBtns.length) {
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
+        filterBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                filterBtns.forEach(function(b) { b.classList.remove('active'); });
                 btn.classList.add('active');
-                currentFilter = btn.getAttribute('data-filter') || 
+                currentFilter = btn.getAttribute('data-filter') ||
                     btn.textContent.toLowerCase().replace(' ', '');
                 renderAssignments();
             });
         });
     }
-    
+
     if (courseFilter) {
-        courseFilter.addEventListener('change', (e) => {
+        courseFilter.addEventListener('change', function(e) {
             currentCourseFilter = e.target.value;
             renderAssignments();
         });
     }
-    
-    const searchInput = document.getElementById('searchInput');
+
     if (searchInput) {
-        searchInput.addEventListener('input', () => {
+        searchInput.addEventListener('input', function() {
             renderAssignments();
         });
     }
-    
-    // Add manual refresh button if not exists
-    const headerActions = document.querySelector('.header-actions');
-    if (headerActions && !document.getElementById('refreshBtn')) {
-        const refreshBtn = document.createElement('button');
-        refreshBtn.id = 'refreshBtn';
-        refreshBtn.className = 'btn-outline';
-        refreshBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Refresh';
-        refreshBtn.onclick = () => refreshPage();
-        headerActions.appendChild(refreshBtn);
-    }
-    
-    // Also add a "Check for Updates" button
-    if (headerActions && !document.getElementById('checkUpdatesBtn')) {
-        const checkBtn = document.createElement('button');
-        checkBtn.id = 'checkUpdatesBtn';
-        checkBtn.className = 'btn-primary';
-        checkBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Check Updates';
-        checkBtn.onclick = () => checkForUpdates();
-        headerActions.appendChild(checkBtn);
-    }
-    
-    // Add session info display
-    const sessionInfo = document.createElement('div');
-    sessionInfo.className = 'session-info';
-    sessionInfo.style.marginLeft = '15px';
-    sessionInfo.style.fontSize = '0.85rem';
-    sessionInfo.style.color = 'var(--text-light)';
-    sessionInfo.innerHTML = `<i class="fa-regular fa-calendar-alt"></i> ${currentSession} ${currentSemester}`;
-    const headerLeft = document.querySelector('.header-left');
-    if (headerLeft && !document.getElementById('sessionInfoDisplay')) {
-        sessionInfo.id = 'sessionInfoDisplay';
-        headerLeft.appendChild(sessionInfo);
-    }
-    
+
     // Refresh deadlines every minute
-    setInterval(() => {
+    setInterval(function() {
         if (allAssignments.length > 0 && document.hasFocus()) {
             renderDeadlines();
         }
     }, 60000);
 });
 
-// Make functions global for inline event handlers
+// ========== MAKE FUNCTIONS GLOBAL ==========
 window.viewAssignmentDetails = viewAssignmentDetails;
 window.closeAssignmentModal = closeAssignmentModal;
 window.submitFromModal = submitFromModal;
