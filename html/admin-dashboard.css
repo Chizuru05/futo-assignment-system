@@ -1014,22 +1014,38 @@ body {
     margin-top: 0.5rem;
 }
 
-/* ========== LOADING & EMPTY STATES ========== */
+/* ========== FIXED LOADING SPINNER - FOR ALL DASHBOARDS ========== */
 .loading-spinner {
     text-align: center;
     padding: 2rem;
     color: var(--text-light);
-    min-height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+    min-height: 80px;
+    width: 100%;
 }
 
 .loading-spinner i {
     animation: spin 1s linear infinite;
-    margin-right: 0.5rem;
+    display: inline-block;
+    font-size: 1.2rem;
 }
 
+/* FIX: Prevent parent transforms from affecting spinner */
+.loading-spinner i.fa-spinner,
+.loading-spinner i.fa-solid.fa-spinner {
+    transform: none !important;
+    animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* FIX: Empty state styling */
 .empty-state {
     text-align: center;
     padding: 2rem;
@@ -1037,16 +1053,45 @@ body {
 }
 
 .empty-state i {
-    font-size: 2rem;
+    font-size: 2.5rem;
     margin-bottom: 0.5rem;
     opacity: 0.5;
     display: block;
 }
 
+.empty-state p {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.empty-state .btn-small {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.empty-state .btn-small:hover {
+    background: var(--primary-dark);
+}
+
+/* FIX: Error message styling */
 .error-message {
     text-align: center;
     padding: 2rem;
     color: var(--danger);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-message i {
+    font-size: 2rem;
 }
 
 @keyframes spin {

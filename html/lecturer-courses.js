@@ -1,19 +1,17 @@
-﻿// lecturer-courses.js - WITH TIMEOUT HANDLING
+﻿// lecturer-courses.js - COMPLETE FIXED VERSION WITH SPINNER FIX
 
-// ========== ROLE-SPECIFIC TOKEN RETRIEVAL ==========
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
-    return localStorage.getItem(`${userRole}_token`);
+    return localStorage.getItem(userRole + '_token');
 }
 
-// ========== FETCH WITH TIMEOUT ==========
-// Wraps fetch() so a dead/sleeping backend fails after timeoutMs instead of hanging forever.
-async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+async function fetchWithTimeout(url, options, timeoutMs) {
+    if (timeoutMs === undefined) timeoutMs = 15000;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(function() { controller.abort(); }, timeoutMs);
     try {
-        const response = await fetch(url, { ...options, signal: controller.signal });
+        const response = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
         clearTimeout(timeoutId);
         return response;
     } catch (error) {
@@ -56,20 +54,44 @@ const deleteCourseCode = document.getElementById('deleteCourseCode');
 const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 let courseToDelete = null;
 
+// ========== FETCH ACTIVE SETTINGS ==========
+async function fetchActiveSettings() {
+    try {
+        const response = await fetchWithTimeout(API_URL + '/api/settings', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        }, 15000);
+        const data = await response.json();
+
+        if (data.success) {
+            currentSession = data.settings.activeSession;
+            currentSemester = data.settings.activeSemester;
+            localStorage.setItem('currentSession', currentSession);
+            localStorage.setItem('currentSemester', currentSemester);
+            console.log('Active settings loaded:', currentSession, currentSemester);
+        }
+    } catch (error) {
+        console.error('Error fetching active settings:', error);
+        currentSession = localStorage.getItem('currentSession') || '2025-2026';
+        currentSemester = localStorage.getItem('currentSemester') || 'Harmattan';
+    }
+}
+
 // ========== FETCH COURSES ==========
 async function fetchCourses() {
-    // Give immediate feedback, then a slower notice if the backend is taking a while.
-    if (coursesGrid) coursesGrid.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Connecting to server...</div>';
+    // FIXED: Proper loading spinner without rotation issues
+    if (coursesGrid) {
+        coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to server...</div>';
+    }
 
-    const slowNotice = setTimeout(() => {
+    const slowNotice = setTimeout(function() {
         if (coursesGrid && coursesGrid.querySelector('.loading-spinner')) {
-            coursesGrid.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Server is waking up, this can take up to a minute on first load...</div>';
+            coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Server is waking up, this can take up to a minute on first load...</div>';
         }
     }, 6000);
 
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/lecturer/my-courses?session=${currentSession}&semester=${currentSemester}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetchWithTimeout(API_URL + '/api/lecturer/my-courses?session=' + currentSession + '&semester=' + currentSemester, {
+            headers: { 'Authorization': 'Bearer ' + token }
         }, 15000);
 
         clearTimeout(slowNotice);
@@ -79,7 +101,7 @@ async function fetchCourses() {
             if (data.success && data.courses) {
                 allCourses = data.courses;
                 window._uniqueStudentCount = data.uniqueStudentCount || 0;
-                showToast(`Loaded ${allCourses.length} courses`, 'success');
+                showToast('Loaded ' + allCourses.length + ' courses', 'success');
             } else {
                 allCourses = [];
                 showToast(data.message || 'No courses found', 'info');
@@ -95,7 +117,7 @@ async function fetchCourses() {
     } catch (error) {
         clearTimeout(slowNotice);
         console.error('Error fetching courses:', error);
-        const isTimeout = error.name === 'AbortError';
+        var isTimeout = error.name === 'AbortError';
         showToast(isTimeout ? 'Server took too long to respond' : 'Failed to connect to server', 'danger');
         allCourses = [];
         renderCourses();
@@ -106,39 +128,39 @@ async function fetchCourses() {
 function renderCourses() {
     if (!coursesGrid) return;
 
-    let filtered = [...allCourses];
+    var filtered = allCourses.slice();
 
     if (currentFilter === 'active') {
-        filtered = filtered.filter(c => c.status !== 'completed');
+        filtered = filtered.filter(function(c) { return c.status !== 'completed'; });
     } else if (currentFilter === 'completed') {
-        filtered = filtered.filter(c => c.status === 'completed');
+        filtered = filtered.filter(function(c) { return c.status === 'completed'; });
     }
 
     if (levelValue !== 'all') {
-        filtered = filtered.filter(c => c.level === parseInt(levelValue));
+        filtered = filtered.filter(function(c) { return c.level === parseInt(levelValue); });
     }
 
     if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(c =>
-            (c.courseCode || '').toLowerCase().includes(query) ||
-            (c.courseTitle || '').toLowerCase().includes(query)
-        );
+        var query = searchQuery.toLowerCase();
+        filtered = filtered.filter(function(c) {
+            return (c.courseCode || '').toLowerCase().includes(query) ||
+                (c.courseTitle || '').toLowerCase().includes(query);
+        });
     }
 
     if (filtered.length === 0) {
-        coursesGrid.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No courses found</p></div>`;
+        coursesGrid.innerHTML = '<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No courses found</p></div>';
         return;
     }
 
-    coursesGrid.innerHTML = filtered.map(course => {
-        const code = course.courseCode;
-        const title = course.courseTitle;
-        const id = course._id || course.courseId;
-        const level = course.level;
-        const credits = course.credits || 3;
-        const students = course.studentCount || 0;
-        const status = course.status || 'active';
+    coursesGrid.innerHTML = filtered.map(function(course) {
+        var code = course.courseCode;
+        var title = course.courseTitle;
+        var id = course._id || course.courseId;
+        var level = course.level;
+        var credits = course.credits || 3;
+        var students = course.studentCount || 0;
+        var status = course.status || 'active';
 
         return `
         <div class="course-card" data-level="${level}" data-status="${status}">
@@ -181,22 +203,44 @@ function renderCourses() {
 }
 
 function updateStats() {
-    const totalCourses = allCourses.length;
-    const totalStudents = window._uniqueStudentCount || 0;
+    var totalCourses = allCourses.length;
+    var totalStudents = window._uniqueStudentCount || 0;
 
-    const totalCoursesEl = document.getElementById('totalCourses');
-    const totalStudentsEl = document.getElementById('totalStudents');
+    var totalCoursesEl = document.getElementById('totalCourses');
+    var totalStudentsEl = document.getElementById('totalStudents');
+    var totalAssignmentsEl = document.getElementById('totalAssignments');
+    var pendingGradingEl = document.getElementById('pendingGrading');
 
     if (totalCoursesEl) totalCoursesEl.textContent = totalCourses;
     if (totalStudentsEl) totalStudentsEl.textContent = totalStudents;
 
+    // FIXED: Calculate assignments and pending grading from courses data
+    var totalAssignments = 0;
+    var pendingGrading = 0;
+
+    for (var i = 0; i < allCourses.length; i++) {
+        var course = allCourses[i];
+        if (course.assignments) {
+            totalAssignments += course.assignments.length || 0;
+            for (var j = 0; j < (course.assignments || []).length; j++) {
+                var assignment = course.assignments[j];
+                if (assignment.pendingGrading) {
+                    pendingGrading += assignment.pendingGrading || 0;
+                }
+            }
+        }
+    }
+
+    if (totalAssignmentsEl) totalAssignmentsEl.textContent = totalAssignments;
+    if (pendingGradingEl) pendingGradingEl.textContent = pendingGrading;
+
     if (currentSemesterDisplay) {
-        currentSemesterDisplay.innerHTML = `<i class="fa-regular fa-calendar"></i> ${currentSession} · ${currentSemester}`;
+        currentSemesterDisplay.innerHTML = '<i class="fa-regular fa-calendar"></i> ' + currentSession + ' · ' + currentSemester;
     }
 }
 
 function applyFilters() {
-    levelValue = levelFilter?.value || 'all';
+    levelValue = levelFilter ? levelFilter.value : 'all';
     renderCourses();
 }
 
@@ -207,7 +251,7 @@ function clearFilters() {
     searchQuery = '';
     currentFilter = 'all';
 
-    filterTabs.forEach(tab => {
+    filterTabs.forEach(function(tab) {
         if (tab.dataset.filter === 'all') {
             tab.classList.add('active');
         } else {
@@ -221,7 +265,7 @@ function clearFilters() {
 
 function handleTabClick(filter) {
     currentFilter = filter;
-    filterTabs.forEach(tab => {
+    filterTabs.forEach(function(tab) {
         if (tab.dataset.filter === filter) {
             tab.classList.add('active');
         } else {
@@ -233,11 +277,11 @@ function handleTabClick(filter) {
 
 async function unregisterCourse(courseId, courseCode) {
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/lecturer/unregister-course`, {
+        var response = await fetchWithTimeout(API_URL + '/api/lecturer/unregister-course', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify({
                 courseId: courseId,
@@ -247,27 +291,28 @@ async function unregisterCourse(courseId, courseCode) {
         }, 15000);
 
         if (response.ok) {
-            const data = await response.json();
+            var data = await response.json();
             if (data.success) {
-                allCourses = allCourses.filter(c => (c._id || c.courseId) !== courseId);
+                allCourses = allCourses.filter(function(c) { return (c._id || c.courseId) !== courseId; });
                 renderCourses();
                 updateStats();
-                showToast(`✅ Successfully unregistered from ${courseCode}`, 'success');
+                showToast('Successfully unregistered from ' + courseCode, 'success');
                 return true;
             }
         }
-        showToast(`Failed to unregister from ${courseCode}`, 'danger');
+        showToast('Failed to unregister from ' + courseCode, 'danger');
         return false;
     } catch (error) {
         console.error('Unregister error:', error);
-        const isTimeout = error.name === 'AbortError';
-        showToast(isTimeout ? 'Server took too long to respond' : `Error unregistering from ${courseCode}`, 'danger');
+        var isTimeout = error.name === 'AbortError';
+        showToast(isTimeout ? 'Server took too long to respond' : 'Error unregistering from ' + courseCode, 'danger');
         return false;
     }
 }
 
-function openDeleteModal(courseId, courseCode, isUnregister = true) {
-    courseToDelete = { courseId, courseCode, isUnregister };
+function openDeleteModal(courseId, courseCode, isUnregister) {
+    if (isUnregister === undefined) isUnregister = true;
+    courseToDelete = { courseId: courseId, courseCode: courseCode, isUnregister: isUnregister };
     deleteCourseCode.textContent = courseCode;
     deleteModal.classList.add('show');
 }
@@ -280,7 +325,9 @@ function closeDeleteModal() {
 async function confirmDelete() {
     if (!courseToDelete) return;
 
-    const { courseId, courseCode, isUnregister } = courseToDelete;
+    var courseId = courseToDelete.courseId;
+    var courseCode = courseToDelete.courseCode;
+    var isUnregister = courseToDelete.isUnregister;
 
     if (confirmDeleteBtn) {
         confirmDeleteBtn.disabled = true;
@@ -299,20 +346,22 @@ async function confirmDelete() {
     closeDeleteModal();
 }
 
-window.viewCourse = (courseId) => {
-    window.location.href = `lecturer-course-details.html?id=${courseId}`;
+// Global functions for onclick
+window.viewCourse = function(courseId) {
+    window.location.href = 'lecturer-course-details.html?id=' + courseId;
 };
 
-window.viewStudents = (courseId) => {
-    window.location.href = `lecturer-students.html?course=${courseId}`;
+window.viewStudents = function(courseId) {
+    window.location.href = 'lecturer-students.html?course=' + courseId;
 };
 
 window.openDeleteModal = openDeleteModal;
 window.closeDeleteModal = closeDeleteModal;
 window.confirmDelete = confirmDelete;
 
-function showToast(message, type = 'success') {
-    let container = document.getElementById('toastContainer');
+function showToast(message, type) {
+    if (type === undefined) type = 'success';
+    var container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
         container.className = 'toast-container';
@@ -320,22 +369,17 @@ function showToast(message, type = 'success') {
         document.body.appendChild(container);
     }
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    var toast = document.createElement('div');
+    toast.className = 'toast ' + type;
 
-    let icon = 'fa-check-circle';
+    var icon = 'fa-check-circle';
     if (type === 'danger') icon = 'fa-exclamation-circle';
     if (type === 'info') icon = 'fa-info-circle';
     if (type === 'warning') icon = 'fa-triangle-exclamation';
 
-    toast.innerHTML = `
-        <i class="fa-solid ${icon}"></i>
-        <span>${escapeHtml(message)}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-    `;
-
+    toast.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(message) + '</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>';
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(function() { toast.remove(); }, 3000);
 }
 
 function escapeHtml(str) {
@@ -355,7 +399,7 @@ function logout() {
 
 function initUI() {
     if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
+        themeToggle.addEventListener('click', function() {
             document.body.classList.toggle('dark');
             localStorage.setItem('futoTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
         });
@@ -363,35 +407,47 @@ function initUI() {
     }
 
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        sidebarToggle.addEventListener('click', function() {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        });
     }
 
     if (menuBtn) {
-        menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        menuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+        });
     }
 
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('show')) {
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
                 sidebar.classList.remove('show');
             }
         }
     });
 
+    if (window.innerWidth <= 1024) {
+        sidebar.classList.remove('collapsed');
+    }
+
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
+        logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
             logout();
         });
     }
 
     if (notifBtn && notifPanel) {
-        notifBtn.addEventListener('click', (e) => {
+        notifBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             notifPanel.classList.toggle('show');
         });
 
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', function(e) {
             if (!notifBtn.contains(e.target) && !notifPanel.contains(e.target)) {
                 notifPanel.classList.remove('show');
             }
@@ -401,28 +457,30 @@ function initUI() {
     if (levelFilter) levelFilter.addEventListener('change', applyFilters);
     if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
     if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
+        searchInput.addEventListener('input', function(e) {
             searchQuery = e.target.value;
             renderCourses();
         });
     }
 
-    filterTabs.forEach(tab => {
-        tab.addEventListener('click', () => handleTabClick(tab.dataset.filter));
+    filterTabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            handleTabClick(tab.dataset.filter);
+        });
     });
 
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', confirmDelete);
     }
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && deleteModal && deleteModal.classList.contains('show')) {
             closeDeleteModal();
         }
     });
 
     if (deleteModal) {
-        deleteModal.addEventListener('click', (e) => {
+        deleteModal.addEventListener('click', function(e) {
             if (e.target === deleteModal) {
                 closeDeleteModal();
             }
@@ -433,7 +491,9 @@ function initUI() {
 window.showToast = showToast;
 window.logout = logout;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     initUI();
-    fetchCourses();
+    fetchActiveSettings().then(function() {
+        fetchCourses();
+    });
 });

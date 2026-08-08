@@ -1,18 +1,18 @@
-﻿// admin-dashboard.js - COMPLETE UPDATED VERSION WITH SIDEBAR FIXES + TIMEOUT HANDLING
+﻿// admin-dashboard.js - COMPLETE FIXED VERSION WITH SPINNER FIX
 
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
-    return localStorage.getItem(`${userRole}_token`) || localStorage.getItem('token');
+    return localStorage.getItem(userRole + '_token') || localStorage.getItem('token');
 }
 
 // ========== FETCH WITH TIMEOUT ==========
-// Wraps fetch() so a dead/sleeping backend fails after timeoutMs instead of hanging forever.
-async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+async function fetchWithTimeout(url, options, timeoutMs) {
+    if (timeoutMs === undefined) timeoutMs = 15000;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(function() { controller.abort(); }, timeoutMs);
     try {
-        const response = await fetch(url, { ...options, signal: controller.signal });
+        const response = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
         clearTimeout(timeoutId);
         return response;
     } catch (error) {
@@ -47,22 +47,22 @@ let currentDeleteId = null;
 let currentSession = '';
 let currentSemester = '';
 
-// ========== FETCH ACTIVE SETTINGS FROM BACKEND ==========
+// ========== FETCH ACTIVE SETTINGS ==========
 async function fetchActiveSettings() {
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/settings`, {
-            headers: { Authorization: `Bearer ${token}` }
+        const response = await fetchWithTimeout(API_URL + '/api/settings', {
+            headers: { Authorization: 'Bearer ' + token }
         }, 15000);
         const data = await response.json();
 
         if (data.success) {
             currentSession = data.settings.activeSession;
             currentSemester = data.settings.activeSemester;
-            console.log('✅ Active settings from backend:', currentSession, currentSemester);
+            console.log('Active settings from backend:', currentSession, currentSemester);
 
             const sidebarSession = document.getElementById('sidebarSession');
             if (sidebarSession) {
-                sidebarSession.innerHTML = `${currentSession} ${currentSemester}`;
+                sidebarSession.innerHTML = currentSession + ' ' + currentSemester;
             }
         }
     } catch (error) {
@@ -77,43 +77,41 @@ async function loadDashboard() {
     const contentWrapper = document.getElementById('contentWrapper');
     if (!contentWrapper) return;
 
-    contentWrapper.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Connecting to server...</div>';
+    // FIXED: Proper loading spinner without rotation issues
+    contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to server...</div>';
 
-    // If the backend hasn't responded after 6s, tell the user why (Render cold start etc.)
-    const slowNotice = setTimeout(() => {
+    const slowNotice = setTimeout(function() {
         if (contentWrapper.querySelector('.loading-spinner')) {
-            contentWrapper.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Server is waking up, this can take up to a minute on first load...</div>';
+            contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Server is waking up, this can take up to a minute on first load...</div>';
         }
     }, 6000);
 
     await fetchActiveSettings();
     clearTimeout(slowNotice);
 
-    contentWrapper.innerHTML = '<div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading dashboard...</div>';
+    contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading dashboard...</div>';
 
     try {
         // Fetch stats from admin API
-        const statsRes = await fetchWithTimeout(`${API_URL}/api/admin/stats?session=${currentSession}&semester=${currentSemester}`, {
-            headers: { Authorization: `Bearer ${token}` }
+        const statsRes = await fetchWithTimeout(API_URL + '/api/admin/stats?session=' + currentSession + '&semester=' + currentSemester, {
+            headers: { Authorization: 'Bearer ' + token }
         }, 15000);
         const statsData = await statsRes.json();
 
         // Fetch all users to get correct counts
-        const usersRes = await fetchWithTimeout(`${API_URL}/api/admin/users/all`, {
-            headers: { Authorization: `Bearer ${token}` }
+        const usersRes = await fetchWithTimeout(API_URL + '/api/admin/users/all', {
+            headers: { Authorization: 'Bearer ' + token }
         }, 15000);
         const usersData = await usersRes.json();
 
-        // Count students (all students)
         let totalStudents = 0;
         let approvedLecturers = 0;
 
         if (usersData.success && usersData.users) {
-            totalStudents = usersData.users.filter(u => u.role === 'student').length;
-            approvedLecturers = usersData.users.filter(u => u.role === 'lecturer' && u.isApproved === true).length;
+            totalStudents = usersData.users.filter(function(u) { return u.role === 'student'; }).length;
+            approvedLecturers = usersData.users.filter(function(u) { return u.role === 'lecturer' && u.isApproved === true; }).length;
         }
 
-        // Get courses count
         const courses = statsData.success ? statsData.stats.courses : 0;
 
         contentWrapper.innerHTML = `
@@ -159,7 +157,7 @@ async function loadDashboard() {
     } catch (error) {
         console.error('Error loading dashboard:', error);
         const isTimeout = error.name === 'AbortError';
-        contentWrapper.innerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond. It may be waking up from sleep &mdash; please refresh in a moment.' : 'Failed to load dashboard. Please refresh the page.'}</div>`;
+        contentWrapper.innerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond. It may be waking up from sleep — please refresh in a moment.' : 'Failed to load dashboard. Please refresh the page.') + '</div>';
         showToast('Failed to load dashboard', 'danger');
     }
 }
@@ -181,7 +179,7 @@ async function loadCourses() {
                     </button>
                 </div>
             </div>
-            <div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading courses...</div>
+            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>
         </div>
     `;
 
@@ -190,8 +188,8 @@ async function loadCourses() {
 
 async function refreshCoursesList() {
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses/all?session=${currentSession}&semester=${currentSemester}`, {
-            headers: { Authorization: `Bearer ${token}` }
+        const response = await fetchWithTimeout(API_URL + '/api/admin/courses/all?session=' + currentSession + '&semester=' + currentSemester, {
+            headers: { Authorization: 'Bearer ' + token }
         }, 15000);
         const data = await response.json();
 
@@ -206,7 +204,7 @@ async function refreshCoursesList() {
         console.error('Error loading courses:', error);
         const isTimeout = error.name === 'AbortError';
         const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-        if (spinner) spinner.outerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond.' : 'Failed to connect to server'}</div>`;
+        if (spinner) spinner.outerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to connect to server') + '</div>';
         showToast('Failed to load courses', 'danger');
     }
 }
@@ -215,9 +213,9 @@ function renderCoursesTable() {
     const card = document.querySelector('#contentWrapper .card');
     if (!card) return;
 
-    let totalCount = allCourses.length;
-    let harmattanCount = allCourses.filter(c => c.semester === 'Harmattan' || c.semester === 'Both').length;
-    let rainCount = allCourses.filter(c => c.semester === 'Rain' || c.semester === 'Both').length;
+    var totalCount = allCourses.length;
+    var harmattanCount = allCourses.filter(function(c) { return c.semester === 'Harmattan' || c.semester === 'Both'; }).length;
+    var rainCount = allCourses.filter(function(c) { return c.semester === 'Rain' || c.semester === 'Both'; }).length;
 
     if (allCourses.length === 0) {
         card.innerHTML = `
@@ -266,22 +264,24 @@ function renderCoursesTable() {
                     <tr><th>Code</th><th>Title</th><th>Level</th><th>Credits</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                    ${allCourses.map(course => `
-                        <tr>
-                            <td><strong>${escapeHtml(course.courseCode)}</strong></td>
-                            <td>${escapeHtml(course.courseTitle)}</td>
-                            <td>${course.level} Level</td>
-                            <td>${course.credits || 3}</td>
-                            <td>
-                                <button class="btn-icon" onclick="editCourse('${course._id}')" title="Edit">
-                                    <i class="fa-regular fa-pen-to-square"></i>
-                                </button>
-                                <button class="btn-icon danger" onclick="confirmDeleteCourse('${course._id}', '${course.courseCode}')" title="Delete">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('')}
+                    ${allCourses.map(function(course) {
+                        return `
+                            <tr>
+                                <td><strong>${escapeHtml(course.courseCode)}</strong></td>
+                                <td>${escapeHtml(course.courseTitle)}</td>
+                                <td>${course.level} Level</td>
+                                <td>${course.credits || 3}</td>
+                                <td>
+                                    <button class="btn-icon" onclick="editCourse('${course._id}')" title="Edit">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </button>
+                                    <button class="btn-icon danger" onclick="confirmDeleteCourse('${course._id}', '${course.courseCode}')" title="Delete">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
         </div>
@@ -298,14 +298,14 @@ function openCourseModal() {
 
     document.getElementById('courseModal').classList.add('show');
 
-    const saveBtn = document.getElementById('saveCourseBtn');
-    const newSaveBtn = saveBtn.cloneNode(true);
+    var saveBtn = document.getElementById('saveCourseBtn');
+    var newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
     newSaveBtn.onclick = saveCourse;
 }
 
 async function saveCourse() {
-    const courseData = {
+    var courseData = {
         courseCode: document.getElementById('courseCode').value.trim().toUpperCase(),
         courseTitle: document.getElementById('courseTitle').value.trim(),
         level: document.getElementById('courseLevel').value,
@@ -317,24 +317,24 @@ async function saveCourse() {
         return;
     }
 
-    const saveBtn = document.getElementById('saveCourseBtn');
-    const originalText = saveBtn.innerHTML;
+    var saveBtn = document.getElementById('saveCourseBtn');
+    var originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses`, {
+        var response = await fetchWithTimeout(API_URL + '/api/admin/courses', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(courseData)
         }, 15000);
-        const data = await response.json();
+        var data = await response.json();
 
         if (data.success) {
-            showToast(`✅ Course added successfully for ${currentSemester} semester!`, 'success');
+            showToast('Course added successfully for ' + currentSemester + ' semester!', 'success');
             closeModal('courseModal');
             loadCourses();
         } else {
@@ -350,7 +350,7 @@ async function saveCourse() {
 }
 
 function editCourse(courseId) {
-    const course = allCourses.find(c => c._id === courseId);
+    var course = allCourses.find(function(c) { return c._id === courseId; });
     if (!course) return;
 
     document.getElementById('courseCode').value = course.courseCode;
@@ -362,14 +362,14 @@ function editCourse(courseId) {
     document.querySelector('#courseModal .modal-header h3').textContent = 'Edit Course';
     document.getElementById('courseModal').classList.add('show');
 
-    const saveBtn = document.getElementById('saveCourseBtn');
-    const newSaveBtn = saveBtn.cloneNode(true);
+    var saveBtn = document.getElementById('saveCourseBtn');
+    var newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-    newSaveBtn.onclick = () => updateCourse(courseId);
+    newSaveBtn.onclick = function() { updateCourse(courseId); };
 }
 
 async function updateCourse(courseId) {
-    const courseData = {
+    var courseData = {
         courseTitle: document.getElementById('courseTitle').value.trim(),
         level: document.getElementById('courseLevel').value,
         credits: parseInt(document.getElementById('courseCredits').value)
@@ -380,21 +380,21 @@ async function updateCourse(courseId) {
         return;
     }
 
-    const saveBtn = document.getElementById('saveCourseBtn');
-    const originalText = saveBtn.innerHTML;
+    var saveBtn = document.getElementById('saveCourseBtn');
+    var originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating...';
 
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses/${courseId}`, {
+        var response = await fetchWithTimeout(API_URL + '/api/admin/courses/' + courseId, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(courseData)
         }, 15000);
-        const data = await response.json();
+        var data = await response.json();
 
         if (data.success) {
             showToast('Course updated successfully!', 'success');
@@ -417,10 +417,10 @@ function confirmDeleteCourse(courseId, courseCode) {
     document.getElementById('deleteCourseName').textContent = courseCode;
     document.getElementById('deleteCourseModal').classList.add('show');
 
-    const confirmBtn = document.getElementById('confirmDeleteCourseBtn');
-    const newConfirmBtn = confirmBtn.cloneNode(true);
+    var confirmBtn = document.getElementById('confirmDeleteCourseBtn');
+    var newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    newConfirmBtn.onclick = async () => {
+    newConfirmBtn.onclick = async function() {
         await deleteCourse(currentDeleteId);
         closeModal('deleteCourseModal');
     };
@@ -428,11 +428,11 @@ function confirmDeleteCourse(courseId, courseCode) {
 
 async function deleteCourse(courseId) {
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/admin/courses/${courseId}`, {
+        var response = await fetchWithTimeout(API_URL + '/api/admin/courses/' + courseId, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': 'Bearer ' + token }
         }, 15000);
-        const data = await response.json();
+        var data = await response.json();
 
         if (data.success) {
             showToast('Course deleted successfully', 'success');
@@ -448,7 +448,7 @@ async function deleteCourse(courseId) {
 
 // ========== LOAD LECTURERS ==========
 async function loadLecturers() {
-    const contentWrapper = document.getElementById('contentWrapper');
+    var contentWrapper = document.getElementById('contentWrapper');
     if (!contentWrapper) return;
 
     await fetchActiveSettings();
@@ -463,44 +463,49 @@ async function loadLecturers() {
                     </span>
                 </div>
             </div>
-            <div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading lecturers...</div>
+            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading lecturers...</div>
         </div>
     `;
 
     try {
-        const usersRes = await fetchWithTimeout(`${API_URL}/api/admin/users/all`, {
-            headers: { Authorization: `Bearer ${token}` }
+        var usersRes = await fetchWithTimeout(API_URL + '/api/admin/users/all', {
+            headers: { Authorization: 'Bearer ' + token }
         }, 15000);
-        const usersData = await usersRes.json();
-        // Only show approved lecturers
-        const allLecturers = usersData.users?.filter(u => u.role === 'lecturer' && u.isApproved === true) || [];
+        var usersData = await usersRes.json();
+        var allLecturers = usersData.users ? usersData.users.filter(function(u) { return u.role === 'lecturer' && u.isApproved === true; }) : [];
 
         if (allLecturers.length === 0) {
-            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+            var spinner = document.querySelector('#contentWrapper .card .loading-spinner');
             if (spinner) spinner.outerHTML = '<div class="empty-state">No approved lecturers registered</div>';
             return;
         }
 
-        const lecturersWithCourses = [];
+        var lecturersWithCourses = [];
 
-        for (const lecturer of allLecturers) {
-            const url = `${API_URL}/api/admin/lecturer/${lecturer._id}/courses?session=${currentSession}&semester=${currentSemester}`;
-            const coursesRes = await fetchWithTimeout(url, {
-                headers: { Authorization: `Bearer ${token}` }
+        for (var i = 0; i < allLecturers.length; i++) {
+            var lecturer = allLecturers[i];
+            var url = API_URL + '/api/admin/lecturer/' + lecturer._id + '/courses?session=' + currentSession + '&semester=' + currentSemester;
+            var coursesRes = await fetchWithTimeout(url, {
+                headers: { Authorization: 'Bearer ' + token }
             }, 15000);
-            const coursesData = await coursesRes.json();
+            var coursesData = await coursesRes.json();
 
             if (coursesData.success && coursesData.courses && coursesData.courses.length > 0) {
                 lecturersWithCourses.push({
-                    ...lecturer,
+                    _id: lecturer._id,
+                    fullName: lecturer.fullName,
+                    staffId: lecturer.staffId,
+                    email: lecturer.email,
+                    rank: lecturer.rank,
+                    department: lecturer.department,
                     courses: coursesData.courses
                 });
             }
         }
 
         if (lecturersWithCourses.length === 0) {
-            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-            if (spinner) spinner.outerHTML = `<div class="empty-state">No lecturers with courses for ${currentSession} ${currentSemester}</div>`;
+            var spinner2 = document.querySelector('#contentWrapper .card .loading-spinner');
+            if (spinner2) spinner2.outerHTML = '<div class="empty-state">No lecturers with courses for ' + currentSession + ' ' + currentSemester + '</div>';
             return;
         }
 
@@ -508,18 +513,18 @@ async function loadLecturers() {
 
     } catch (error) {
         console.error('Error loading lecturers:', error);
-        const isTimeout = error.name === 'AbortError';
-        const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-        if (spinner) spinner.outerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond.' : 'Failed to load lecturers'}</div>`;
+        var isTimeout = error.name === 'AbortError';
+        var spinner3 = document.querySelector('#contentWrapper .card .loading-spinner');
+        if (spinner3) spinner3.outerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to load lecturers') + '</div>';
         showToast('Failed to load lecturers', 'danger');
     }
 }
 
 function renderLecturersTable(lecturers) {
-    const card = document.querySelector('#contentWrapper .card');
+    var card = document.querySelector('#contentWrapper .card');
     if (!card) return;
 
-    let html = `
+    var html = `
         <div class="card-header">
             <h3><i class="fa-solid fa-chalkboard-user"></i> Lecturers & Their Courses</h3>
             <div class="header-actions">
@@ -531,8 +536,9 @@ function renderLecturersTable(lecturers) {
         <div class="grouped-list">
     `;
 
-    for (const lecturer of lecturers) {
-        const courses = lecturer.courses || [];
+    for (var i = 0; i < lecturers.length; i++) {
+        var lecturer = lecturers[i];
+        var courses = lecturer.courses || [];
 
         html += `
             <div class="level-group">
@@ -554,14 +560,16 @@ function renderLecturersTable(lecturers) {
                             <tr><th>Course Code</th><th>Course Title</th><th>Level</th><th>Credits</th></tr>
                         </thead>
                         <tbody>
-                            ${courses.map(c => `
-                                <tr>
-                                    <td><strong>${c.courseCode}</strong></td>
-                                    <td>${escapeHtml(c.courseTitle)}</td>
-                                    <td>${c.level} Level</td>
-                                    <td>${c.credits || 3}</td>
-                                </tr>
-                            `).join('')}
+                            ${courses.map(function(c) {
+                                return `
+                                    <tr>
+                                        <td><strong>${c.courseCode}</strong></td>
+                                        <td>${escapeHtml(c.courseTitle)}</td>
+                                        <td>${c.level} Level</td>
+                                        <td>${c.credits || 3}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -569,13 +577,13 @@ function renderLecturersTable(lecturers) {
         `;
     }
 
-    html += `</div>`;
+    html += '</div>';
     card.innerHTML = html;
 }
 
 // ========== LOAD STUDENTS ==========
 async function loadStudents() {
-    const contentWrapper = document.getElementById('contentWrapper');
+    var contentWrapper = document.getElementById('contentWrapper');
     if (!contentWrapper) return;
 
     await fetchActiveSettings();
@@ -590,33 +598,33 @@ async function loadStudents() {
                     </span>
                 </div>
             </div>
-            <div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading students...</div>
+            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading students...</div>
         </div>
     `;
 
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/admin/students/grouped?session=${currentSession}&semester=${currentSemester}`, {
-            headers: { Authorization: `Bearer ${token}` }
+        var response = await fetchWithTimeout(API_URL + '/api/admin/students/grouped?session=' + currentSession + '&semester=' + currentSemester, {
+            headers: { Authorization: 'Bearer ' + token }
         }, 15000);
-        const data = await response.json();
+        var data = await response.json();
 
         if (data.success && data.data) {
             renderStudentsGrouped(data.data);
         } else {
-            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-            if (spinner) spinner.outerHTML = `<div class="empty-state">No students registered for ${currentSession} ${currentSemester}</div>`;
+            var spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+            if (spinner) spinner.outerHTML = '<div class="empty-state">No students registered for ' + currentSession + ' ' + currentSemester + '</div>';
         }
     } catch (error) {
         console.error('Error loading students:', error);
-        const isTimeout = error.name === 'AbortError';
-        const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-        if (spinner) spinner.outerHTML = `<div class="error-message">${isTimeout ? 'Server took too long to respond.' : 'Failed to load students'}</div>`;
+        var isTimeout = error.name === 'AbortError';
+        var spinner = document.querySelector('#contentWrapper .card .loading-spinner');
+        if (spinner) spinner.outerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to load students') + '</div>';
         showToast('Failed to load students', 'danger');
     }
 }
 
 function renderStudentsGrouped(groupedData) {
-    const card = document.querySelector('#contentWrapper .card');
+    var card = document.querySelector('#contentWrapper .card');
     if (!card) return;
 
     if (!groupedData || groupedData.length === 0) {
@@ -634,7 +642,7 @@ function renderStudentsGrouped(groupedData) {
         return;
     }
 
-    let html = `
+    var html = `
         <div class="card-header">
             <h3><i class="fa-solid fa-users"></i> Students</h3>
             <div class="header-actions">
@@ -646,7 +654,8 @@ function renderStudentsGrouped(groupedData) {
         <div class="grouped-list">
     `;
 
-    for (const levelGroup of groupedData) {
+    for (var i = 0; i < groupedData.length; i++) {
+        var levelGroup = groupedData[i];
         html += `
             <div class="level-group">
                 <div class="level-header" onclick="toggleGroup(this)">
@@ -657,10 +666,11 @@ function renderStudentsGrouped(groupedData) {
                 <div class="level-content" style="display: none;">
         `;
 
-        const courses = levelGroup.courses || [];
+        var courses = levelGroup.courses || [];
 
-        for (const course of courses) {
-            const studentsList = course.students || [];
+        for (var j = 0; j < courses.length; j++) {
+            var course = courses[j];
+            var studentsList = course.students || [];
             html += `
                 <div class="course-group">
                     <div class="course-header" onclick="toggleGroup(this)">
@@ -674,13 +684,15 @@ function renderStudentsGrouped(groupedData) {
                                 <tr><th>Name</th><th>Matric Number</th><th>Email</th></tr>
                             </thead>
                             <tbody>
-                                ${studentsList.map(s => `
-                                    <tr>
-                                        <td><strong>${escapeHtml(s.name)}</strong></td>
-                                        <td>${s.matricNumber || 'N/A'}</td>
-                                        <td>${s.email || 'N/A'}</td>
-                                    </tr>
-                                `).join('')}
+                                ${studentsList.map(function(s) {
+                                    return `
+                                        <tr>
+                                            <td><strong>${escapeHtml(s.name)}</strong></td>
+                                            <td>${s.matricNumber || 'N/A'}</td>
+                                            <td>${s.email || 'N/A'}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -688,28 +700,28 @@ function renderStudentsGrouped(groupedData) {
             `;
         }
 
-        html += `</div></div>`;
+        html += '</div></div>';
     }
 
-    html += `</div>`;
+    html += '</div>';
     card.innerHTML = html;
 }
 
-// ========== LOAD APPLICATIONS PAGE ==========
+// ========== LOAD APPLICATIONS ==========
 function loadApplications() {
     window.location.href = 'admin-applications.html';
 }
 
-// ========== LOAD SETTINGS PAGE ==========
+// ========== LOAD SETTINGS ==========
 function loadSettings() {
     window.location.href = 'admin-settings.html';
 }
 
-// ========== TOGGLE GROUP FUNCTION ==========
+// ========== TOGGLE GROUP ==========
 function toggleGroup(element) {
-    const parent = element.parentElement;
-    const content = parent.querySelector('.level-content, .course-content');
-    const icon = element.querySelector('i');
+    var parent = element.parentElement;
+    var content = parent.querySelector('.level-content, .course-content');
+    var icon = element.querySelector('i');
 
     if (content) {
         if (content.style.display === 'none' || !content.style.display) {
@@ -722,7 +734,7 @@ function toggleGroup(element) {
     }
 }
 
-// ========== CREATE ADMIN FUNCTIONS ==========
+// ========== CREATE ADMIN ==========
 function openCreateAdminModal() {
     document.getElementById('adminFullName').value = '';
     document.getElementById('adminEmail').value = '';
@@ -734,8 +746,8 @@ function openCreateAdminModal() {
 }
 
 function toggleAdminPassword() {
-    const input = document.getElementById('adminPassword');
-    const icon = document.querySelector('#adminPassword').nextElementSibling.querySelector('i');
+    var input = document.getElementById('adminPassword');
+    var icon = document.querySelector('#adminPassword').nextElementSibling.querySelector('i');
     if (input.type === 'password') {
         input.type = 'text';
         icon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -746,8 +758,8 @@ function toggleAdminPassword() {
 }
 
 function toggleAdminConfirmPassword() {
-    const input = document.getElementById('adminConfirmPassword');
-    const icon = document.querySelector('#adminConfirmPassword').nextElementSibling.querySelector('i');
+    var input = document.getElementById('adminConfirmPassword');
+    var icon = document.querySelector('#adminConfirmPassword').nextElementSibling.querySelector('i');
     if (input.type === 'password') {
         input.type = 'text';
         icon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -758,64 +770,45 @@ function toggleAdminConfirmPassword() {
 }
 
 async function createAdmin() {
-    const fullName = document.getElementById('adminFullName').value.trim();
-    const email = document.getElementById('adminEmail').value.trim();
-    const department = document.getElementById('adminDepartment').value.trim();
-    const password = document.getElementById('adminPassword').value;
-    const confirmPassword = document.getElementById('adminConfirmPassword').value;
-    const secretCode = document.getElementById('adminSecretCode').value.trim();
+    var fullName = document.getElementById('adminFullName').value.trim();
+    var email = document.getElementById('adminEmail').value.trim();
+    var department = document.getElementById('adminDepartment').value.trim();
+    var password = document.getElementById('adminPassword').value;
+    var confirmPassword = document.getElementById('adminConfirmPassword').value;
+    var secretCode = document.getElementById('adminSecretCode').value.trim();
 
-    // Validate
-    if (!fullName) {
-        showToast('Full name is required', 'warning');
-        return;
-    }
-    if (!email) {
-        showToast('Email is required', 'warning');
-        return;
-    }
-    if (!password) {
-        showToast('Password is required', 'warning');
-        return;
-    }
-    if (password.length < 8) {
-        showToast('Password must be at least 8 characters', 'warning');
-        return;
-    }
-    if (password !== confirmPassword) {
-        showToast('Passwords do not match', 'warning');
-        return;
-    }
-    if (!secretCode) {
-        showToast('Admin secret code is required', 'warning');
-        return;
-    }
+    if (!fullName) { showToast('Full name is required', 'warning'); return; }
+    if (!email) { showToast('Email is required', 'warning'); return; }
+    if (!password) { showToast('Password is required', 'warning'); return; }
+    if (password.length < 8) { showToast('Password must be at least 8 characters', 'warning'); return; }
+    if (password !== confirmPassword) { showToast('Passwords do not match', 'warning'); return; }
+    if (!secretCode) { showToast('Admin secret code is required', 'warning'); return; }
 
-    const createBtn = document.getElementById('createAdminBtn');
-    const originalText = createBtn.innerHTML;
+    var createBtn = document.getElementById('createAdminBtn');
+    var originalText = createBtn.innerHTML;
     createBtn.disabled = true;
     createBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...';
 
     try {
-        const response = await fetchWithTimeout(`${API_URL}/api/admin/create-admin`, {
+        var response = await fetchWithTimeout(API_URL + '/api/admin/create-admin', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                fullName,
-                email,
-                password,
-                department,
-                secretCode
+                fullName: fullName,
+                email: email,
+                password: password,
+                department: department,
+                secretCode: secretCode
             })
         }, 15000);
 
-        const data = await response.json();
+        var data = await response.json();
 
         if (data.success) {
-            showToast(`✅ Admin "${fullName}" created successfully!`, 'success');
+            showToast('Admin "' + fullName + '" created successfully!', 'success');
             closeModal('createAdminModal');
             loadDashboard();
         } else {
@@ -832,11 +825,13 @@ async function createAdmin() {
 
 // ========== UTILITY FUNCTIONS ==========
 function closeModal(modalId) {
-    document.getElementById(modalId)?.classList.remove('show');
+    var modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('show');
 }
 
-function showToast(message, type = 'success') {
-    let container = document.getElementById('toastContainer');
+function showToast(message, type) {
+    if (type === undefined) type = 'success';
+    var container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
         container.className = 'toast-container';
@@ -844,11 +839,12 @@ function showToast(message, type = 'success') {
         document.body.appendChild(container);
     }
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}<button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
+    var toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    toast.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + message + '<button class="toast-close" onclick="this.parentElement.remove()">×</button>';
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(function() { toast.remove(); }, 3000);
 }
 
 function escapeHtml(str) {
@@ -867,11 +863,11 @@ function logout() {
 }
 
 function loadPage(page) {
-    const pageTitle = document.getElementById('pageTitle');
+    var pageTitle = document.getElementById('pageTitle');
     if (pageTitle) pageTitle.textContent = page.charAt(0).toUpperCase() + page.slice(1);
 
-    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-    const activeNav = document.querySelector(`.nav-item[data-page="${page}"]`);
+    document.querySelectorAll('.nav-item').forEach(function(nav) { nav.classList.remove('active'); });
+    var activeNav = document.querySelector('.nav-item[data-page="' + page + '"]');
     if (activeNav) activeNav.classList.add('active');
 
     if (page === 'dashboard') loadDashboard();
@@ -884,12 +880,12 @@ function loadPage(page) {
 
 // ========== SIDEBAR & THEME ==========
 function initSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const menuBtn = document.getElementById('menuBtn');
+    var sidebar = document.getElementById('sidebar');
+    var sidebarToggle = document.getElementById('sidebarToggle');
+    var menuBtn = document.getElementById('menuBtn');
 
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
+        sidebarToggle.addEventListener('click', function() {
             if (window.innerWidth <= 1024) {
                 sidebar.classList.remove('show');
             } else {
@@ -898,11 +894,12 @@ function initSidebar() {
         });
     }
     if (menuBtn) {
-        menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        menuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+        });
     }
 
-    // Close sidebar when tapping outside it (mobile)
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', function(e) {
         if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
                 sidebar.classList.remove('show');
@@ -910,18 +907,16 @@ function initSidebar() {
         }
     });
 
-    // Force sidebar to full width on mobile regardless of desktop "collapsed" state,
-    // so the logout label (and all nav labels) are never hidden on small screens
     if (window.innerWidth <= 1024) {
         sidebar.classList.remove('collapsed');
     }
 }
 
 function initDarkMode() {
-    const themeToggle = document.getElementById('themeToggle');
+    var themeToggle = document.getElementById('themeToggle');
     if (localStorage.getItem('futoTheme') === 'dark') document.body.classList.add('dark');
     if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
+        themeToggle.addEventListener('click', function() {
             document.body.classList.toggle('dark');
             localStorage.setItem('futoTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
         });
@@ -929,28 +924,28 @@ function initDarkMode() {
 }
 
 // ========== EVENT LISTENERS ==========
-document.querySelectorAll('.nav-item[data-page]').forEach(nav => {
-    nav.addEventListener('click', (e) => {
+document.querySelectorAll('.nav-item[data-page]').forEach(function(nav) {
+    nav.addEventListener('click', function(e) {
         e.preventDefault();
         loadPage(nav.getAttribute('data-page'));
     });
 });
 
-document.getElementById('createAdminBtn')?.addEventListener('click', createAdmin);
+document.getElementById('createAdminBtn').addEventListener('click', createAdmin);
 
 // ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', function() {
     initDarkMode();
     initSidebar();
-    await fetchActiveSettings();
-
-    const savedPage = localStorage.getItem('adminPage');
-    if (savedPage && savedPage !== 'dashboard') {
-        localStorage.removeItem('adminPage');
-        loadPage(savedPage);
-    } else {
-        loadDashboard();
-    }
+    fetchActiveSettings().then(function() {
+        var savedPage = localStorage.getItem('adminPage');
+        if (savedPage && savedPage !== 'dashboard') {
+            localStorage.removeItem('adminPage');
+            loadPage(savedPage);
+        } else {
+            loadDashboard();
+        }
+    });
 });
 
 // Make functions global
