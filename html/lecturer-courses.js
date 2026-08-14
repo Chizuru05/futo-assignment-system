@@ -78,11 +78,16 @@ async function fetchActiveSettings() {
 
 // ========== FETCH COURSES ==========
 async function fetchCourses() {
-    window._coursesLoaded = false; // Reset flag
-    
+    // FIXED: Proper loading spinner without rotation issues
     if (coursesGrid) {
-        coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>';
+        coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to server...</div>';
     }
+
+    const slowNotice = setTimeout(function() {
+        if (coursesGrid && coursesGrid.querySelector('.loading-spinner')) {
+            coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Server is waking up, this can take up to a minute on first load...</div>';
+        }
+    }, 6000);
 
     try {
         const response = await fetchWithTimeout(API_URL + '/api/lecturer/my-courses?session=' + currentSession + '&semester=' + currentSemester, {
@@ -96,16 +101,13 @@ async function fetchCourses() {
             if (data.success && data.courses) {
                 allCourses = data.courses;
                 window._uniqueStudentCount = data.uniqueStudentCount || 0;
-                window._coursesLoaded = true; // Mark as loaded
                 showToast('Loaded ' + allCourses.length + ' courses', 'success');
             } else {
                 allCourses = [];
-                window._coursesLoaded = true;
                 showToast(data.message || 'No courses found', 'info');
             }
         } else {
             allCourses = [];
-            window._coursesLoaded = true;
             showToast('Failed to load courses', 'danger');
         }
 
@@ -115,16 +117,10 @@ async function fetchCourses() {
     } catch (error) {
         clearTimeout(slowNotice);
         console.error('Error fetching courses:', error);
-        window._coursesLoaded = true;
-        // Show error state
-        coursesGrid.innerHTML = `
-            <div class="error-message" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
-                <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; color: var(--danger);"></i>
-                <p style="color: var(--danger);">Failed to load courses</p>
-                <button onclick="fetchCourses()" class="btn-small">Retry</button>
-            </div>
-        `;
-        showToast('Failed to connect to server', 'danger');
+        var isTimeout = error.name === 'AbortError';
+        showToast(isTimeout ? 'Server took too long to respond' : 'Failed to connect to server', 'danger');
+        allCourses = [];
+        renderCourses();
         updateStats();
     }
 }
@@ -152,31 +148,58 @@ function renderCourses() {
         });
     }
 
-    // === FIX: Clear spinner and show proper empty state ===
     if (filtered.length === 0) {
-        // Check if we're still loading
-        if (allCourses.length === 0 && !window._coursesLoaded) {
-            // Still loading - show spinner
-            coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>';
-            return;
-        }
-        // No courses found - show empty state
-        coursesGrid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
-                <i class="fa-regular fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                <p style="color: var(--text-light);">No courses found for ${currentSession} ${currentSemester}</p>
-                <p style="font-size: 0.85rem; color: var(--text-light);">Register for courses to get started</p>
-            </div>
-        `;
+        coursesGrid.innerHTML = '<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No courses found</p></div>';
         return;
     }
 
-    // === Render courses normally ===
     coursesGrid.innerHTML = filtered.map(function(course) {
-        // ... your existing course card HTML ...
-    }).join('');
-    
-    window._coursesLoaded = true;
+        var code = course.courseCode;
+        var title = course.courseTitle;
+        var id = course._id || course.courseId;
+        var level = course.level;
+        var credits = course.credits || 3;
+        var students = course.studentCount || 0;
+        var status = course.status || 'active';
+
+        return `
+        <div class="course-card" data-level="${level}" data-status="${status}">
+            <div class="course-header">
+                <div class="course-code-wrapper">
+                    <span class="course-code">${escapeHtml(code)}</span>
+                    <span class="course-status ${status === 'completed' ? 'completed' : 'active'}">
+                        ${status === 'completed' ? 'Completed' : 'Active'}
+                    </span>
+                </div>
+                <div class="course-actions">
+                    <button class="btn-icon" onclick="viewCourse('${id}')" title="View Course">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <button class="btn-icon" onclick="viewStudents('${id}')" title="View Students">
+                        <i class="fa-regular fa-users"></i>
+                    </button>
+                    <button class="btn-icon delete-btn" onclick="openDeleteModal('${id}', '${code}', true)" title="Unregister from Course">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+            <h3 class="course-title">${escapeHtml(title)}</h3>
+            <div class="course-details">
+                <div class="detail-item"><i class="fa-regular fa-users"></i> <span>${students} student${students !== 1 ? 's' : ''}</span></div>
+                <div class="detail-item"><i class="fa-regular fa-star"></i> <span>${credits} Credits</span></div>
+                <div class="detail-item"><i class="fa-regular fa-layer-group"></i> <span>${level} Level</span></div>
+                <div class="detail-item"><i class="fa-regular fa-calendar"></i> <span>${currentSession} · ${currentSemester}</span></div>
+            </div>
+            <div class="course-footer">
+                <a href="lecturer-assignments.html?course=${code}" class="btn-small">
+                    <i class="fa-regular fa-eye"></i> Assignments
+                </a>
+                <a href="lecturer-submissions.html?course=${code}" class="btn-small outline">
+                    <i class="fa-regular fa-file-export"></i> Submissions
+                </a>
+            </div>
+        </div>
+    `}).join('');
 }
 
 function updateStats() {
