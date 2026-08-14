@@ -686,6 +686,12 @@ body {
     gap: 1.5rem;
 }
 
+.courses-grid .loading-spinner,
+.courses-grid .empty-state,
+.courses-grid .error-message {
+    grid-column: 1 / -1;
+}
+
 /* ========== FIXED LOADING SPINNER - FOR ALL DASHBOARDS ========== */
 .loading-spinner {
     text-align: center;
