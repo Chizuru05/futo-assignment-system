@@ -9,121 +9,119 @@
     <link rel="stylesheet" href="admin-dashboard.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
+    <div class="ad-app">
+        <aside class="ad-side" id="adSidebar">
+            <div class="ad-side-head">
+                <div class="ad-brand">
                     <i class="fa-solid fa-graduation-cap"></i>
                     <span>FUTO Admin</span>
                 </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
+                <button class="ad-side-toggle" id="adSidebarToggle">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             </div>
 
-            <div class="sidebar-profile">
-                <div class="profile-image">
+            <div class="ad-side-profile">
+                <div class="ad-avatar">
                     <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=50" alt="admin">
                 </div>
-                <div class="profile-info">
-                    <h4 id="adminName">Administrator</h4>
+                <div class="ad-profile-text">
+                    <h4 id="adAdminName">Administrator</h4>
                     <p>System Admin</p>
-                    <span class="badge-level">Admin</span>
+                    <span class="ad-badge-level">Admin</span>
                 </div>
             </div>
 
-            <nav class="sidebar-nav">
-                <a href="admin-dashboard.html" class="nav-item active">
+            <nav class="ad-side-nav">
+                <a href="admin-dashboard.html" class="ad-nav-link ad-nav-active" data-page="dashboard">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="admin-courses.html" class="nav-item">
+                <a href="admin-courses.html" class="ad-nav-link" data-page="courses">
                     <i class="fa-solid fa-book"></i>
                     <span>Courses</span>
                 </a>
-                <a href="admin-lecturers.html" class="nav-item">
+                <a href="admin-lecturers.html" class="ad-nav-link" data-page="lecturers">
                     <i class="fa-solid fa-chalkboard-user"></i>
                     <span>Lecturers</span>
                 </a>
-                <a href="admin-students.html" class="nav-item">
+                <a href="admin-students.html" class="ad-nav-link" data-page="students">
                     <i class="fa-solid fa-users"></i>
                     <span>Students</span>
                 </a>
-                <a href="admin-applications.html" class="nav-item">
+                <a href="admin-applications.html" class="ad-nav-link" data-page="applications">
                     <i class="fa-solid fa-user-clock"></i>
                     <span>Applications</span>
-                    <span id="pendingCount" class="badge-nav" style="background:#ef4444">0</span>
+                    <span id="adPendingCount" class="ad-badge-nav" style="background:#ef4444">0</span>
                 </a>
-                <a href="admin-settings.html" class="nav-item">
+                <a href="admin-settings.html" class="ad-nav-link" data-page="settings">
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </a>
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="semester-info">
+            <div class="ad-side-foot">
+                <div class="ad-semester-box">
                     <i class="fa-regular fa-calendar"></i>
                     <div>
                         <small>Current Session</small>
-                        <p id="sidebarSession">2025-2026 Harmattan</p>
+                        <p id="adSidebarSession">2025-2026 Harmattan</p>
                     </div>
                 </div>
-                <a href="#" onclick="logout()" class="logout-link">
+                <a href="#" onclick="logout()" class="ad-logout">
                     <i class="fa-solid fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="main-header">
-                <div class="header-left">
-                    <button class="menu-btn" id="menuBtn">
+        <main class="ad-main">
+            <header class="ad-top">
+                <div class="ad-top-left">
+                    <button class="ad-burger" id="adMenuBtn">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <h2 id="pageTitle">Dashboard</h2>
+                    <h2 id="adPageTitle">Dashboard</h2>
                 </div>
-                <div class="header-right">
-                    <div class="theme-toggle" id="themeToggle">
+                <div class="ad-top-right">
+                    <div class="ad-theme-toggle" id="adThemeToggle">
                         <i class="fa-regular fa-sun"></i>
                         <i class="fa-regular fa-moon"></i>
                     </div>
-                    <div class="header-profile">
+                    <div class="ad-header-profile">
                         <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=40" alt="profile">
                     </div>
                 </div>
             </header>
 
-            <div class="content-wrapper" id="contentWrapper">
-                <div class="loading-spinner" style="display:flex;align-items:center;justify-content:center;min-height:200px;text-align:center;color:#64748b;padding:2rem;">
-                    <i class="fa-solid fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading...
+            <div class="ad-content" id="adContentWrapper">
+                <div class="ad-panel-loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Loading...
                 </div>
             </div>
         </main>
     </div>
 
     <!-- Course Modal -->
-    <div class="modal" id="courseModal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="ad-modal" id="adCourseModal">
+        <div class="ad-modal-box">
+            <div class="ad-modal-head">
                 <h3>Add New Course</h3>
-                <button class="modal-close" onclick="closeModal('courseModal')">&times;</button>
+                <button class="ad-modal-close" onclick="closeModal('adCourseModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Course Code <span class="required">*</span></label>
-                    <input type="text" id="courseCode" placeholder="e.g., IFT401" maxlength="10">
+            <div class="ad-modal-body">
+                <div class="ad-form-group">
+                    <label>Course Code <span class="ad-required">*</span></label>
+                    <input type="text" id="adCourseCode" placeholder="e.g., IFT401" maxlength="10">
                 </div>
-                <div class="form-group">
-                    <label>Course Title <span class="required">*</span></label>
-                    <input type="text" id="courseTitle" placeholder="Course Title">
+                <div class="ad-form-group">
+                    <label>Course Title <span class="ad-required">*</span></label>
+                    <input type="text" id="adCourseTitle" placeholder="Course Title">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Level <span class="required">*</span></label>
-                        <select id="courseLevel">
+                <div class="ad-form-row">
+                    <div class="ad-form-group">
+                        <label>Level <span class="ad-required">*</span></label>
+                        <select id="adCourseLevel">
                             <option value="100">100 Level</option>
                             <option value="200">200 Level</option>
                             <option value="300">300 Level</option>
@@ -131,86 +129,86 @@
                             <option value="500" selected>500 Level</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="ad-form-group">
                         <label>Credits</label>
-                        <input type="number" id="courseCredits" value="3" min="1" max="6">
+                        <input type="number" id="adCourseCredits" value="3" min="1" max="6">
                     </div>
                 </div>
-                <div class="info-box" id="modalSemesterInfo">
+                <div class="ad-info-box" id="adModalSemesterInfo">
                     <i class="fa-solid fa-info-circle"></i>
-                    <small>Course will be created for <strong id="currentSemesterDisplay">Harmattan</strong> semester based on current settings.</small>
+                    <small>Course will be created for <strong id="adCurrentSemesterDisplay">Harmattan</strong> semester based on current settings.</small>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('courseModal')">Cancel</button>
-                <button class="btn-primary" id="saveCourseBtn">Save Course</button>
+            <div class="ad-modal-foot">
+                <button class="ad-btn-secondary" onclick="closeModal('adCourseModal')">Cancel</button>
+                <button class="ad-btn-primary" id="adSaveCourseBtn">Save Course</button>
             </div>
         </div>
     </div>
 
     <!-- Delete Course Confirmation Modal -->
-    <div class="modal" id="deleteCourseModal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="ad-modal" id="adDeleteCourseModal">
+        <div class="ad-modal-box">
+            <div class="ad-modal-head">
                 <h3>Confirm Delete</h3>
-                <button class="modal-close" onclick="closeModal('deleteCourseModal')">&times;</button>
+                <button class="ad-modal-close" onclick="closeModal('adDeleteCourseModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete <strong id="deleteCourseName"></strong>?</p>
-                <p class="warning-text">This action cannot be undone.</p>
+            <div class="ad-modal-body">
+                <p>Are you sure you want to delete <strong id="adDeleteCourseName"></strong>?</p>
+                <p class="ad-warning-text">This action cannot be undone.</p>
             </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('deleteCourseModal')">Cancel</button>
-                <button class="btn-danger" id="confirmDeleteCourseBtn">Delete Course</button>
+            <div class="ad-modal-foot">
+                <button class="ad-btn-secondary" onclick="closeModal('adDeleteCourseModal')">Cancel</button>
+                <button class="ad-btn-danger" id="adConfirmDeleteCourseBtn">Delete Course</button>
             </div>
         </div>
     </div>
 
     <!-- Create Admin Modal -->
-    <div class="modal" id="createAdminModal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="ad-modal" id="adCreateAdminModal">
+        <div class="ad-modal-box ad-create-admin-box">
+            <div class="ad-modal-head">
                 <h3><i class="fa-solid fa-user-tie"></i> Create New Admin</h3>
-                <button class="modal-close" onclick="closeModal('createAdminModal')">&times;</button>
+                <button class="ad-modal-close" onclick="closeModal('adCreateAdminModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Full Name <span class="required">*</span></label>
-                    <input type="text" id="adminFullName" placeholder="e.g., John Doe">
+            <div class="ad-modal-body">
+                <div class="ad-form-group">
+                    <label>Full Name <span class="ad-required">*</span></label>
+                    <input type="text" id="adAdminFullName" placeholder="e.g., John Doe">
                 </div>
-                <div class="form-group">
-                    <label>Email Address <span class="required">*</span></label>
-                    <input type="email" id="adminEmail" placeholder="admin@futo.edu.ng">
+                <div class="ad-form-group">
+                    <label>Email Address <span class="ad-required">*</span></label>
+                    <input type="email" id="adAdminEmail" placeholder="admin@futo.edu.ng">
                 </div>
-                <div class="form-group">
+                <div class="ad-form-group">
                     <label>Department</label>
-                    <input type="text" id="adminDepartment" value="Information Technology">
+                    <input type="text" id="adAdminDepartment" value="Information Technology">
                 </div>
-                <div class="form-group">
-                    <label>Password <span class="required">*</span></label>
-                    <div class="password-wrapper">
-                        <input type="password" id="adminPassword" placeholder="Enter a strong password">
-                        <button type="button" class="password-toggle" onclick="toggleAdminPassword()">
+                <div class="ad-form-group">
+                    <label>Password <span class="ad-required">*</span></label>
+                    <div class="ad-password-wrap">
+                        <input type="password" id="adAdminPassword" placeholder="Enter a strong password">
+                        <button type="button" class="ad-password-toggle" onclick="toggleAdminPassword()">
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
                     <small>Must be at least 8 characters with uppercase, lowercase, and a number</small>
                 </div>
-                <div class="form-group">
-                    <label>Confirm Password <span class="required">*</span></label>
-                    <div class="password-wrapper">
-                        <input type="password" id="adminConfirmPassword" placeholder="Confirm password">
-                        <button type="button" class="password-toggle" onclick="toggleAdminConfirmPassword()">
+                <div class="ad-form-group">
+                    <label>Confirm Password <span class="ad-required">*</span></label>
+                    <div class="ad-password-wrap">
+                        <input type="password" id="adAdminConfirmPassword" placeholder="Confirm password">
+                        <button type="button" class="ad-password-toggle" onclick="toggleAdminConfirmPassword()">
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Admin Secret Code <span class="required">*</span></label>
-                    <input type="password" id="adminSecretCode" placeholder="Enter the admin secret code">
+                <div class="ad-form-group">
+                    <label>Admin Secret Code <span class="ad-required">*</span></label>
+                    <input type="password" id="adAdminSecretCode" placeholder="Enter the admin secret code">
                     <small>Contact system administrator for the secret code</small>
                 </div>
-                <div class="info-box">
+                <div class="ad-info-box">
                     <i class="fa-solid fa-info-circle"></i>
                     <div>
                         <strong>Note:</strong>
@@ -218,15 +216,14 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('createAdminModal')">Cancel</button>
-                <button class="btn-primary" id="createAdminBtn">Create Admin</button>
+            <div class="ad-modal-foot">
+                <button class="ad-btn-secondary" onclick="closeModal('adCreateAdminModal')">Cancel</button>
+                <button class="ad-btn-primary" id="adCreateAdminBtn">Create Admin</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <div class="ad-toast-wrap" id="adToastContainer"></div>
 
     <script src="admin-dashboard.js"></script>
 </body>

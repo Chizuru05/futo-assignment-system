@@ -1,4 +1,4 @@
-﻿// admin-dashboard.js - COMPLETE FIXED VERSION WITH SPINNER FIX
+﻿// admin-dashboard.js - FIXED VERSION (ad- prefixed markup)
 
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
@@ -6,7 +6,6 @@ function getAuthToken() {
     return localStorage.getItem(userRole + '_token') || localStorage.getItem('token');
 }
 
-// ========== FETCH WITH TIMEOUT ==========
 async function fetchWithTimeout(url, options, timeoutMs) {
     if (timeoutMs === undefined) timeoutMs = 15000;
     const controller = new AbortController();
@@ -35,11 +34,10 @@ if (userRole !== 'admin') {
     else window.location.href = 'login.html';
 }
 
-// Set admin name
-const adminNameEl = document.getElementById('adminName');
+const adminNameEl = document.getElementById('adAdminName');
 if (adminNameEl) adminNameEl.textContent = localStorage.getItem('fullName') || 'Administrator';
 
-const pageTitleEl = document.getElementById('pageTitle');
+const pageTitleEl = document.getElementById('adPageTitle');
 if (pageTitleEl) pageTitleEl.textContent = 'Dashboard';
 
 let allCourses = [];
@@ -60,7 +58,7 @@ async function fetchActiveSettings() {
             currentSemester = data.settings.activeSemester;
             console.log('Active settings from backend:', currentSession, currentSemester);
 
-            const sidebarSession = document.getElementById('sidebarSession');
+            const sidebarSession = document.getElementById('adSidebarSession');
             if (sidebarSession) {
                 sidebarSession.innerHTML = currentSession + ' ' + currentSemester;
             }
@@ -74,31 +72,28 @@ async function fetchActiveSettings() {
 
 // ========== LOAD DASHBOARD ==========
 async function loadDashboard() {
-    const contentWrapper = document.getElementById('contentWrapper');
+    const contentWrapper = document.getElementById('adContentWrapper');
     if (!contentWrapper) return;
 
-    // FIXED: Proper loading spinner without rotation issues
-    contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to server...</div>';
+    contentWrapper.innerHTML = '<div class="ad-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to server...</div>';
 
     const slowNotice = setTimeout(function() {
-        if (contentWrapper.querySelector('.loading-spinner')) {
-            contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Server is waking up, this can take up to a minute on first load...</div>';
+        if (contentWrapper.querySelector('.ad-panel-loading')) {
+            contentWrapper.innerHTML = '<div class="ad-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Server is waking up, this can take up to a minute on first load...</div>';
         }
     }, 6000);
 
     await fetchActiveSettings();
     clearTimeout(slowNotice);
 
-    contentWrapper.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading dashboard...</div>';
+    contentWrapper.innerHTML = '<div class="ad-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading dashboard...</div>';
 
     try {
-        // Fetch stats from admin API
         const statsRes = await fetchWithTimeout(API_URL + '/api/admin/stats?session=' + currentSession + '&semester=' + currentSemester, {
             headers: { Authorization: 'Bearer ' + token }
         }, 15000);
         const statsData = await statsRes.json();
 
-        // Fetch all users to get correct counts
         const usersRes = await fetchWithTimeout(API_URL + '/api/admin/users/all', {
             headers: { Authorization: 'Bearer ' + token }
         }, 15000);
@@ -115,40 +110,38 @@ async function loadDashboard() {
         const courses = statsData.success ? statsData.stats.courses : 0;
 
         contentWrapper.innerHTML = `
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fa-solid fa-book"></i></div>
-                    <div class="stat-details">
+            <div class="ad-stats-grid">
+                <div class="ad-stat-box">
+                    <div class="ad-stat-icon"><i class="fa-solid fa-book"></i></div>
+                    <div class="ad-stat-text">
                         <h3>${courses || 0}</h3>
                         <p>Courses (${currentSemester})</p>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
-                    <div class="stat-details">
+                <div class="ad-stat-box">
+                    <div class="ad-stat-icon"><i class="fa-solid fa-users"></i></div>
+                    <div class="ad-stat-text">
                         <h3>${totalStudents || 0}</h3>
                         <p>Students</p>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
-                    <div class="stat-details">
+                <div class="ad-stat-box">
+                    <div class="ad-stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+                    <div class="ad-stat-text">
                         <h3>${approvedLecturers || 0}</h3>
                         <p>Lecturers</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Welcome Card with Create Admin Button -->
-            <div class="welcome-card">
-                <div class="card-header">
+            <div class="ad-welcome-card">
+                <div class="ad-card-head">
                     <h3><i class="fa-solid fa-crown"></i> Welcome, ${localStorage.getItem('fullName') || 'Administrator'}!</h3>
-                    <button class="btn-primary" onclick="openCreateAdminModal()">
+                    <button class="ad-btn-primary" onclick="openCreateAdminModal()">
                         <i class="fa-solid fa-user-plus"></i> Create Admin
                     </button>
                 </div>
-                <div class="card-body">
+                <div class="ad-card-body">
                     <p>Current Academic Session: <strong>${currentSession} ${currentSemester}</strong></p>
                     <p>Use the sidebar to manage courses, lecturers, and students.</p>
                 </div>
@@ -157,29 +150,29 @@ async function loadDashboard() {
     } catch (error) {
         console.error('Error loading dashboard:', error);
         const isTimeout = error.name === 'AbortError';
-        contentWrapper.innerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond. It may be waking up from sleep — please refresh in a moment.' : 'Failed to load dashboard. Please refresh the page.') + '</div>';
+        contentWrapper.innerHTML = '<div class="ad-panel-error">' + (isTimeout ? 'Server took too long to respond. It may be waking up from sleep — please refresh in a moment.' : 'Failed to load dashboard. Please refresh the page.') + '</div>';
         showToast('Failed to load dashboard', 'danger');
     }
 }
 
 // ========== LOAD COURSES ==========
 async function loadCourses() {
-    const contentWrapper = document.getElementById('contentWrapper');
+    const contentWrapper = document.getElementById('adContentWrapper');
     if (!contentWrapper) return;
 
     await fetchActiveSettings();
 
     contentWrapper.innerHTML = `
-        <div class="card">
-            <div class="card-header">
+        <div class="ad-card">
+            <div class="ad-card-head">
                 <h3><i class="fa-solid fa-book"></i> Manage Courses</h3>
-                <div class="header-actions">
-                    <button class="btn-primary" onclick="openCourseModal()">
+                <div class="ad-header-actions">
+                    <button class="ad-btn-primary" onclick="openCourseModal()">
                         <i class="fa-solid fa-plus"></i> Add Course
                     </button>
                 </div>
             </div>
-            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>
+            <div class="ad-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>
         </div>
     `;
 
@@ -197,20 +190,20 @@ async function refreshCoursesList() {
             allCourses = data.courses || [];
             renderCoursesTable();
         } else {
-            const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-            if (spinner) spinner.outerHTML = '<div class="error-message">Failed to load courses</div>';
+            const spinner = document.querySelector('#adContentWrapper .ad-card .ad-panel-loading');
+            if (spinner) spinner.outerHTML = '<div class="ad-panel-error">Failed to load courses</div>';
         }
     } catch (error) {
         console.error('Error loading courses:', error);
         const isTimeout = error.name === 'AbortError';
-        const spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-        if (spinner) spinner.outerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to connect to server') + '</div>';
+        const spinner = document.querySelector('#adContentWrapper .ad-card .ad-panel-loading');
+        if (spinner) spinner.outerHTML = '<div class="ad-panel-error">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to connect to server') + '</div>';
         showToast('Failed to load courses', 'danger');
     }
 }
 
 function renderCoursesTable() {
-    const card = document.querySelector('#contentWrapper .card');
+    const card = document.querySelector('#adContentWrapper .ad-card');
     if (!card) return;
 
     var totalCount = allCourses.length;
@@ -219,47 +212,47 @@ function renderCoursesTable() {
 
     if (allCourses.length === 0) {
         card.innerHTML = `
-            <div class="card-header">
+            <div class="ad-card-head">
                 <h3><i class="fa-solid fa-book"></i> Manage Courses</h3>
-                <div class="header-actions">
-                    <button class="btn-primary" onclick="openCourseModal()">
+                <div class="ad-header-actions">
+                    <button class="ad-btn-primary" onclick="openCourseModal()">
                         <i class="fa-solid fa-plus"></i> Add Course
                     </button>
                 </div>
             </div>
-            <div class="stats-mini">
-                <div class="stat-mini"><span class="stat-value-mini">0</span><span class="stat-label-mini">Total Courses</span></div>
-                <div class="stat-mini"><span class="stat-value-mini">0</span><span class="stat-label-mini">Harmattan</span></div>
-                <div class="stat-mini"><span class="stat-value-mini">0</span><span class="stat-label-mini">Rain</span></div>
+            <div class="ad-stats-mini">
+                <div class="ad-stat-mini"><span class="ad-stat-value-mini">0</span><span class="ad-stat-label-mini">Total Courses</span></div>
+                <div class="ad-stat-mini"><span class="ad-stat-value-mini">0</span><span class="ad-stat-label-mini">Harmattan</span></div>
+                <div class="ad-stat-mini"><span class="ad-stat-value-mini">0</span><span class="ad-stat-label-mini">Rain</span></div>
             </div>
-            <div class="empty-state">
+            <div class="ad-panel-empty">
                 <i class="fa-regular fa-folder-open"></i>
                 <p>No courses found for ${currentSession} ${currentSemester}</p>
-                <button class="btn-primary" onclick="openCourseModal()" style="margin-top: 1rem;">Create First Course</button>
+                <button class="ad-btn-primary" onclick="openCourseModal()" style="margin-top: 1rem;">Create First Course</button>
             </div>
         `;
         return;
     }
 
     card.innerHTML = `
-        <div class="card-header">
+        <div class="ad-card-head">
             <h3><i class="fa-solid fa-book"></i> Manage Courses</h3>
-            <div class="header-actions">
-                <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
+            <div class="ad-header-actions">
+                <span class="ad-active-semester-badge" style="background: var(--ad-primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
                     <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                 </span>
-                <button class="btn-primary" onclick="openCourseModal()">
+                <button class="ad-btn-primary" onclick="openCourseModal()">
                     <i class="fa-solid fa-plus"></i> Add Course
                 </button>
             </div>
         </div>
-        <div class="stats-mini">
-            <div class="stat-mini"><span class="stat-value-mini">${totalCount}</span><span class="stat-label-mini">Total Courses</span></div>
-            <div class="stat-mini"><span class="stat-value-mini">${harmattanCount}</span><span class="stat-label-mini">Harmattan</span></div>
-            <div class="stat-mini"><span class="stat-value-mini">${rainCount}</span><span class="stat-label-mini">Rain</span></div>
+        <div class="ad-stats-mini">
+            <div class="ad-stat-mini"><span class="ad-stat-value-mini">${totalCount}</span><span class="ad-stat-label-mini">Total Courses</span></div>
+            <div class="ad-stat-mini"><span class="ad-stat-value-mini">${harmattanCount}</span><span class="ad-stat-label-mini">Harmattan</span></div>
+            <div class="ad-stat-mini"><span class="ad-stat-value-mini">${rainCount}</span><span class="ad-stat-label-mini">Rain</span></div>
         </div>
-        <div class="table-container">
-            <table class="data-table">
+        <div class="ad-table-wrap">
+            <table class="ad-table">
                 <thead>
                     <tr><th>Code</th><th>Title</th><th>Level</th><th>Credits</th><th>Actions</th></tr>
                 </thead>
@@ -272,10 +265,10 @@ function renderCoursesTable() {
                                 <td>${course.level} Level</td>
                                 <td>${course.credits || 3}</td>
                                 <td>
-                                    <button class="btn-icon" onclick="editCourse('${course._id}')" title="Edit">
+                                    <button class="ad-icon-btn" onclick="editCourse('${course._id}')" title="Edit">
                                         <i class="fa-regular fa-pen-to-square"></i>
                                     </button>
-                                    <button class="btn-icon danger" onclick="confirmDeleteCourse('${course._id}', '${course.courseCode}')" title="Delete">
+                                    <button class="ad-icon-btn ad-danger" onclick="confirmDeleteCourse('${course._id}', '${course.courseCode}')" title="Delete">
                                         <i class="fa-regular fa-trash-can"></i>
                                     </button>
                                 </td>
@@ -290,15 +283,15 @@ function renderCoursesTable() {
 
 // ========== COURSE MODAL FUNCTIONS ==========
 function openCourseModal() {
-    document.getElementById('courseCode').value = '';
-    document.getElementById('courseCode').readOnly = false;
-    document.getElementById('courseTitle').value = '';
-    document.getElementById('courseLevel').value = '400';
-    document.getElementById('courseCredits').value = '3';
+    document.getElementById('adCourseCode').value = '';
+    document.getElementById('adCourseCode').readOnly = false;
+    document.getElementById('adCourseTitle').value = '';
+    document.getElementById('adCourseLevel').value = '400';
+    document.getElementById('adCourseCredits').value = '3';
 
-    document.getElementById('courseModal').classList.add('show');
+    document.getElementById('adCourseModal').classList.add('ad-show');
 
-    var saveBtn = document.getElementById('saveCourseBtn');
+    var saveBtn = document.getElementById('adSaveCourseBtn');
     var newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
     newSaveBtn.onclick = saveCourse;
@@ -306,10 +299,10 @@ function openCourseModal() {
 
 async function saveCourse() {
     var courseData = {
-        courseCode: document.getElementById('courseCode').value.trim().toUpperCase(),
-        courseTitle: document.getElementById('courseTitle').value.trim(),
-        level: document.getElementById('courseLevel').value,
-        credits: parseInt(document.getElementById('courseCredits').value)
+        courseCode: document.getElementById('adCourseCode').value.trim().toUpperCase(),
+        courseTitle: document.getElementById('adCourseTitle').value.trim(),
+        level: document.getElementById('adCourseLevel').value,
+        credits: parseInt(document.getElementById('adCourseCredits').value)
     };
 
     if (!courseData.courseCode || !courseData.courseTitle) {
@@ -317,7 +310,7 @@ async function saveCourse() {
         return;
     }
 
-    var saveBtn = document.getElementById('saveCourseBtn');
+    var saveBtn = document.getElementById('adSaveCourseBtn');
     var originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
@@ -335,7 +328,7 @@ async function saveCourse() {
 
         if (data.success) {
             showToast('Course added successfully for ' + currentSemester + ' semester!', 'success');
-            closeModal('courseModal');
+            closeModal('adCourseModal');
             loadCourses();
         } else {
             showToast(data.message || 'Failed to add course', 'danger');
@@ -353,16 +346,16 @@ function editCourse(courseId) {
     var course = allCourses.find(function(c) { return c._id === courseId; });
     if (!course) return;
 
-    document.getElementById('courseCode').value = course.courseCode;
-    document.getElementById('courseCode').readOnly = true;
-    document.getElementById('courseTitle').value = course.courseTitle;
-    document.getElementById('courseLevel').value = course.level;
-    document.getElementById('courseCredits').value = course.credits || 3;
+    document.getElementById('adCourseCode').value = course.courseCode;
+    document.getElementById('adCourseCode').readOnly = true;
+    document.getElementById('adCourseTitle').value = course.courseTitle;
+    document.getElementById('adCourseLevel').value = course.level;
+    document.getElementById('adCourseCredits').value = course.credits || 3;
 
-    document.querySelector('#courseModal .modal-header h3').textContent = 'Edit Course';
-    document.getElementById('courseModal').classList.add('show');
+    document.querySelector('#adCourseModal .ad-modal-head h3').textContent = 'Edit Course';
+    document.getElementById('adCourseModal').classList.add('ad-show');
 
-    var saveBtn = document.getElementById('saveCourseBtn');
+    var saveBtn = document.getElementById('adSaveCourseBtn');
     var newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
     newSaveBtn.onclick = function() { updateCourse(courseId); };
@@ -370,9 +363,9 @@ function editCourse(courseId) {
 
 async function updateCourse(courseId) {
     var courseData = {
-        courseTitle: document.getElementById('courseTitle').value.trim(),
-        level: document.getElementById('courseLevel').value,
-        credits: parseInt(document.getElementById('courseCredits').value)
+        courseTitle: document.getElementById('adCourseTitle').value.trim(),
+        level: document.getElementById('adCourseLevel').value,
+        credits: parseInt(document.getElementById('adCourseCredits').value)
     };
 
     if (!courseData.courseTitle) {
@@ -380,7 +373,7 @@ async function updateCourse(courseId) {
         return;
     }
 
-    var saveBtn = document.getElementById('saveCourseBtn');
+    var saveBtn = document.getElementById('adSaveCourseBtn');
     var originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating...';
@@ -398,7 +391,7 @@ async function updateCourse(courseId) {
 
         if (data.success) {
             showToast('Course updated successfully!', 'success');
-            closeModal('courseModal');
+            closeModal('adCourseModal');
             loadCourses();
         } else {
             showToast(data.message || 'Failed to update course', 'danger');
@@ -414,15 +407,15 @@ async function updateCourse(courseId) {
 
 function confirmDeleteCourse(courseId, courseCode) {
     currentDeleteId = courseId;
-    document.getElementById('deleteCourseName').textContent = courseCode;
-    document.getElementById('deleteCourseModal').classList.add('show');
+    document.getElementById('adDeleteCourseName').textContent = courseCode;
+    document.getElementById('adDeleteCourseModal').classList.add('ad-show');
 
-    var confirmBtn = document.getElementById('confirmDeleteCourseBtn');
+    var confirmBtn = document.getElementById('adConfirmDeleteCourseBtn');
     var newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     newConfirmBtn.onclick = async function() {
         await deleteCourse(currentDeleteId);
-        closeModal('deleteCourseModal');
+        closeModal('adDeleteCourseModal');
     };
 }
 
@@ -448,22 +441,22 @@ async function deleteCourse(courseId) {
 
 // ========== LOAD LECTURERS ==========
 async function loadLecturers() {
-    var contentWrapper = document.getElementById('contentWrapper');
+    var contentWrapper = document.getElementById('adContentWrapper');
     if (!contentWrapper) return;
 
     await fetchActiveSettings();
 
     contentWrapper.innerHTML = `
-        <div class="card">
-            <div class="card-header">
+        <div class="ad-card">
+            <div class="ad-card-head">
                 <h3><i class="fa-solid fa-chalkboard-user"></i> Lecturers & Their Courses</h3>
-                <div class="header-actions">
-                    <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
+                <div class="ad-header-actions">
+                    <span class="ad-active-semester-badge" style="background: var(--ad-primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
                         <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                     </span>
                 </div>
             </div>
-            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading lecturers...</div>
+            <div class="ad-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading lecturers...</div>
         </div>
     `;
 
@@ -475,8 +468,8 @@ async function loadLecturers() {
         var allLecturers = usersData.users ? usersData.users.filter(function(u) { return u.role === 'lecturer' && u.isApproved === true; }) : [];
 
         if (allLecturers.length === 0) {
-            var spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-            if (spinner) spinner.outerHTML = '<div class="empty-state">No approved lecturers registered</div>';
+            var spinner = document.querySelector('#adContentWrapper .ad-card .ad-panel-loading');
+            if (spinner) spinner.outerHTML = '<div class="ad-panel-empty">No approved lecturers registered</div>';
             return;
         }
 
@@ -504,8 +497,8 @@ async function loadLecturers() {
         }
 
         if (lecturersWithCourses.length === 0) {
-            var spinner2 = document.querySelector('#contentWrapper .card .loading-spinner');
-            if (spinner2) spinner2.outerHTML = '<div class="empty-state">No lecturers with courses for ' + currentSession + ' ' + currentSemester + '</div>';
+            var spinner2 = document.querySelector('#adContentWrapper .ad-card .ad-panel-loading');
+            if (spinner2) spinner2.outerHTML = '<div class="ad-panel-empty">No lecturers with courses for ' + currentSession + ' ' + currentSemester + '</div>';
             return;
         }
 
@@ -514,26 +507,26 @@ async function loadLecturers() {
     } catch (error) {
         console.error('Error loading lecturers:', error);
         var isTimeout = error.name === 'AbortError';
-        var spinner3 = document.querySelector('#contentWrapper .card .loading-spinner');
-        if (spinner3) spinner3.outerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to load lecturers') + '</div>';
+        var spinner3 = document.querySelector('#adContentWrapper .ad-card .ad-panel-loading');
+        if (spinner3) spinner3.outerHTML = '<div class="ad-panel-error">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to load lecturers') + '</div>';
         showToast('Failed to load lecturers', 'danger');
     }
 }
 
 function renderLecturersTable(lecturers) {
-    var card = document.querySelector('#contentWrapper .card');
+    var card = document.querySelector('#adContentWrapper .ad-card');
     if (!card) return;
 
     var html = `
-        <div class="card-header">
+        <div class="ad-card-head">
             <h3><i class="fa-solid fa-chalkboard-user"></i> Lecturers & Their Courses</h3>
-            <div class="header-actions">
-                <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
+            <div class="ad-header-actions">
+                <span class="ad-active-semester-badge" style="background: var(--ad-primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
                     <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                 </span>
             </div>
         </div>
-        <div class="grouped-list">
+        <div class="ad-grouped-list">
     `;
 
     for (var i = 0; i < lecturers.length; i++) {
@@ -541,21 +534,21 @@ function renderLecturersTable(lecturers) {
         var courses = lecturer.courses || [];
 
         html += `
-            <div class="level-group">
-                <div class="level-header" onclick="toggleGroup(this)">
+            <div class="ad-level-group">
+                <div class="ad-level-head" onclick="toggleGroup(this)">
                     <i class="fa-solid fa-chevron-right"></i>
                     <h4>${escapeHtml(lecturer.fullName)}</h4>
-                    <span class="group-count">${courses.length} course(s)</span>
+                    <span class="ad-group-count">${courses.length} course(s)</span>
                 </div>
-                <div class="level-content" style="display: none;">
-                    <div class="lecturer-info" style="margin-bottom: 1rem; padding: 0.8rem; background: var(--bg-body); border-radius: 8px;">
+                <div class="ad-level-body" style="display: none;">
+                    <div class="ad-lecturer-info" style="margin-bottom: 1rem; padding: 0.8rem; background: var(--ad-bg-body); border-radius: 8px;">
                         <p><strong>Staff ID:</strong> ${lecturer.staffId || 'N/A'}</p>
                         <p><strong>Email:</strong> ${lecturer.email}</p>
                         <p><strong>Rank:</strong> ${lecturer.rank || 'N/A'}</p>
                         <p><strong>Department:</strong> ${lecturer.department || 'Information Technology'}</p>
                     </div>
                     <h5 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">Courses Teaching (${currentSession} ${currentSemester}):</h5>
-                    <table class="data-table">
+                    <table class="ad-table">
                         <thead>
                             <tr><th>Course Code</th><th>Course Title</th><th>Level</th><th>Credits</th></tr>
                         </thead>
@@ -583,22 +576,22 @@ function renderLecturersTable(lecturers) {
 
 // ========== LOAD STUDENTS ==========
 async function loadStudents() {
-    var contentWrapper = document.getElementById('contentWrapper');
+    var contentWrapper = document.getElementById('adContentWrapper');
     if (!contentWrapper) return;
 
     await fetchActiveSettings();
 
     contentWrapper.innerHTML = `
-        <div class="card">
-            <div class="card-header">
+        <div class="ad-card">
+            <div class="ad-card-head">
                 <h3><i class="fa-solid fa-users"></i> Students</h3>
-                <div class="header-actions">
-                    <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
+                <div class="ad-header-actions">
+                    <span class="ad-active-semester-badge" style="background: var(--ad-primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
                         <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                     </span>
                 </div>
             </div>
-            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading students...</div>
+            <div class="ad-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading students...</div>
         </div>
     `;
 
@@ -611,59 +604,59 @@ async function loadStudents() {
         if (data.success && data.data) {
             renderStudentsGrouped(data.data);
         } else {
-            var spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-            if (spinner) spinner.outerHTML = '<div class="empty-state">No students registered for ' + currentSession + ' ' + currentSemester + '</div>';
+            var spinner = document.querySelector('#adContentWrapper .ad-card .ad-panel-loading');
+            if (spinner) spinner.outerHTML = '<div class="ad-panel-empty">No students registered for ' + currentSession + ' ' + currentSemester + '</div>';
         }
     } catch (error) {
         console.error('Error loading students:', error);
         var isTimeout = error.name === 'AbortError';
-        var spinner = document.querySelector('#contentWrapper .card .loading-spinner');
-        if (spinner) spinner.outerHTML = '<div class="error-message">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to load students') + '</div>';
+        var spinner = document.querySelector('#adContentWrapper .ad-card .ad-panel-loading');
+        if (spinner) spinner.outerHTML = '<div class="ad-panel-error">' + (isTimeout ? 'Server took too long to respond.' : 'Failed to load students') + '</div>';
         showToast('Failed to load students', 'danger');
     }
 }
 
 function renderStudentsGrouped(groupedData) {
-    var card = document.querySelector('#contentWrapper .card');
+    var card = document.querySelector('#adContentWrapper .ad-card');
     if (!card) return;
 
     if (!groupedData || groupedData.length === 0) {
         card.innerHTML = `
-            <div class="card-header">
+            <div class="ad-card-head">
                 <h3><i class="fa-solid fa-users"></i> Students</h3>
-                <div class="header-actions">
-                    <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
+                <div class="ad-header-actions">
+                    <span class="ad-active-semester-badge" style="background: var(--ad-primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
                         <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                     </span>
                 </div>
             </div>
-            <div class="empty-state">No students registered for ${currentSession} ${currentSemester}</div>
+            <div class="ad-panel-empty">No students registered for ${currentSession} ${currentSemester}</div>
         `;
         return;
     }
 
     var html = `
-        <div class="card-header">
+        <div class="ad-card-head">
             <h3><i class="fa-solid fa-users"></i> Students</h3>
-            <div class="header-actions">
-                <span class="active-semester-badge" style="background: var(--primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
+            <div class="ad-header-actions">
+                <span class="ad-active-semester-badge" style="background: var(--ad-primary-light); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem;">
                     <i class="fa-regular fa-calendar"></i> ${currentSession} ${currentSemester}
                 </span>
             </div>
         </div>
-        <div class="grouped-list">
+        <div class="ad-grouped-list">
     `;
 
     for (var i = 0; i < groupedData.length; i++) {
         var levelGroup = groupedData[i];
         html += `
-            <div class="level-group">
-                <div class="level-header" onclick="toggleGroup(this)">
+            <div class="ad-level-group">
+                <div class="ad-level-head" onclick="toggleGroup(this)">
                     <i class="fa-solid fa-chevron-right"></i>
                     <h4>${levelGroup.level} Level</h4>
-                    <span class="group-count">${levelGroup.totalStudents || 0} student(s)</span>
+                    <span class="ad-group-count">${levelGroup.totalStudents || 0} student(s)</span>
                 </div>
-                <div class="level-content" style="display: none;">
+                <div class="ad-level-body" style="display: none;">
         `;
 
         var courses = levelGroup.courses || [];
@@ -672,14 +665,14 @@ function renderStudentsGrouped(groupedData) {
             var course = courses[j];
             var studentsList = course.students || [];
             html += `
-                <div class="course-group">
-                    <div class="course-header" onclick="toggleGroup(this)">
+                <div class="ad-course-group">
+                    <div class="ad-course-head" onclick="toggleGroup(this)">
                         <i class="fa-solid fa-chevron-right"></i>
                         <strong>${course.courseCode} - ${course.courseTitle}</strong>
-                        <span class="group-count">${studentsList.length} student(s)</span>
+                        <span class="ad-group-count">${studentsList.length} student(s)</span>
                     </div>
-                    <div class="course-content" style="display: none;">
-                        <table class="data-table">
+                    <div class="ad-course-body" style="display: none;">
+                        <table class="ad-table">
                             <thead>
                                 <tr><th>Name</th><th>Matric Number</th><th>Email</th></tr>
                             </thead>
@@ -720,7 +713,7 @@ function loadSettings() {
 // ========== TOGGLE GROUP ==========
 function toggleGroup(element) {
     var parent = element.parentElement;
-    var content = parent.querySelector('.level-content, .course-content');
+    var content = parent.querySelector('.ad-level-body, .ad-course-body');
     var icon = element.querySelector('i');
 
     if (content) {
@@ -736,18 +729,18 @@ function toggleGroup(element) {
 
 // ========== CREATE ADMIN ==========
 function openCreateAdminModal() {
-    document.getElementById('adminFullName').value = '';
-    document.getElementById('adminEmail').value = '';
-    document.getElementById('adminDepartment').value = 'Information Technology';
-    document.getElementById('adminPassword').value = '';
-    document.getElementById('adminConfirmPassword').value = '';
-    document.getElementById('adminSecretCode').value = '';
-    document.getElementById('createAdminModal').classList.add('show');
+    document.getElementById('adAdminFullName').value = '';
+    document.getElementById('adAdminEmail').value = '';
+    document.getElementById('adAdminDepartment').value = 'Information Technology';
+    document.getElementById('adAdminPassword').value = '';
+    document.getElementById('adAdminConfirmPassword').value = '';
+    document.getElementById('adAdminSecretCode').value = '';
+    document.getElementById('adCreateAdminModal').classList.add('ad-show');
 }
 
 function toggleAdminPassword() {
-    var input = document.getElementById('adminPassword');
-    var icon = document.querySelector('#adminPassword').nextElementSibling.querySelector('i');
+    var input = document.getElementById('adAdminPassword');
+    var icon = document.querySelector('#adAdminPassword').nextElementSibling.querySelector('i');
     if (input.type === 'password') {
         input.type = 'text';
         icon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -758,8 +751,8 @@ function toggleAdminPassword() {
 }
 
 function toggleAdminConfirmPassword() {
-    var input = document.getElementById('adminConfirmPassword');
-    var icon = document.querySelector('#adminConfirmPassword').nextElementSibling.querySelector('i');
+    var input = document.getElementById('adAdminConfirmPassword');
+    var icon = document.querySelector('#adAdminConfirmPassword').nextElementSibling.querySelector('i');
     if (input.type === 'password') {
         input.type = 'text';
         icon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -770,12 +763,12 @@ function toggleAdminConfirmPassword() {
 }
 
 async function createAdmin() {
-    var fullName = document.getElementById('adminFullName').value.trim();
-    var email = document.getElementById('adminEmail').value.trim();
-    var department = document.getElementById('adminDepartment').value.trim();
-    var password = document.getElementById('adminPassword').value;
-    var confirmPassword = document.getElementById('adminConfirmPassword').value;
-    var secretCode = document.getElementById('adminSecretCode').value.trim();
+    var fullName = document.getElementById('adAdminFullName').value.trim();
+    var email = document.getElementById('adAdminEmail').value.trim();
+    var department = document.getElementById('adAdminDepartment').value.trim();
+    var password = document.getElementById('adAdminPassword').value;
+    var confirmPassword = document.getElementById('adAdminConfirmPassword').value;
+    var secretCode = document.getElementById('adAdminSecretCode').value.trim();
 
     if (!fullName) { showToast('Full name is required', 'warning'); return; }
     if (!email) { showToast('Email is required', 'warning'); return; }
@@ -784,7 +777,7 @@ async function createAdmin() {
     if (password !== confirmPassword) { showToast('Passwords do not match', 'warning'); return; }
     if (!secretCode) { showToast('Admin secret code is required', 'warning'); return; }
 
-    var createBtn = document.getElementById('createAdminBtn');
+    var createBtn = document.getElementById('adCreateAdminBtn');
     var originalText = createBtn.innerHTML;
     createBtn.disabled = true;
     createBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...';
@@ -809,7 +802,7 @@ async function createAdmin() {
 
         if (data.success) {
             showToast('Admin "' + fullName + '" created successfully!', 'success');
-            closeModal('createAdminModal');
+            closeModal('adCreateAdminModal');
             loadDashboard();
         } else {
             showToast(data.message || 'Failed to create admin', 'danger');
@@ -826,23 +819,23 @@ async function createAdmin() {
 // ========== UTILITY FUNCTIONS ==========
 function closeModal(modalId) {
     var modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('show');
+    if (modal) modal.classList.remove('ad-show');
 }
 
 function showToast(message, type) {
     if (type === undefined) type = 'success';
-    var container = document.getElementById('toastContainer');
+    var container = document.getElementById('adToastContainer');
     if (!container) {
         container = document.createElement('div');
-        container.className = 'toast-container';
-        container.id = 'toastContainer';
+        container.className = 'ad-toast-wrap';
+        container.id = 'adToastContainer';
         document.body.appendChild(container);
     }
 
     var toast = document.createElement('div');
-    toast.className = 'toast ' + type;
+    toast.className = 'ad-toast ad-' + type;
     var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-    toast.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + message + '<button class="toast-close" onclick="this.parentElement.remove()">×</button>';
+    toast.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + message + '<button class="ad-toast-close" onclick="this.parentElement.remove()">×</button>';
     container.appendChild(toast);
     setTimeout(function() { toast.remove(); }, 3000);
 }
@@ -863,12 +856,12 @@ function logout() {
 }
 
 function loadPage(page) {
-    var pageTitle = document.getElementById('pageTitle');
+    var pageTitle = document.getElementById('adPageTitle');
     if (pageTitle) pageTitle.textContent = page.charAt(0).toUpperCase() + page.slice(1);
 
-    document.querySelectorAll('.nav-item').forEach(function(nav) { nav.classList.remove('active'); });
-    var activeNav = document.querySelector('.nav-item[data-page="' + page + '"]');
-    if (activeNav) activeNav.classList.add('active');
+    document.querySelectorAll('.ad-nav-link').forEach(function(nav) { nav.classList.remove('ad-nav-active'); });
+    var activeNav = document.querySelector('.ad-nav-link[data-page="' + page + '"]');
+    if (activeNav) activeNav.classList.add('ad-nav-active');
 
     if (page === 'dashboard') loadDashboard();
     else if (page === 'courses') loadCourses();
@@ -880,40 +873,40 @@ function loadPage(page) {
 
 // ========== SIDEBAR & THEME ==========
 function initSidebar() {
-    var sidebar = document.getElementById('sidebar');
-    var sidebarToggle = document.getElementById('sidebarToggle');
-    var menuBtn = document.getElementById('menuBtn');
+    var sidebar = document.getElementById('adSidebar');
+    var sidebarToggle = document.getElementById('adSidebarToggle');
+    var menuBtn = document.getElementById('adMenuBtn');
 
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
             if (window.innerWidth <= 1024) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('ad-show');
             } else {
-                sidebar.classList.toggle('collapsed');
+                sidebar.classList.toggle('ad-collapsed');
             }
         });
     }
     if (menuBtn) {
         menuBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('show');
+            sidebar.classList.toggle('ad-show');
         });
     }
 
     document.addEventListener('click', function(e) {
         if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('ad-show');
             }
         }
     });
 
     if (window.innerWidth <= 1024) {
-        sidebar.classList.remove('collapsed');
+        sidebar.classList.remove('ad-collapsed');
     }
 }
 
 function initDarkMode() {
-    var themeToggle = document.getElementById('themeToggle');
+    var themeToggle = document.getElementById('adThemeToggle');
     if (localStorage.getItem('futoTheme') === 'dark') document.body.classList.add('dark');
     if (themeToggle) {
         themeToggle.addEventListener('click', function() {
@@ -924,14 +917,14 @@ function initDarkMode() {
 }
 
 // ========== EVENT LISTENERS ==========
-document.querySelectorAll('.nav-item[data-page]').forEach(function(nav) {
+document.querySelectorAll('.ad-nav-link[data-page]').forEach(function(nav) {
     nav.addEventListener('click', function(e) {
         e.preventDefault();
         loadPage(nav.getAttribute('data-page'));
     });
 });
 
-document.getElementById('createAdminBtn').addEventListener('click', createAdmin);
+document.getElementById('adCreateAdminBtn').addEventListener('click', createAdmin);
 
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', function() {

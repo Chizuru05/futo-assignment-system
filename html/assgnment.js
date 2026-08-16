@@ -5,7 +5,6 @@ function getAuthToken() {
     return localStorage.getItem(userRole + '_token') || localStorage.getItem('token');
 }
 
-// ========== GET TOKEN AT PAGE LOAD ==========
 const token = getAuthToken();
 const userRole = localStorage.getItem('userRole');
 
@@ -13,7 +12,6 @@ console.log('=== ASSIGNMENT PAGE DEBUG ===');
 console.log('Token exists:', !!token);
 console.log('User role:', userRole);
 
-// ========== AUTH CHECK ==========
 if (!token) {
     console.log('No token, redirecting to login');
     window.location.href = 'login.html';
@@ -26,12 +24,10 @@ if (userRole !== 'student') {
     else window.location.href = 'login.html';
 }
 
-// ========== GET USER INFO ==========
 const userName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Student';
 const userMatric = localStorage.getItem('matricNumber') || localStorage.getItem('userMatric') || '';
 const userLevel = localStorage.getItem('level') || localStorage.getItem('userLevel') || '500';
 
-// ========== GLOBAL VARIABLES ==========
 let allAssignments = [];
 let mySubmissions = [];
 let enrolledCourses = [];
@@ -43,7 +39,6 @@ let lastUpdateTimestamp = Date.now();
 let currentSession = '';
 let currentSemester = '';
 
-// ========== HELPER FUNCTIONS ==========
 function getDueDateTime(assignment) {
     const datePart = (assignment.dueDateISO || '').split('T')[0];
     return new Date(datePart + ' ' + (assignment.dueTime || '23:59'));
@@ -67,14 +62,14 @@ function fetchWithTimeout(url, options, timeoutMs) {
         .finally(function() { clearTimeout(timeout); });
 }
 
-// ========== DOM ELEMENTS ==========
+// DOM Elements
 const assignmentContainer = document.getElementById('assignmentList');
 const statTotal = document.getElementById('totalAssignments');
 const statPending = document.getElementById('pendingAssignments');
 const statSubmitted = document.getElementById('submittedAssignments');
 const deadlineContainer = document.getElementById('deadlineList');
 const deadlineBadge = document.getElementById('deadlineBadge');
-const filterBtns = document.querySelectorAll('.filter-btn');
+const filterBtns = document.querySelectorAll('.as-tab');
 const courseFilter = document.getElementById('courseFilter');
 const sidebarBadge = document.getElementById('pendingBadge');
 const notifCount = document.getElementById('notifCount');
@@ -83,7 +78,6 @@ const submissionModal = document.getElementById('submissionModal');
 const gradeModal = document.getElementById('gradeModal');
 const searchInput = document.getElementById('searchInput');
 
-// ========== UPDATE SIDEBAR SESSION INFO ==========
 function updateSidebarSessionInfo() {
     const sessionInfo = document.getElementById('sessionInfo');
     if (sessionInfo && currentSession && currentSemester) {
@@ -91,7 +85,6 @@ function updateSidebarSessionInfo() {
     }
 }
 
-// ========== FETCH ACTIVE SETTINGS ==========
 async function fetchActiveSettings() {
     try {
         const response = await fetch(API_URL + '/api/settings', {
@@ -106,9 +99,9 @@ async function fetchActiveSettings() {
             localStorage.setItem('currentSemester', currentSemester);
             console.log('Active settings loaded:', currentSession, currentSemester);
 
-            const bannerText = document.getElementById('bannerText');
-            if (bannerText) {
-                bannerText.innerHTML = 'You are in <strong>' + userLevel + ' Level</strong> · ' + currentSession + ' ' + currentSemester;
+            const pageSubtitle = document.getElementById('pageSubtitle');
+            if (pageSubtitle) {
+                pageSubtitle.innerHTML = 'You are in <strong>' + userLevel + ' Level</strong> · ' + currentSession + ' ' + currentSemester;
             }
 
             updateSidebarSessionInfo();
@@ -121,7 +114,6 @@ async function fetchActiveSettings() {
     }
 }
 
-// ========== UPDATE PROFILE DISPLAY ==========
 function updateProfileDisplay() {
     const profileName = document.getElementById('profileName');
     const profileMatric = document.getElementById('profileMatric');
@@ -132,7 +124,6 @@ function updateProfileDisplay() {
     if (profileLevel) profileLevel.textContent = userLevel + ' Level';
 }
 
-// ========== MANUAL REFRESH FUNCTION ==========
 async function refreshPage() {
     showToast('Checking for deadline updates...', 'info');
     allAssignments = [];
@@ -141,17 +132,15 @@ async function refreshPage() {
     showToast('Assignments refreshed!', 'success');
 }
 
-// ========== FETCH DATA ==========
 async function fetchData(forceRefresh) {
     if (forceRefresh === undefined) forceRefresh = false;
     if (!assignmentContainer) return;
-    assignmentContainer.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading assignments...</div>';
+    assignmentContainer.innerHTML = '<div class="as-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading assignments...</div>';
 
     var timestamp = Date.now();
     lastUpdateTimestamp = timestamp;
 
     try {
-        // Fetch enrolled courses
         var coursesRes = await fetch(
             API_URL + '/api/student/my-courses?session=' + currentSession + '&semester=' + currentSemester + '&_=' + timestamp,
             {
@@ -168,7 +157,6 @@ async function fetchData(forceRefresh) {
             updateCourseFilter();
         }
 
-        // Fetch ALL assignments
         var assignmentsRes = await fetch(API_URL + '/api/assignments/all?_=' + timestamp, {
             headers: {
                 Authorization: 'Bearer ' + token,
@@ -190,7 +178,6 @@ async function fetchData(forceRefresh) {
             console.log('Total assignments for ' + currentSession + ' ' + currentSemester + ': ' + allAssignments.length);
         }
 
-        // Fetch submissions
         var submissionsRes = await fetch(API_URL + '/api/submissions/my-submissions?_=' + timestamp, {
             headers: {
                 Authorization: 'Bearer ' + token,
@@ -225,12 +212,11 @@ async function fetchData(forceRefresh) {
     } catch (error) {
         console.error('Error fetching data:', error);
         if (assignmentContainer) {
-            assignmentContainer.innerHTML = '<div class="empty-state">Failed to load assignments. <button onclick="refreshPage()" class="btn-primary" style="margin-top: 10px;">Retry</button></div>';
+            assignmentContainer.innerHTML = '<div class="as-panel-empty">Failed to load assignments. <button onclick="refreshPage()" class="as-btn-primary" style="margin-top: 10px;">Retry</button></div>';
         }
     }
 }
 
-// ========== CHECK FOR ASSIGNMENT UPDATES (POLLING) ==========
 async function checkForUpdates() {
     if (!document.hasFocus()) return;
 
@@ -288,7 +274,6 @@ async function checkForUpdates() {
     }
 }
 
-// ========== START/STOP POLLING ==========
 function startPolling() {
     if (pollingInterval) clearInterval(pollingInterval);
     pollingInterval = setInterval(checkForUpdates, 20000);
@@ -301,7 +286,6 @@ function stopPolling() {
     }
 }
 
-// ========== UPDATE COURSE FILTER ==========
 function updateCourseFilter() {
     if (!courseFilter) return;
     courseFilter.innerHTML = '<option value="all">All Courses</option>';
@@ -313,7 +297,6 @@ function updateCourseFilter() {
     });
 }
 
-// ========== VIEW ASSIGNMENT DETAILS ==========
 async function viewAssignmentDetails(assignmentId) {
     try {
         showToast('Loading assignment details...', 'info');
@@ -356,7 +339,6 @@ async function viewAssignmentDetails(assignmentId) {
     }
 }
 
-// ========== DISPLAY ASSIGNMENT MODAL ==========
 function displayAssignmentModal(assignment) {
     var modalTitle = document.getElementById('modalTitle');
     var modalBody = document.getElementById('modalBody');
@@ -381,34 +363,34 @@ function displayAssignmentModal(assignment) {
     var dueStatusHtml = '';
     if (isOverdue) {
         if (allowLate) {
-            dueStatusHtml = '<span class="status-badge warning"><i class="fa-solid fa-clock"></i> Late Submission Allowed</span>';
+            dueStatusHtml = '<span class="as-status-pill as-warning"><i class="fa-solid fa-clock"></i> Late Submission Allowed</span>';
         } else {
-            dueStatusHtml = '<span class="status-badge locked"><i class="fa-solid fa-lock"></i> Submission Closed</span>';
+            dueStatusHtml = '<span class="as-status-pill as-locked"><i class="fa-solid fa-lock"></i> Submission Closed</span>';
         }
     } else if (diffDays === 0) {
-        dueStatusHtml = '<span class="status-badge urgent"><i class="fa-solid fa-clock"></i> Due Today!</span>';
+        dueStatusHtml = '<span class="as-status-pill as-urgent"><i class="fa-solid fa-clock"></i> Due Today!</span>';
     } else if (diffDays <= 3) {
-        dueStatusHtml = '<span class="status-badge warning"><i class="fa-solid fa-hourglass-half"></i> ' + diffDays + ' days left</span>';
+        dueStatusHtml = '<span class="as-status-pill as-warning"><i class="fa-solid fa-hourglass-half"></i> ' + diffDays + ' days left</span>';
     } else {
-        dueStatusHtml = '<span class="status-badge normal"><i class="fa-regular fa-calendar"></i> ' + diffDays + ' days left</span>';
+        dueStatusHtml = '<span class="as-status-pill as-normal"><i class="fa-regular fa-calendar"></i> ' + diffDays + ' days left</span>';
     }
 
     var rubricHtml = '';
     if (assignment.rubric && assignment.rubric.length > 0) {
         rubricHtml = `
-            <div class="rubric-section">
+            <div class="as-rubric-section">
                 <h4><i class="fa-solid fa-table-list"></i> Grading Rubric</h4>
-                <table class="rubric-table">
+                <table class="as-rubric-table">
                     <thead>
                         <tr><th>Criterion</th><th>Max Points</th></tr>
                     </thead>
                     <tbody>
                         ${assignment.rubric.map(function(r) {
-                            return '<tr><td>' + escapeHtml(r.name) + '</td><td class="text-center">' + r.maxScore + '</td></tr>';
+                            return '<tr><td>' + escapeHtml(r.name) + '</td><td class="as-text-center">' + r.maxScore + '</td></tr>';
                         }).join('')}
-                        <tr class="rubric-total-row">
+                        <tr class="as-rubric-total-row">
                             <td><strong>Total</strong></td>
-                            <td class="text-center"><strong>${assignment.totalMarks || 0}</strong></td>
+                            <td class="as-text-center"><strong>${assignment.totalMarks || 0}</strong></td>
                         </tr>
                     </tbody>
                 </table>
@@ -428,15 +410,15 @@ function displayAssignmentModal(assignment) {
             else if (percentage >= 40) gradeLetter = 'E';
 
             submissionHtml = `
-                <div class="graded-info">
+                <div class="as-graded-info">
                     <h4><i class="fa-solid fa-chart-line"></i> Your Grade</h4>
-                    <div class="grade-details">
-                        <div class="grade-score">
-                            <span class="score-value">${submission.totalScore}/${assignment.totalMarks}</span>
-                            <span class="score-percentage">(${percentage}%)</span>
-                            <span class="score-letter">Grade: ${gradeLetter}</span>
+                    <div class="as-grade-details">
+                        <div class="as-grade-score">
+                            <span class="as-score-value">${submission.totalScore}/${assignment.totalMarks}</span>
+                            <span class="as-score-pct">(${percentage}%)</span>
+                            <span class="as-score-letter">Grade: ${gradeLetter}</span>
                         </div>
-                        <div class="grade-feedback">
+                        <div class="as-grade-feedback">
                             <strong>Feedback:</strong>
                             <p>${escapeHtml(submission.feedback || 'No additional feedback provided.')}</p>
                         </div>
@@ -445,35 +427,35 @@ function displayAssignmentModal(assignment) {
             `;
         } else {
             submissionHtml = `
-                <div class="submitted-info">
+                <div class="as-submitted-info">
                     <h4><i class="fa-regular fa-clock"></i> Submission Status</h4>
                     <p>You have submitted this assignment. It is currently being reviewed.</p>
-                    <p class="submission-date">Submitted on: ${new Date(submission.submittedAt).toLocaleString()}</p>
+                    <p class="as-submission-date">Submitted on: ${new Date(submission.submittedAt).toLocaleString()}</p>
                 </div>
             `;
         }
     }
 
     modalBody.innerHTML = `
-        <div class="assignment-details-container">
-            <div class="detail-header">
-                <div class="detail-meta">
-                    <div class="meta-row">
+        <div class="as-details-wrap">
+            <div class="as-detail-head">
+                <div class="as-detail-meta">
+                    <div class="as-meta-row">
                         <span><i class="fa-regular fa-calendar"></i> Due: ${assignment.dueDate} at ${assignment.dueTime || '23:59'}</span>
                         ${dueStatusHtml}
                     </div>
-                    <div class="meta-row">
+                    <div class="as-meta-row">
                         <span><i class="fa-regular fa-star"></i> Total Marks: ${assignment.totalMarks || 0}</span>
                     </div>
-                    <div class="meta-row">
+                    <div class="as-meta-row">
                         <span><i class="fa-regular fa-calendar-alt"></i> Session: ${assignment.session || currentSession} ${assignment.semester || currentSemester}</span>
                     </div>
                 </div>
             </div>
 
-            <div class="detail-description">
+            <div class="as-detail-desc">
                 <h4><i class="fa-regular fa-rectangle-list"></i> Description / Instructions</h4>
-                <div class="description-content">
+                <div class="as-desc-content">
                     ${escapeHtml(assignment.description || 'No description provided.').replace(/\n/g, '<br>')}
                 </div>
             </div>
@@ -507,17 +489,15 @@ function displayAssignmentModal(assignment) {
         newBtn.addEventListener('click', function() { submitFromModal(); });
     }
 
-    assignmentModal.classList.add('show');
+    assignmentModal.classList.add('as-show');
     document.body.style.overflow = 'hidden';
 }
 
-// ========== CLOSE ASSIGNMENT MODAL ==========
 function closeAssignmentModal() {
-    if (assignmentModal) assignmentModal.classList.remove('show');
+    if (assignmentModal) assignmentModal.classList.remove('as-show');
     document.body.style.overflow = '';
 }
 
-// ========== SUBMIT FROM MODAL ==========
 function submitFromModal() {
     closeAssignmentModal();
     if (currentAssignmentForSubmission) {
@@ -525,7 +505,6 @@ function submitFromModal() {
     }
 }
 
-// ========== OPEN SUBMIT MODAL ==========
 function openSubmitModal(assignmentId) {
     var assignment = allAssignments.find(function(a) { return a._id === assignmentId; });
     if (!assignment) {
@@ -552,13 +531,13 @@ function openSubmitModal(assignmentId) {
     var submissionAssignmentInfo = document.getElementById('submissionAssignmentInfo');
     if (submissionAssignmentInfo) {
         submissionAssignmentInfo.innerHTML = `
-            <div class="submission-info">
+            <div class="as-submission-info">
                 <p><strong>Course:</strong> ${assignment.course}</p>
                 <p><strong>Assignment:</strong> ${assignment.title}</p>
                 <p><strong>Due Date:</strong> ${assignment.dueDate} at ${assignment.dueTime || '23:59'}</p>
                 <p><strong>Total Marks:</strong> ${assignment.totalMarks || 0}</p>
                 <p><strong>Session:</strong> ${assignment.session || currentSession} ${assignment.semester || currentSemester}</p>
-                ${isOverdue ? '<p class="late-warning"><i class="fa-solid fa-triangle-exclamation"></i> LATE SUBMISSION</p>' : ''}
+                ${isOverdue ? '<p class="as-late-warning"><i class="fa-solid fa-triangle-exclamation"></i> LATE SUBMISSION</p>' : ''}
             </div>
         `;
     }
@@ -576,18 +555,16 @@ function openSubmitModal(assignmentId) {
         uploadBtn.disabled = false;
     }
 
-    submissionModal.classList.add('show');
+    submissionModal.classList.add('as-show');
     document.body.style.overflow = 'hidden';
 }
 
-// ========== CLOSE SUBMISSION MODAL ==========
 function closeSubmissionModal() {
-    if (submissionModal) submissionModal.classList.remove('show');
+    if (submissionModal) submissionModal.classList.remove('as-show');
     document.body.style.overflow = '';
     currentAssignmentForSubmission = null;
 }
 
-// ========== SUBMIT ASSIGNMENT ==========
 async function uploadAssignment() {
     if (!currentAssignmentForSubmission) {
         showToast('No assignment selected', 'danger');
@@ -651,7 +628,6 @@ async function uploadAssignment() {
     }
 }
 
-// ========== VIEW GRADE ==========
 async function viewGrade(assignmentId) {
     try {
         var submission = mySubmissions.find(function(s) { return s.assignmentId && s.assignmentId._id === assignmentId; });
@@ -664,32 +640,32 @@ async function viewGrade(assignmentId) {
 
         var percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(1);
         var gradeLetter = 'F';
-        var gradeClass = 'grade-f';
+        var gradeClass = 'as-grade-f';
 
         if (percentage >= 70) { gradeLetter = 'A';
-            gradeClass = 'grade-a'; } else if (percentage >= 60) { gradeLetter = 'B';
-            gradeClass = 'grade-b'; } else if (percentage >= 50) { gradeLetter = 'C';
-            gradeClass = 'grade-c'; } else if (percentage >= 45) { gradeLetter = 'D';
-            gradeClass = 'grade-d'; } else if (percentage >= 40) { gradeLetter = 'E';
-            gradeClass = 'grade-e'; }
+            gradeClass = 'as-grade-a'; } else if (percentage >= 60) { gradeLetter = 'B';
+            gradeClass = 'as-grade-b'; } else if (percentage >= 50) { gradeLetter = 'C';
+            gradeClass = 'as-grade-c'; } else if (percentage >= 45) { gradeLetter = 'D';
+            gradeClass = 'as-grade-d'; } else if (percentage >= 40) { gradeLetter = 'E';
+            gradeClass = 'as-grade-e'; }
 
         var gradeModalBody = document.getElementById('gradeModalBody');
         if (gradeModalBody) {
             gradeModalBody.innerHTML = `
-                <div class="grade-details-modal">
-                    <div class="grade-summary ${gradeClass}">
-                        <div class="grade-score-large">
-                            <span class="score">${submission.totalScore}</span>
-                            <span class="out-of">/${assignment.totalMarks}</span>
+                <div class="as-grade-modal-wrap">
+                    <div class="as-grade-summary ${gradeClass}">
+                        <div class="as-grade-score-lg">
+                            <span class="as-score">${submission.totalScore}</span>
+                            <span class="as-out-of">/${assignment.totalMarks}</span>
                         </div>
-                        <div class="grade-percentage-large">${percentage}%</div>
-                        <div class="grade-letter-large">${gradeLetter}</div>
+                        <div class="as-grade-pct-lg">${percentage}%</div>
+                        <div class="as-grade-letter-lg">${gradeLetter}</div>
                     </div>
 
-                    <div class="grade-breakdown">
+                    <div class="as-grade-breakdown">
                         <h4>Score Breakdown</h4>
                         ${submission.scores && Object.keys(submission.scores).length > 0 ? `
-                            <table class="breakdown-table">
+                            <table class="as-breakdown-table">
                                 <thead>
                                     <tr><th>Criterion</th><th>Score</th><th>Max</th></tr>
                                 </thead>
@@ -702,7 +678,7 @@ async function viewGrade(assignmentId) {
                         ` : '<p>No breakdown available</p>'}
                     </div>
 
-                    <div class="grade-feedback-modal">
+                    <div class="as-grade-feedback-modal">
                         <h4>Lecturer\'s Feedback</h4>
                         <p>${escapeHtml(submission.feedback || 'No feedback provided.')}</p>
                     </div>
@@ -710,7 +686,7 @@ async function viewGrade(assignmentId) {
             `;
         }
 
-        gradeModal.classList.add('show');
+        gradeModal.classList.add('as-show');
         document.body.style.overflow = 'hidden';
 
     } catch (error) {
@@ -719,14 +695,11 @@ async function viewGrade(assignmentId) {
     }
 }
 
-// ========== CLOSE GRADE MODAL ==========
 function closeGradeModal() {
-    if (gradeModal) gradeModal.classList.remove('show');
+    if (gradeModal) gradeModal.classList.remove('as-show');
     document.body.style.overflow = '';
 }
 
-// ========== RENDER ASSIGNMENTS ==========
-// ========== RENDER ASSIGNMENTS ==========
 function renderAssignments() {
     if (!assignmentContainer) return;
 
@@ -765,7 +738,7 @@ function renderAssignments() {
     }
 
     if (filtered.length === 0) {
-        assignmentContainer.innerHTML = '<div class="empty-state">No assignments found for ' + currentSession + ' ' + currentSemester + '</div>';
+        assignmentContainer.innerHTML = '<div class="as-panel-empty">No assignments found for ' + currentSession + ' ' + currentSemester + '</div>';
         return;
     }
 
@@ -781,77 +754,75 @@ function renderAssignments() {
         var diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
         var isOverdue = dueDate < today;
         var allowLate = assignment.allowLate !== false;
-        
-        // FIX: Check if assignment is locked (overdue AND late submissions not allowed)
+
         var isLocked = isOverdue && !allowLate;
 
         var dueClass = '';
         var dueText = '';
 
-        // FIX: Priority order - check locked first, then overdue, then due dates
         if (isLocked) {
-            dueClass = 'locked';
+            dueClass = 'as-locked';
             dueText = 'Submission Closed';
         } else if (isOverdue && allowLate) {
-            dueClass = 'warning';
+            dueClass = 'as-warning';
             dueText = 'Late (' + Math.abs(diffHours) + 'h overdue)';
         } else if (diffDays === 0) {
-            dueClass = 'urgent';
+            dueClass = 'as-urgent';
             dueText = diffHours <= 1 ? 'Due in ' + diffHours + ' hour' : 'Due in ' + diffHours + ' hours';
         } else if (diffDays === 1) {
-            dueClass = 'warning';
+            dueClass = 'as-warning';
             dueText = 'Due tomorrow';
         } else if (diffDays <= 3) {
-            dueClass = 'warning';
+            dueClass = 'as-warning';
             dueText = 'Due in ' + diffDays + ' days';
         } else {
-            dueClass = 'normal';
+            dueClass = 'as-normal';
             dueText = 'Due in ' + diffDays + ' days';
         }
 
         var gradeInfo = '';
         if (isGraded && submission) {
             var percentage = ((submission.totalScore / assignment.totalMarks) * 100).toFixed(0);
-            gradeInfo = '<div class="assignment-grade-preview"><span class="grade-label">Grade:</span><span class="grade-value">' + submission.totalScore + '/' + assignment.totalMarks + '</span><span class="grade-percentage">' + percentage + '%</span></div>';
+            gradeInfo = '<div class="as-grade-preview"><span class="as-grade-label">Grade:</span><span class="as-grade-value">' + submission.totalScore + '/' + assignment.totalMarks + '</span><span class="as-grade-pct">' + percentage + '%</span></div>';
         }
 
-        var statusClass = isLocked ? 'locked' : '';
-        var statusBarClass = isLocked ? 'locked' : (isGraded ? 'graded' : (isSubmitted ? 'submitted' : dueClass));
+        var statusClass = isLocked ? 'as-locked' : '';
+        var statusBarClass = isLocked ? 'as-locked' : (isGraded ? 'as-graded' : (isSubmitted ? 'as-submitted' : dueClass));
 
         return `
-            <div class="assignment-card ${statusClass}">
-                <div class="assignment-status ${statusBarClass}"></div>
-                <div class="assignment-content">
-                    <div class="assignment-header">
-                        <span class="course-code">${assignment.course}</span>
+            <div class="as-tile ${statusClass}">
+                <div class="as-tile-bar ${statusBarClass}"></div>
+                <div class="as-tile-content">
+                    <div class="as-tile-head">
+                        <span class="as-tile-code">${assignment.course}</span>
                         ${!isSubmitted ?
-                            '<span class="due-badge ' + dueClass + '">' + dueText + '</span>' :
-                            '<span class="status-badge">' + (isGraded ? 'Graded' : 'Submitted') + '</span>'}
+                            '<span class="as-due-pill ' + dueClass + '">' + dueText + '</span>' :
+                            '<span class="as-status-pill">' + (isGraded ? 'Graded' : 'Submitted') + '</span>'}
                     </div>
-                    <h3 class="assignment-title">${escapeHtml(assignment.title)}</h3>
-                    <div class="assignment-meta">
+                    <h3 class="as-tile-title">${escapeHtml(assignment.title)}</h3>
+                    <div class="as-tile-meta">
                         <span><i class="fa-regular fa-star"></i> ${assignment.totalMarks || 0} Marks</span>
                         <span><i class="fa-regular fa-calendar"></i> Due: ${assignment.dueDate} at ${assignment.dueTime || '23:59'}</span>
                     </div>
                     ${gradeInfo}
-                    <div class="assignment-actions">
-                        <button class="btn-primary" onclick="viewAssignmentDetails('${assignment._id}')">
+                    <div class="as-tile-actions">
+                        <button class="as-btn-primary" onclick="viewAssignmentDetails('${assignment._id}')">
                             <i class="fa-regular fa-eye"></i> View Details
                         </button>
                         ${!isSubmitted && !isLocked ? `
-                            <button class="btn-outline" onclick="openSubmitModal('${assignment._id}')">
+                            <button class="as-btn-outline" onclick="openSubmitModal('${assignment._id}')">
                                 <i class="fa-solid fa-upload"></i> Submit
                             </button>
                         ` : isLocked && !isSubmitted ? `
-                            <button class="btn-outline" disabled>
+                            <button class="as-btn-outline" disabled>
                                 <i class="fa-solid fa-lock"></i> Closed
                             </button>
                         ` : isSubmitted && !isGraded ? `
-                            <button class="btn-outline" disabled>
+                            <button class="as-btn-outline" disabled>
                                 <i class="fa-regular fa-clock"></i> Pending Review
                             </button>
                         ` : isGraded ? `
-                            <button class="btn-outline" onclick="viewGrade('${assignment._id}')">
+                            <button class="as-btn-outline" onclick="viewGrade('${assignment._id}')">
                                 <i class="fa-solid fa-chart-line"></i> View Grade
                             </button>
                         ` : ''}
@@ -862,7 +833,6 @@ function renderAssignments() {
     }).join('');
 }
 
-// ========== RENDER DEADLINES ==========
 function renderDeadlines() {
     if (!deadlineContainer) return;
 
@@ -890,7 +860,7 @@ function renderDeadlines() {
     if (deadlineBadge) deadlineBadge.textContent = dueThisWeek + ' This Week';
 
     if (upcoming.length === 0) {
-        deadlineContainer.innerHTML = '<div class="empty-state">No upcoming deadlines</div>';
+        deadlineContainer.innerHTML = '<div class="as-panel-empty">No upcoming deadlines</div>';
         return;
     }
 
@@ -906,43 +876,42 @@ function renderDeadlines() {
         var badgeText = '';
 
         if (isOverdue && allowLate) {
-            itemClass = 'warning';
+            itemClass = 'as-warning';
             badgeText = 'LATE (' + Math.abs(diffHours) + 'h)';
         } else if (diffDays === 0) {
             if (diffHours <= 1) {
-                itemClass = 'urgent';
+                itemClass = 'as-urgent';
                 badgeText = '1 hour left';
             } else {
-                itemClass = 'urgent';
+                itemClass = 'as-urgent';
                 badgeText = diffHours + ' hours left';
             }
         } else if (diffDays === 1) {
-            itemClass = 'warning';
+            itemClass = 'as-warning';
             badgeText = 'Tomorrow';
         } else if (diffDays <= 3) {
-            itemClass = 'warning';
+            itemClass = 'as-warning';
             badgeText = diffDays + ' days left';
         } else {
             badgeText = diffDays + ' days left';
         }
 
         return `
-            <div class="deadline-item ${itemClass}" onclick="viewAssignmentDetails('${assignment._id}')" style="cursor: pointer;">
-                <div class="deadline-time">
-                    <span class="date">${due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                    <span class="time">${assignment.dueTime || '23:59'}</span>
+            <div class="as-deadline-item ${itemClass}" onclick="viewAssignmentDetails('${assignment._id}')" style="cursor: pointer;">
+                <div class="as-deadline-time">
+                    <span class="as-date">${due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span class="as-time">${assignment.dueTime || '23:59'}</span>
                 </div>
-                <div class="deadline-info">
-                    <span class="course">${assignment.course}</span>
-                    <span class="assignment">${escapeHtml(assignment.title)}</span>
+                <div class="as-deadline-info">
+                    <span class="as-course">${assignment.course}</span>
+                    <span class="as-assignment">${escapeHtml(assignment.title)}</span>
                 </div>
-                <span class="deadline-badge-sm ${itemClass}">${badgeText}</span>
+                <span class="as-deadline-badge-sm ${itemClass}">${badgeText}</span>
             </div>
         `;
     }).join('');
 }
 
-// ========== FILE UPLOAD HANDLERS ==========
 function setupFileUpload() {
     var uploadArea = document.getElementById('uploadArea');
     var fileInput = document.getElementById('submissionFiles');
@@ -993,7 +962,7 @@ function updateFileList(files, fileListDiv) {
         }
 
         var fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
+        fileItem.className = 'as-file-item';
 
         var icon = 'fa-regular fa-file';
         var ext = file.name.split('.').pop().toLowerCase();
@@ -1005,13 +974,12 @@ function updateFileList(files, fileListDiv) {
 
         fileItem.innerHTML = `
             <span><i class="${icon}"></i> ${file.name} (${fileSize} KB)</span>
-            <span class="file-remove" onclick="this.parentElement.remove()">&times;</span>
+            <span class="as-file-remove" onclick="this.parentElement.remove()">&times;</span>
         `;
         fileListDiv.appendChild(fileItem);
     }
 }
 
-// ========== TOAST NOTIFICATION ==========
 function showToast(message, type, duration) {
     if (type === undefined) type = 'success';
     if (duration === undefined) duration = 4000;
@@ -1019,34 +987,13 @@ function showToast(message, type, duration) {
     var container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
-        container.className = 'toast-container';
+        container.className = 'as-toast-wrap';
         container.id = 'toastContainer';
         document.body.appendChild(container);
     }
 
     var toast = document.createElement('div');
-    var colors = {
-        success: '#2a7a4b',
-        danger: '#ef4444',
-        warning: '#f59e0b',
-        info: '#3b82f6'
-    };
-
-    toast.style.cssText = `
-        background: white;
-        border-radius: 8px;
-        padding: 12px 20px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border-left: 4px solid ${colors[type] || colors.success};
-        animation: slideInRight 0.3s ease;
-        font-family: 'Inter', sans-serif;
-        z-index: 10000;
-        position: relative;
-    `;
+    toast.className = 'as-toast as-' + type;
 
     var icons = {
         success: 'fa-check-circle',
@@ -1056,27 +1003,26 @@ function showToast(message, type, duration) {
     };
 
     toast.innerHTML = `
-        <i class="fa-solid ${icons[type] || icons.success}" style="color: ${colors[type] || colors.success}"></i>
-        <span style="flex: 1;">${message}</span>
-        <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #94a3b8;">&times;</button>
+        <i class="fa-solid ${icons[type] || icons.success}"></i>
+        <span>${message}</span>
+        <button class="as-toast-close" onclick="this.parentElement.remove()">&times;</button>
     `;
 
     container.appendChild(toast);
     setTimeout(function() { toast.remove(); }, duration);
 }
 
-// ========== SIDEBAR & THEME FUNCTIONS ==========
 function setupSidebar() {
-    var sidebar = document.getElementById('sidebar');
-    var sidebarToggle = document.getElementById('sidebarToggle');
+    var sidebar = document.getElementById('asSidebar');
+    var sidebarToggle = document.getElementById('asSidebarToggle');
     var menuBtn = document.getElementById('menuBtn');
     var toggleIcon = sidebarToggle ? sidebarToggle.querySelector('i') : null;
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
+            sidebar.classList.toggle('as-collapsed');
             if (toggleIcon) {
-                toggleIcon.style.transform = sidebar.classList.contains('collapsed') ?
+                toggleIcon.style.transform = sidebar.classList.contains('as-collapsed') ?
                     'rotate(180deg)' :
                     'rotate(0deg)';
             }
@@ -1085,15 +1031,14 @@ function setupSidebar() {
 
     if (menuBtn && sidebar) {
         menuBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('show');
+            sidebar.classList.toggle('as-show');
         });
     }
 
-    // Close sidebar on outside click on mobile
     document.addEventListener('click', function(e) {
         if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('as-show');
             }
         }
     });
@@ -1115,29 +1060,25 @@ function setupTheme() {
     }
 }
 
-// ========== EXPORT GRADES ==========
 function exportGrades() {
     showToast('Exporting grades...', 'info');
 }
 
-// ========== VIEW ALL DEADLINES ==========
 function viewAllDeadlines() {
     currentFilter = 'pending';
-    document.querySelectorAll('.filter-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-        if (btn.textContent === 'Pending') btn.classList.add('active');
+    document.querySelectorAll('.as-tab').forEach(function(btn) {
+        btn.classList.remove('as-tab-active');
+        if (btn.textContent === 'Pending') btn.classList.add('as-tab-active');
     });
     renderAssignments();
 }
 
-// ========== LOGOUT ==========
 function logout() {
     stopPolling();
     localStorage.clear();
     window.location.href = 'login.html';
 }
 
-// ========== AUTO-REFRESH WHEN PAGE BECOMES VISIBLE ==========
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
         console.log('Page became visible, refreshing data...');
@@ -1145,7 +1086,6 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-// ========== INITIALIZE PAGE ==========
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Assignments page loaded');
 
@@ -1162,15 +1102,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     await fetchData();
     startPolling();
 
-    var logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    var logoutBtn = document.querySelector('.as-logout');
+    if (logoutBtn) logoutBtn.addEventListener('click', function(e) { e.preventDefault(); logout(); });
 
-    // Setup filters
     if (filterBtns.length) {
         filterBtns.forEach(function(btn) {
             btn.addEventListener('click', function() {
-                filterBtns.forEach(function(b) { b.classList.remove('active'); });
-                btn.classList.add('active');
+                filterBtns.forEach(function(b) { b.classList.remove('as-tab-active'); });
+                btn.classList.add('as-tab-active');
                 currentFilter = btn.getAttribute('data-filter') ||
                     btn.textContent.toLowerCase().replace(' ', '');
                 renderAssignments();
@@ -1191,7 +1130,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Refresh deadlines every minute
     setInterval(function() {
         if (allAssignments.length > 0 && document.hasFocus()) {
             renderDeadlines();
@@ -1199,7 +1137,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }, 60000);
 });
 
-// ========== MAKE FUNCTIONS GLOBAL ==========
 window.viewAssignmentDetails = viewAssignmentDetails;
 window.closeAssignmentModal = closeAssignmentModal;
 window.submitFromModal = submitFromModal;

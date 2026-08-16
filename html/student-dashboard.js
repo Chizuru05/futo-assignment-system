@@ -102,11 +102,9 @@ async function fetchDashboardData() {
     try {
         console.log('Fetching dashboard data for:', currentSession, currentSemester);
 
-        // Show loading states
-        if (myCoursesList) myCoursesList.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>';
-        if (pendingList) pendingList.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading assignments...</div>';
+        if (myCoursesList) myCoursesList.innerHTML = '<div class="sd-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading courses...</div>';
+        if (pendingList) pendingList.innerHTML = '<div class="sd-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading assignments...</div>';
 
-        // Fetch enrolled courses for active session/semester
         const coursesRes = await fetch(API_URL + '/api/student/my-courses?session=' + currentSession + '&semester=' + currentSemester, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -118,10 +116,9 @@ async function fetchDashboardData() {
             renderCourses();
         } else {
             console.log('No courses found:', coursesData.message);
-            if (myCoursesList) myCoursesList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No courses registered for ' + currentSession + ' ' + currentSemester + '. <a href="select-session.html">Register now</a></p></div>';
+            if (myCoursesList) myCoursesList.innerHTML = '<div class="sd-panel-empty"><i class="fa-regular fa-folder-open"></i><p>No courses registered for ' + currentSession + ' ' + currentSemester + '.</p><a href="select-session.html" class="sd-btn-small">Register now</a></div>';
         }
 
-        // Fetch all assignments for active session/semester
         const assignmentsRes = await fetch(API_URL + '/api/assignments/all?session=' + currentSession + '&semester=' + currentSemester, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -137,7 +134,6 @@ async function fetchDashboardData() {
             console.log('Found ' + allAssignments.length + ' assignments for ' + currentSession + ' ' + currentSemester);
         }
 
-        // Fetch submissions for active session/semester
         const submissionsRes = await fetch(API_URL + '/api/submissions/my-submissions?session=' + currentSession + '&semester=' + currentSemester, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -157,8 +153,8 @@ async function fetchDashboardData() {
 
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        if (myCoursesList) myCoursesList.innerHTML = '<div class="empty-state">Failed to load courses. Please refresh.</div>';
-        if (pendingList) pendingList.innerHTML = '<div class="empty-state">Failed to load assignments.</div>';
+        if (myCoursesList) myCoursesList.innerHTML = '<div class="sd-panel-empty">Failed to load courses. Please refresh.</div>';
+        if (pendingList) pendingList.innerHTML = '<div class="sd-panel-empty">Failed to load assignments.</div>';
     }
 }
 
@@ -166,16 +162,16 @@ function renderCourses() {
     if (!myCoursesList) return;
 
     if (enrolledCourses.length === 0) {
-        myCoursesList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No courses registered for ' + currentSession + ' ' + currentSemester + '.</p><a href="select-session.html" class="btn-small">Register Courses</a></div>';
+        myCoursesList.innerHTML = '<div class="sd-panel-empty"><i class="fa-regular fa-folder-open"></i><p>No courses registered for ' + currentSession + ' ' + currentSemester + '.</p><a href="select-session.html" class="sd-btn-small">Register Courses</a></div>';
         return;
     }
 
     myCoursesList.innerHTML = enrolledCourses.map(function(course) {
         return `
-            <div class="course-item" onclick="window.location.href='assgnment.html?course=' + '${course.courseCode}'">
-                <div class="course-code">${course.courseCode}</div>
-                <div class="course-title">${escapeHtml(course.courseTitle)}</div>
-                <div class="course-stats"><i class="fa-regular fa-star"></i> ${course.credits || 3} Credits</div>
+            <div class="sd-course-row" onclick="window.location.href='assgnment.html?course=' + '${course.courseCode}'">
+                <div class="sd-course-code">${course.courseCode}</div>
+                <div class="sd-course-title">${escapeHtml(course.courseTitle)}</div>
+                <div class="sd-course-stats"><i class="fa-regular fa-star"></i> ${course.credits || 3} Credits</div>
             </div>
         `;
     }).join('');
@@ -193,7 +189,7 @@ function renderPendingAssignments() {
     });
 
     if (pendingAssignments.length === 0) {
-        pendingList.innerHTML = '<div class="empty-state"><i class="fa-regular fa-check-circle"></i><p>All caught up! No pending assignments for ' + currentSession + ' ' + currentSemester + '.</p></div>';
+        pendingList.innerHTML = '<div class="sd-panel-empty"><i class="fa-regular fa-check-circle"></i><p>All caught up! No pending assignments for ' + currentSession + ' ' + currentSemester + '.</p></div>';
         return;
     }
 
@@ -204,14 +200,14 @@ function renderPendingAssignments() {
         var dueClass = '';
         if (dueDate < today) {
             dueText = 'Overdue';
-            dueClass = 'overdue';
+            dueClass = 'sd-overdue';
         }
 
         return `
-            <div class="pending-item" onclick="window.location.href='assgnment.html'">
-                <span class="course-tag">${assignment.course}</span>
-                <span class="assignment-title-text">${escapeHtml(assignment.title)}</span>
-                <span class="due-badge ${dueClass}">${dueText}</span>
+            <div class="sd-pending-row" onclick="window.location.href='assgnment.html'">
+                <span class="sd-course-tag">${assignment.course}</span>
+                <span class="sd-assignment-title">${escapeHtml(assignment.title)}</span>
+                <span class="sd-due-badge ${dueClass}">${dueText}</span>
             </div>
         `;
     }).join('');
@@ -234,13 +230,13 @@ function showToast(message, type, duration) {
     var container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
-        container.className = 'toast-container';
+        container.className = 'sd-toast-wrap';
         container.id = 'toastContainer';
         document.body.appendChild(container);
     }
 
     var toast = document.createElement('div');
-    toast.className = 'toast ' + type;
+    toast.className = 'sd-toast sd-' + type;
 
     var icons = {
         success: 'fa-check-circle',
@@ -252,7 +248,7 @@ function showToast(message, type, duration) {
     toast.innerHTML = `
         <i class="fa-solid ${icons[type] || icons.success}"></i>
         <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        <button class="sd-toast-close" onclick="this.parentElement.remove()">&times;</button>
     `;
 
     container.appendChild(toast);
@@ -266,16 +262,16 @@ function logout() {
 
 // ========== SIDEBAR & THEME FUNCTIONS ==========
 function setupSidebar() {
-    var sidebar = document.getElementById('sidebar');
-    var sidebarToggle = document.getElementById('sidebarToggle');
+    var sidebar = document.getElementById('sdSidebar');
+    var sidebarToggle = document.getElementById('sdSidebarToggle');
     var menuBtn = document.getElementById('menuBtn');
     var toggleIcon = sidebarToggle ? sidebarToggle.querySelector('i') : null;
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
+            sidebar.classList.toggle('sd-collapsed');
             if (toggleIcon) {
-                toggleIcon.style.transform = sidebar.classList.contains('collapsed') ?
+                toggleIcon.style.transform = sidebar.classList.contains('sd-collapsed') ?
                     'rotate(180deg)' :
                     'rotate(0deg)';
             }
@@ -285,14 +281,14 @@ function setupSidebar() {
     if (menuBtn && sidebar) {
         menuBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            sidebar.classList.toggle('show');
+            sidebar.classList.toggle('sd-show');
         });
     }
 
     document.addEventListener('click', function(e) {
         if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('sd-show');
             }
         }
     });
@@ -330,7 +326,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Refresh data every 30 seconds
     setInterval(function() {
         if (document.hasFocus()) {
             fetchDashboardData();

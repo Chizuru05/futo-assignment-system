@@ -1,6 +1,5 @@
-﻿// lecturer-dashboard.js - COMPLETE FIXED VERSION WITH SIDEBAR FIXES + TIMEOUT HANDLING + STUCK-PANEL FIX
+﻿// lecturer-dashboard.js - FIXED VERSION (ld- prefixed markup, no duplicate "Welcome back")
 
-// ========== TOKEN MANAGEMENT ==========
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
     if (!userRole) return null;
@@ -12,8 +11,6 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-// ========== FETCH WITH TIMEOUT ==========
-// Wraps fetch() so a dead/sleeping backend fails after timeoutMs instead of hanging forever.
 async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -27,7 +24,6 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
     }
 }
 
-// Check authentication
 const token = getAuthToken();
 const userRole = localStorage.getItem('userRole');
 
@@ -37,7 +33,6 @@ if (!token || userRole !== 'lecturer') {
     logout();
 }
 
-// Get lecturer info
 const lecturerName = localStorage.getItem('fullName') || 'Dr. Lecturer';
 const staffId = localStorage.getItem('staffId') || 'STAFF/2024/001';
 const lecturerRank = localStorage.getItem('rank') || 'Senior Lecturer';
@@ -55,6 +50,7 @@ const pendingSubmissionsEl = document.getElementById('pendingSubmissions');
 const myCoursesList = document.getElementById('myCoursesList');
 const recentSubmissionsList = document.getElementById('recentSubmissions');
 const activeAssignmentsList = document.getElementById('activeAssignments');
+const upcomingDeadlinesList = document.getElementById('upcomingDeadlines');
 
 let allCourses = [];
 let allAssignments = [];
@@ -62,13 +58,13 @@ let allSubmissions = [];
 let currentSession = '';
 let currentSemester = '';
 
-// Set user info
-if (welcomeName) welcomeName.textContent = `Welcome back, ${lecturerName.split(' ')[0]}!`;
+// FIXED: only the first name goes into the span — the HTML template already
+// supplies "Welcome back, " and "!" around it, so this no longer duplicates.
+if (welcomeName) welcomeName.textContent = lecturerName.split(' ')[0];
 if (lecturerNameEl) lecturerNameEl.textContent = lecturerName;
 if (lecturerRankEl) lecturerRankEl.textContent = lecturerRank;
 if (staffIdEl) staffIdEl.textContent = staffId;
 
-// Set current date
 if (currentDateEl) {
     const now = new Date();
     currentDateEl.textContent = now.toLocaleDateString('en-US', {
@@ -94,10 +90,9 @@ async function fetchActiveSettings() {
             localStorage.setItem('currentSemester', currentSemester);
             console.log('Active settings loaded:', currentSession, currentSemester);
 
-            // Update session info display
-            const sessionInfo = document.getElementById('sessionInfo');
-            if (sessionInfo) {
-                sessionInfo.textContent = `${currentSession} ${currentSemester}`;
+            const sessionEl = document.getElementById('currentSession');
+            if (sessionEl) {
+                sessionEl.textContent = `${currentSession} ${currentSemester}`;
             }
         }
     } catch (error) {
@@ -113,12 +108,10 @@ async function fetchDashboardData() {
         await fetchActiveSettings();
     }
 
-    // Give a "slow" notice for each panel instead of leaving the static
-    // "Loading..." text sitting there indefinitely with no explanation.
     const slowNotice = setTimeout(() => {
         [recentSubmissionsList, activeAssignmentsList, myCoursesList].forEach(el => {
-            if (el && el.querySelector('.loading-spinner')) {
-                el.innerHTML = '<div class="loading-spinner" style="padding:1.5rem;text-align:center;color:#64748b;">Still waiting on the server, this can take a bit on first load...</div>';
+            if (el && el.querySelector('.ld-panel-loading')) {
+                el.innerHTML = '<div class="ld-panel-loading">Still waiting on the server, this can take a bit on first load...</div>';
             }
         });
     }, 6000);
@@ -126,7 +119,6 @@ async function fetchDashboardData() {
     try {
         console.log('Fetching dashboard data for:', currentSession, currentSemester);
 
-        // Fetch lecturer's courses for active session/semester
         const coursesRes = await fetchWithTimeout(`${API_URL}/api/lecturer/my-courses?session=${currentSession}&semester=${currentSemester}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         }, 15000);
@@ -135,21 +127,15 @@ async function fetchDashboardData() {
         if (coursesData.success) {
             allCourses = coursesData.courses || [];
             if (totalCoursesEl) totalCoursesEl.textContent = allCourses.length;
-
-            // FIXED: Use uniqueStudentCount from backend API response
             if (totalStudentsEl) totalStudentsEl.textContent = coursesData.uniqueStudentCount || 0;
-
             renderMyCourses();
         } else {
-            // FIX: previously there was no else here, so myCoursesList stayed stuck on
-            // "Loading..." forever whenever the backend responded with success:false.
             allCourses = [];
             if (totalCoursesEl) totalCoursesEl.textContent = 0;
             if (totalStudentsEl) totalStudentsEl.textContent = 0;
             renderMyCourses();
         }
 
-        // Fetch assignments for lecturer
         const assignmentsRes = await fetchWithTimeout(`${API_URL}/api/assignments/lecturer`, {
             headers: { 'Authorization': `Bearer ${token}` }
         }, 15000);
@@ -159,14 +145,14 @@ async function fetchDashboardData() {
             allAssignments = assignmentsData.assignments || [];
             if (totalAssignmentsEl) totalAssignmentsEl.textContent = allAssignments.length;
             renderActiveAssignments();
+            renderUpcomingDeadlines();
         } else {
-            // FIX: same missing-else bug as above, applied to activeAssignmentsList.
             allAssignments = [];
             if (totalAssignmentsEl) totalAssignmentsEl.textContent = 0;
             renderActiveAssignments();
+            renderUpcomingDeadlines();
         }
 
-        // Fetch submissions for active session/semester
         const submissionsRes = await fetchWithTimeout(`${API_URL}/api/submissions/lecturer/all?session=${currentSession}&semester=${currentSemester}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         }, 15000);
@@ -191,11 +177,9 @@ async function fetchDashboardData() {
         console.error('Error fetching dashboard data:', error);
         const isTimeout = error.name === 'AbortError';
         const message = isTimeout
-            ? '<div class="empty-state">Server took too long to respond. It may be waking up &mdash; try refreshing shortly.</div>'
-            : '<div class="empty-state">Could not load this data. Please refresh the page.</div>';
-        // FIX: on a hard failure (timeout/network error), every panel now gets a real message
-        // instead of being left on the static spinner forever.
-        [recentSubmissionsList, activeAssignmentsList, myCoursesList].forEach(el => {
+            ? '<div class="ld-panel-empty">Server took too long to respond. It may be waking up &mdash; try refreshing shortly.</div>'
+            : '<div class="ld-panel-empty">Could not load this data. Please refresh the page.</div>';
+        [recentSubmissionsList, activeAssignmentsList, myCoursesList, upcomingDeadlinesList].forEach(el => {
             if (el) el.innerHTML = message;
         });
     }
@@ -205,15 +189,15 @@ function renderMyCourses() {
     if (!myCoursesList) return;
 
     if (!allCourses.length) {
-        myCoursesList.innerHTML = `<div class="empty-state">No courses registered for ${currentSession} ${currentSemester}. <a href="lecturer-course-registration.html">Register now</a></div>`;
+        myCoursesList.innerHTML = `<div class="ld-panel-empty">No courses registered for ${currentSession} ${currentSemester}. <a href="lecturer-course-registration.html">Register now</a></div>`;
         return;
     }
 
     myCoursesList.innerHTML = allCourses.slice(0, 5).map(course => `
-        <div class="course-item" onclick="window.location.href='lecturer-courses.html'">
-            <div class="course-code">${escapeHtml(course.courseCode)}</div>
-            <div class="course-title">${escapeHtml(course.courseTitle)}</div>
-            <div class="course-stats">${course.studentCount || 0} students</div>
+        <div class="ld-course-row" onclick="window.location.href='lecturer-courses.html'">
+            <div class="ld-course-code">${escapeHtml(course.courseCode)}</div>
+            <div class="ld-course-title">${escapeHtml(course.courseTitle)}</div>
+            <div class="ld-course-stats">${course.studentCount || 0} students</div>
         </div>
     `).join('');
 }
@@ -226,7 +210,7 @@ function renderActiveAssignments() {
     const topAssignments = activeAssignments.slice(0, 5);
 
     if (!topAssignments.length) {
-        activeAssignmentsList.innerHTML = `<div class="empty-state">No active assignments for ${currentSession} ${currentSemester}. <a href="lecturer-assignments.html">Create one</a></div>`;
+        activeAssignmentsList.innerHTML = `<div class="ld-panel-empty">No active assignments for ${currentSession} ${currentSemester}. <a href="lecturer-assignments.html">Create one</a></div>`;
         return;
     }
 
@@ -236,10 +220,10 @@ function renderActiveAssignments() {
         const submissionCount = allSubmissions.filter(s => s.assignmentId?._id === assignment._id).length;
 
         return `
-            <div class="assignment-item" onclick="window.location.href='lecturer-assignments.html'">
-                <div class="assignment-course">${escapeHtml(assignment.course)}</div>
-                <div class="assignment-title">${escapeHtml(assignment.title)}</div>
-                <div class="assignment-meta">
+            <div class="ld-assignment-row" onclick="window.location.href='lecturer-assignments.html'">
+                <div class="ld-assignment-course">${escapeHtml(assignment.course)}</div>
+                <div class="ld-assignment-title">${escapeHtml(assignment.title)}</div>
+                <div class="ld-assignment-meta">
                     <span><i class="fa-regular fa-calendar"></i> Due: ${assignment.dueDate} (${daysLeft} days left)</span>
                     <span><i class="fa-regular fa-file"></i> ${submissionCount} submissions</span>
                 </div>
@@ -256,7 +240,7 @@ function renderRecentSubmissions() {
         .slice(0, 5);
 
     if (!recentSubmissions.length) {
-        recentSubmissionsList.innerHTML = `<div class="empty-state">No submissions for ${currentSession} ${currentSemester}</div>`;
+        recentSubmissionsList.innerHTML = `<div class="ld-panel-empty">No submissions for ${currentSession} ${currentSemester}</div>`;
         return;
     }
 
@@ -264,15 +248,47 @@ function renderRecentSubmissions() {
         const timeAgo = getTimeAgo(new Date(submission.submittedAt));
         const assignment = submission.assignmentId || {};
         return `
-            <div class="submission-item" onclick="window.location.href='lecturer-submissions.html'">
-                <div class="submission-student">
+            <div class="ld-submission-row" onclick="window.location.href='lecturer-submissions.html'">
+                <div class="ld-submission-student">
                     <i class="fa-regular fa-user-circle"></i>
                     <div>
-                        <div class="student-name">${escapeHtml(submission.studentName)}</div>
-                        <div class="submission-course">${assignment.course || 'Course'} - ${assignment.title || 'Assignment'}</div>
+                        <div class="ld-student-name">${escapeHtml(submission.studentName)}</div>
+                        <div class="ld-submission-course">${assignment.course || 'Course'} - ${assignment.title || 'Assignment'}</div>
                     </div>
                 </div>
-                <div class="submission-time">${timeAgo}</div>
+                <div class="ld-submission-time">${timeAgo}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderUpcomingDeadlines() {
+    if (!upcomingDeadlinesList) return;
+
+    const now = new Date();
+    const upcoming = allAssignments
+        .filter(a => new Date(a.dueDateISO) >= now)
+        .sort((a, b) => new Date(a.dueDateISO) - new Date(b.dueDateISO))
+        .slice(0, 5);
+
+    if (!upcoming.length) {
+        upcomingDeadlinesList.innerHTML = `<div class="ld-panel-empty">No upcoming deadlines</div>`;
+        return;
+    }
+
+    upcomingDeadlinesList.innerHTML = upcoming.map(assignment => {
+        const dueDate = new Date(assignment.dueDateISO);
+        const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+        const urgencyClass = daysLeft <= 2 ? 'ld-urgent' : daysLeft <= 5 ? 'ld-warning' : '';
+
+        return `
+            <div class="ld-deadline-row ${urgencyClass}" onclick="window.location.href='lecturer-submissions.html'">
+                <div class="ld-deadline-date">${assignment.dueDate}</div>
+                <div class="ld-deadline-info">
+                    <span class="ld-deadline-course">${escapeHtml(assignment.course)}</span>
+                    <span class="ld-deadline-title">${escapeHtml(assignment.title)}</span>
+                </div>
+                <div class="ld-deadline-days">${daysLeft}d left</div>
             </div>
         `;
     }).join('');
@@ -309,38 +325,50 @@ function escapeHtml(str) {
     });
 }
 
+function showToast(message, type = 'success') {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'ld-toast-wrap';
+        container.id = 'toastContainer';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `ld-toast ld-${type}`;
+    toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
 // ========== SIDEBAR & THEME ==========
 function setupSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('ldSide');
+    const sidebarToggle = document.getElementById('ldSideToggle');
+    const menuBtn = document.getElementById('ldMenuBtn');
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', () => {
             if (window.innerWidth <= 1024) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('ld-show');
             } else {
-                sidebar.classList.toggle('collapsed');
+                sidebar.classList.toggle('ld-collapsed');
             }
         });
     }
     if (menuBtn && sidebar) {
-        menuBtn.addEventListener('click', () => sidebar.classList.toggle('show'));
+        menuBtn.addEventListener('click', () => sidebar.classList.toggle('ld-show'));
     }
 
-    // Close sidebar when tapping outside it (mobile)
     document.addEventListener('click', (e) => {
         if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('ld-show');
             }
         }
     });
 
-    // Force sidebar to full width on mobile regardless of desktop "collapsed" state,
-    // so the logout label (and all nav labels) are never hidden on small screens
     if (window.innerWidth <= 1024) {
-        sidebar.classList.remove('collapsed');
+        sidebar.classList.remove('ld-collapsed');
     }
 }
 
@@ -367,10 +395,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchActiveSettings();
     await fetchDashboardData();
 
-    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutBtn = document.getElementById('ldLogoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
 
-    // Refresh data every 30 seconds
     setInterval(() => {
         if (document.hasFocus()) {
             fetchDashboardData();
@@ -379,3 +406,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 window.logout = logout;
+window.showToast = showToast;

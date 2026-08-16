@@ -11,213 +11,161 @@
     <link rel="stylesheet" href="lecturer-dashboard.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
+    <div class="ld-app">
+        <aside class="ld-side" id="ldSide">
+            <div class="ld-side-head">
+                <div class="ld-brand">
                     <i class="fa-solid fa-graduation-cap"></i>
                     <span>FUTO</span>
                 </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
+                <button class="ld-side-toggle" id="ldSideToggle">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             </div>
-            
-            <div class="sidebar-profile">
-                <div class="profile-image">
+
+            <div class="ld-side-profile">
+                <div class="ld-avatar">
                     <img id="profileImg" src="https://ui-avatars.com/api/?name=Dr.+Lecturer&background=2a7a4b&color=fff&size=50" alt="profile">
                 </div>
-                <div class="profile-info">
+                <div class="ld-profile-text">
                     <h4 id="lecturerName">Dr. Lecturer</h4>
                     <p id="lecturerRank">Senior Lecturer</p>
-                    <span class="badge-level" id="staffId">STAFF/2024/001</span>
+                    <span class="ld-badge-level" id="staffId">STAFF/2024/001</span>
                 </div>
             </div>
-            
-            <nav class="sidebar-nav">
-                <a href="lecturer-dashboard.html" class="nav-item active">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="lecturer-course-registration.html" class="nav-item">
-                    <i class="fa-solid fa-book"></i>
-                    <span>Course Registration</span>
-                </a>
-                <a href="lecturer-assignments.html" class="nav-item">
-                    <i class="fa-solid fa-pencil"></i>
-                    <span>Assignments</span>
-                </a>
-                <a href="lecturer-submissions.html" class="nav-item">
-                    <i class="fa-solid fa-file-export"></i>
-                    <span>Submissions</span>
-                </a>
-                <a href="lecturer-courses.html" class="nav-item">
-                    <i class="fa-solid fa-book-open"></i>
-                    <span>My Courses</span>
-                </a>
-                <a href="lecturer-students.html" class="nav-item">
-                    <i class="fa-solid fa-users"></i>
-                    <span>Students</span>
-                </a>
-                <a href="lecturer-settings.html" class="nav-item">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Settings</span>
-                </a>
+
+            <nav class="ld-side-nav">
+                <a href="lecturer-dashboard.html" class="ld-nav-link ld-nav-active"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+                <a href="lecturer-course-registration.html" class="ld-nav-link"><i class="fa-solid fa-book"></i><span>Course Registration</span></a>
+                <a href="lecturer-assignments.html" class="ld-nav-link"><i class="fa-solid fa-pencil"></i><span>Assignments</span></a>
+                <a href="lecturer-submissions.html" class="ld-nav-link"><i class="fa-solid fa-file-export"></i><span>Submissions</span></a>
+                <a href="lecturer-courses.html" class="ld-nav-link"><i class="fa-solid fa-book-open"></i><span>My Courses</span></a>
+                <a href="lecturer-students.html" class="ld-nav-link"><i class="fa-solid fa-users"></i><span>Students</span></a>
+                <a href="lecturer-settings.html" class="ld-nav-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
             </nav>
-            
-            <div class="sidebar-footer">
-                <div class="semester-info">
+
+            <div class="ld-side-foot">
+                <div class="ld-semester-box">
                     <i class="fa-regular fa-calendar"></i>
                     <div>
                         <small>Current Session</small>
                         <p id="currentSession">2025-2026 Harmattan</p>
                     </div>
                 </div>
-                <a href="#" class="logout-link" id="logoutBtn">
+                <a href="#" class="ld-logout" id="ldLogoutBtn">
                     <i class="fa-solid fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Header -->
-            <header class="main-header">
-                <div class="header-left">
-                    <button class="menu-btn" id="menuBtn">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
+        <main class="ld-main">
+            <header class="ld-top">
+                <div class="ld-top-left">
+                    <button class="ld-burger" id="ldMenuBtn"><i class="fa-solid fa-bars"></i></button>
                     <h2>Dashboard</h2>
                 </div>
-                
-                <div class="header-right">
-                    <div class="theme-toggle" id="themeToggle">
+                <div class="ld-top-right">
+                    <div class="ld-theme-toggle" id="themeToggle">
                         <i class="fa-regular fa-sun"></i>
                         <i class="fa-regular fa-moon"></i>
                     </div>
-                    <div class="header-profile">
+                    <a href="lecturer-settings.html" class="ld-header-profile">
                         <img src="https://ui-avatars.com/api/?name=Dr.+Lecturer&background=2a7a4b&color=fff&size=40" alt="profile">
-                    </div>
+                    </a>
                 </div>
             </header>
 
-            <!-- Page Content -->
-            <div class="content-wrapper">
-                <!-- Welcome Section -->
-                <div class="welcome-section">
+            <div class="ld-body">
+                <!-- FIXED: welcomeName span now only receives the first name;
+                    "Welcome back," and "!" live only here in the template -->
+                <div class="ld-welcome">
                     <div>
-                        <h1 class="welcome-title">Welcome back, <span id="welcomeName">Dr. Lecturer</span>!</h1>
-                        <p class="welcome-subtitle">Here's your assignment overview for today</p>
+                        <h1 class="ld-welcome-title">Welcome back, <span id="welcomeName">Dr. Lecturer</span>!</h1>
+                        <p class="ld-welcome-sub">Here's your assignment overview for today</p>
                     </div>
-                    <div class="current-date" id="currentDate"></div>
+                    <div class="ld-current-date" id="currentDate"></div>
                 </div>
 
-                <!-- Quick Stats Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: #e8f5e9;">
-                            <i class="fa-solid fa-pencil" style="color: #2a7a4b;"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3 id="totalAssignments">0</h3>
-                            <p>Assignments</p>
-                        </div>
+                <div class="ld-stats-grid">
+                    <div class="ld-stat-box">
+                        <div class="ld-stat-icon" style="background:#e8f5e9;"><i class="fa-solid fa-pencil" style="color:#2a7a4b;"></i></div>
+                        <div class="ld-stat-text"><h3 id="totalAssignments">0</h3><p>Assignments</p></div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: #fff3e0;">
-                            <i class="fa-regular fa-clock" style="color: #f59e0b;"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3 id="pendingSubmissions">0</h3>
-                            <p>Pending</p>
-                        </div>
+                    <div class="ld-stat-box">
+                        <div class="ld-stat-icon" style="background:#fff3e0;"><i class="fa-regular fa-clock" style="color:#f59e0b;"></i></div>
+                        <div class="ld-stat-text"><h3 id="pendingSubmissions">0</h3><p>Pending</p></div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: #e8f5e9;">
-                            <i class="fa-solid fa-check-circle" style="color: #2a7a4b;"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3 id="totalCourses">0</h3>
-                            <p>Active Courses</p>
-                        </div>
+                    <div class="ld-stat-box">
+                        <div class="ld-stat-icon" style="background:#e8f5e9;"><i class="fa-solid fa-check-circle" style="color:#2a7a4b;"></i></div>
+                        <div class="ld-stat-text"><h3 id="totalCourses">0</h3><p>Active Courses</p></div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: #e8f5e9;">
-                            <i class="fa-solid fa-users" style="color: #2a7a4b;"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3 id="totalStudents">0</h3>
-                            <p>Students</p>
-                        </div>
+                    <div class="ld-stat-box">
+                        <div class="ld-stat-icon" style="background:#e8f5e9;"><i class="fa-solid fa-users" style="color:#2a7a4b;"></i></div>
+                        <div class="ld-stat-text"><h3 id="totalStudents">0</h3><p>Students</p></div>
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="quick-actions">
+                <div class="ld-quick">
                     <h3>Quick Actions</h3>
-                    <div class="action-buttons">
-                        <a href="lecturer-assignments.html" class="action-btn">
+                    <div class="ld-quick-btns">
+                        <a href="lecturer-assignments.html" class="ld-quick-btn">
                             <i class="fa-solid fa-plus"></i> Create Assignment
                         </a>
-                        <a href="lecturer-submissions.html" class="action-btn">
+                        <a href="lecturer-submissions.html" class="ld-quick-btn">
                             <i class="fa-regular fa-eye"></i> View Submissions
                         </a>
-                        <a href="lecturer-courses.html" class="action-btn">
+                        <a href="lecturer-courses.html" class="ld-quick-btn">
                             <i class="fa-solid fa-book-open"></i> My Courses
+                        </a>
+                        <!-- ADDED: Settings quick action -->
+                        <a href="lecturer-settings.html" class="ld-quick-btn">
+                            <i class="fa-solid fa-gear"></i> Settings
                         </a>
                     </div>
                 </div>
 
-                <!-- Two Column Layout -->
-                <div class="dashboard-grid">
-                    <!-- Left Column -->
-                    <div class="left-column">
-                        <!-- Recent Submissions -->
-                        <div class="dashboard-card">
-                            <div class="card-header">
+                <div class="ld-grid">
+                    <div class="ld-col">
+                        <div class="ld-card">
+                            <div class="ld-card-head">
                                 <h3><i class="fa-regular fa-clock"></i> Recent Submissions</h3>
-                                <a href="lecturer-submissions.html" class="view-link">View All ?</a>
+                                <a href="lecturer-submissions.html" class="ld-view-link">View All →</a>
                             </div>
-                            <div class="recent-list" id="recentSubmissions">
-                                <div class="loading-spinner" style="padding:1.5rem;text-align:center;color:#64748b;">Loading...</div>
+                            <div class="ld-list" id="recentSubmissions">
+                                <div class="ld-panel-loading">Loading...</div>
                             </div>
                         </div>
 
-                        <!-- Active Assignments -->
-                        <div class="dashboard-card">
-                            <div class="card-header">
+                        <div class="ld-card">
+                            <div class="ld-card-head">
                                 <h3><i class="fa-solid fa-pencil"></i> Active Assignments</h3>
-                                <a href="lecturer-assignments.html" class="view-link">View All ?</a>
+                                <a href="lecturer-assignments.html" class="ld-view-link">View All →</a>
                             </div>
-                            <div class="assignments-list" id="activeAssignments">
-                                <div class="loading-spinner" style="padding:1.5rem;text-align:center;color:#64748b;">Loading...</div>
+                            <div class="ld-list" id="activeAssignments">
+                                <div class="ld-panel-loading">Loading...</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Column -->
-                    <div class="right-column">
-                        <!-- My Courses -->
-                        <div class="dashboard-card">
-                            <div class="card-header">
+                    <div class="ld-col">
+                        <div class="ld-card">
+                            <div class="ld-card-head">
                                 <h3><i class="fa-solid fa-book-open"></i> My Courses</h3>
-                                <a href="lecturer-courses.html" class="view-link">View All ?</a>
+                                <a href="lecturer-courses.html" class="ld-view-link">View All →</a>
                             </div>
-                            <div class="courses-list" id="myCoursesList">
-                                <div class="loading-spinner" style="padding:1.5rem;text-align:center;color:#64748b;">Loading...</div>
+                            <div class="ld-list" id="myCoursesList">
+                                <div class="ld-panel-loading">Loading...</div>
                             </div>
                         </div>
 
-                        <!-- Upcoming Deadlines -->
-                        <div class="dashboard-card">
-                            <div class="card-header">
+                        <div class="ld-card">
+                            <div class="ld-card-head">
                                 <h3><i class="fa-regular fa-calendar"></i> Upcoming Deadlines</h3>
-                                <a href="lecturer-submissions.html" class="view-link">Manage ?</a>
+                                <a href="lecturer-submissions.html" class="ld-view-link">Manage →</a>
                             </div>
-                            <div class="deadlines-list" id="upcomingDeadlines">
-                                <div class="loading-spinner" style="padding:1.5rem;text-align:center;color:#64748b;">Loading...</div>
+                            <div class="ld-list" id="upcomingDeadlines">
+                                <div class="ld-panel-loading">Loading...</div>
                             </div>
                         </div>
                     </div>
@@ -226,8 +174,7 @@
         </main>
     </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <div class="ld-toast-wrap" id="toastContainer"></div>
 
     <script src="lecturer-dashboard.js"></script>
 </body>

@@ -1,4 +1,4 @@
-﻿// lecturer-courses.js - COMPLETE FIXED VERSION WITH SPINNER FIX
+﻿// lecturer-courses.js - COMPLETE FIXED VERSION (fc- prefixed markup)
 
 function getAuthToken() {
     const userRole = localStorage.getItem('userRole');
@@ -38,12 +38,12 @@ const coursesGrid = document.getElementById('coursesGrid');
 const levelFilter = document.getElementById('levelFilter');
 const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 const searchInput = document.getElementById('searchInput');
-const filterTabs = document.querySelectorAll('.filter-tab');
+const filterTabs = document.querySelectorAll('.fc-tab');
 const themeToggle = document.getElementById('themeToggle');
-const sidebar = document.getElementById('sidebar');
-const sidebarToggle = document.getElementById('sidebarToggle');
-const menuBtn = document.getElementById('menuBtn');
-const logoutBtn = document.getElementById('logoutBtn');
+const sidebar = document.getElementById('fcSide');
+const sidebarToggle = document.getElementById('fcSideToggle');
+const menuBtn = document.getElementById('fcMenuBtn');
+const logoutBtn = document.getElementById('fcLogoutBtn');
 const notifBtn = document.getElementById('notifBtn');
 const notifPanel = document.getElementById('notifPanel');
 const currentSemesterDisplay = document.getElementById('currentSemesterDisplay');
@@ -78,14 +78,15 @@ async function fetchActiveSettings() {
 
 // ========== FETCH COURSES ==========
 async function fetchCourses() {
-    // FIXED: Proper loading spinner without rotation issues
+    // Loading state uses the panel-scoped class so it can never be
+    // styled/overridden by any other page's .loading-spinner rules
     if (coursesGrid) {
-        coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to server...</div>';
+        coursesGrid.innerHTML = '<div class="fc-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to server...</div>';
     }
 
     const slowNotice = setTimeout(function() {
-        if (coursesGrid && coursesGrid.querySelector('.loading-spinner')) {
-            coursesGrid.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Server is waking up, this can take up to a minute on first load...</div>';
+        if (coursesGrid && coursesGrid.querySelector('.fc-panel-loading')) {
+            coursesGrid.innerHTML = '<div class="fc-panel-loading"><i class="fa-solid fa-spinner fa-spin"></i> Server is waking up, this can take up to a minute on first load...</div>';
         }
     }, 6000);
 
@@ -149,7 +150,7 @@ function renderCourses() {
     }
 
     if (filtered.length === 0) {
-        coursesGrid.innerHTML = '<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No courses found</p></div>';
+        coursesGrid.innerHTML = '<div class="fc-panel-empty"><i class="fa-regular fa-folder-open"></i><p>No courses found</p></div>';
         return;
     }
 
@@ -163,38 +164,38 @@ function renderCourses() {
         var status = course.status || 'active';
 
         return `
-        <div class="course-card" data-level="${level}" data-status="${status}">
-            <div class="course-header">
-                <div class="course-code-wrapper">
-                    <span class="course-code">${escapeHtml(code)}</span>
-                    <span class="course-status ${status === 'completed' ? 'completed' : 'active'}">
+        <div class="fc-tile" data-level="${level}" data-status="${status}">
+            <div class="fc-tile-head">
+                <div class="fc-tile-code-group">
+                    <span class="fc-tile-code">${escapeHtml(code)}</span>
+                    <span class="fc-tile-status ${status === 'completed' ? 'fc-completed' : 'fc-active'}">
                         ${status === 'completed' ? 'Completed' : 'Active'}
                     </span>
                 </div>
-                <div class="course-actions">
-                    <button class="btn-icon" onclick="viewCourse('${id}')" title="View Course">
+                <div class="fc-tile-actions">
+                    <button class="fc-icon-btn" onclick="viewCourse('${id}')" title="View Course">
                         <i class="fa-regular fa-eye"></i>
                     </button>
-                    <button class="btn-icon" onclick="viewStudents('${id}')" title="View Students">
+                    <button class="fc-icon-btn" onclick="viewStudents('${id}')" title="View Students">
                         <i class="fa-regular fa-users"></i>
                     </button>
-                    <button class="btn-icon delete-btn" onclick="openDeleteModal('${id}', '${code}', true)" title="Unregister from Course">
+                    <button class="fc-icon-btn fc-danger" onclick="openDeleteModal('${id}', '${code}', true)" title="Unregister from Course">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
             </div>
-            <h3 class="course-title">${escapeHtml(title)}</h3>
-            <div class="course-details">
-                <div class="detail-item"><i class="fa-regular fa-users"></i> <span>${students} student${students !== 1 ? 's' : ''}</span></div>
-                <div class="detail-item"><i class="fa-regular fa-star"></i> <span>${credits} Credits</span></div>
-                <div class="detail-item"><i class="fa-regular fa-layer-group"></i> <span>${level} Level</span></div>
-                <div class="detail-item"><i class="fa-regular fa-calendar"></i> <span>${currentSession} · ${currentSemester}</span></div>
+            <h3 class="fc-tile-title">${escapeHtml(title)}</h3>
+            <div class="fc-tile-details">
+                <div class="fc-tile-detail"><i class="fa-regular fa-users"></i> <span>${students} student${students !== 1 ? 's' : ''}</span></div>
+                <div class="fc-tile-detail"><i class="fa-regular fa-star"></i> <span>${credits} Credits</span></div>
+                <div class="fc-tile-detail"><i class="fa-regular fa-layer-group"></i> <span>${level} Level</span></div>
+                <div class="fc-tile-detail"><i class="fa-regular fa-calendar"></i> <span>${currentSession} · ${currentSemester}</span></div>
             </div>
-            <div class="course-footer">
-                <a href="lecturer-assignments.html?course=${code}" class="btn-small">
+            <div class="fc-tile-foot">
+                <a href="lecturer-assignments.html?course=${code}" class="fc-btn-sm">
                     <i class="fa-regular fa-eye"></i> Assignments
                 </a>
-                <a href="lecturer-submissions.html?course=${code}" class="btn-small outline">
+                <a href="lecturer-submissions.html?course=${code}" class="fc-btn-sm fc-outline">
                     <i class="fa-regular fa-file-export"></i> Submissions
                 </a>
             </div>
@@ -214,7 +215,7 @@ function updateStats() {
     if (totalCoursesEl) totalCoursesEl.textContent = totalCourses;
     if (totalStudentsEl) totalStudentsEl.textContent = totalStudents;
 
-    // FIXED: Calculate assignments and pending grading from courses data
+    // Calculate assignments and pending grading from courses data
     var totalAssignments = 0;
     var pendingGrading = 0;
 
@@ -253,9 +254,9 @@ function clearFilters() {
 
     filterTabs.forEach(function(tab) {
         if (tab.dataset.filter === 'all') {
-            tab.classList.add('active');
+            tab.classList.add('fc-tab-active');
         } else {
-            tab.classList.remove('active');
+            tab.classList.remove('fc-tab-active');
         }
     });
 
@@ -267,9 +268,9 @@ function handleTabClick(filter) {
     currentFilter = filter;
     filterTabs.forEach(function(tab) {
         if (tab.dataset.filter === filter) {
-            tab.classList.add('active');
+            tab.classList.add('fc-tab-active');
         } else {
-            tab.classList.remove('active');
+            tab.classList.remove('fc-tab-active');
         }
     });
     renderCourses();
@@ -314,11 +315,11 @@ function openDeleteModal(courseId, courseCode, isUnregister) {
     if (isUnregister === undefined) isUnregister = true;
     courseToDelete = { courseId: courseId, courseCode: courseCode, isUnregister: isUnregister };
     deleteCourseCode.textContent = courseCode;
-    deleteModal.classList.add('show');
+    deleteModal.classList.add('fc-show');
 }
 
 function closeDeleteModal() {
-    deleteModal.classList.remove('show');
+    deleteModal.classList.remove('fc-show');
     courseToDelete = null;
 }
 
@@ -364,20 +365,20 @@ function showToast(message, type) {
     var container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
-        container.className = 'toast-container';
+        container.className = 'fc-toast-wrap';
         container.id = 'toastContainer';
         document.body.appendChild(container);
     }
 
     var toast = document.createElement('div');
-    toast.className = 'toast ' + type;
+    toast.className = 'fc-toast fc-' + type;
 
     var icon = 'fa-check-circle';
     if (type === 'danger') icon = 'fa-exclamation-circle';
     if (type === 'info') icon = 'fa-info-circle';
     if (type === 'warning') icon = 'fa-triangle-exclamation';
 
-    toast.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(message) + '</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>';
+    toast.innerHTML = '<i class="fa-solid ' + icon + '"></i><span>' + escapeHtml(message) + '</span><button class="fc-toast-close" onclick="this.parentElement.remove()">×</button>';
     container.appendChild(toast);
     setTimeout(function() { toast.remove(); }, 3000);
 }
@@ -409,29 +410,29 @@ function initUI() {
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
             if (window.innerWidth <= 1024) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('fc-show');
             } else {
-                sidebar.classList.toggle('collapsed');
+                sidebar.classList.toggle('fc-collapsed');
             }
         });
     }
 
     if (menuBtn) {
         menuBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('show');
+            sidebar.classList.toggle('fc-show');
         });
     }
 
     document.addEventListener('click', function(e) {
         if (window.innerWidth <= 1024 && sidebar && menuBtn) {
             if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-                sidebar.classList.remove('show');
+                sidebar.classList.remove('fc-show');
             }
         }
     });
 
     if (window.innerWidth <= 1024) {
-        sidebar.classList.remove('collapsed');
+        sidebar.classList.remove('fc-collapsed');
     }
 
     if (logoutBtn) {
@@ -444,12 +445,12 @@ function initUI() {
     if (notifBtn && notifPanel) {
         notifBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            notifPanel.classList.toggle('show');
+            notifPanel.classList.toggle('fc-show');
         });
 
         document.addEventListener('click', function(e) {
             if (!notifBtn.contains(e.target) && !notifPanel.contains(e.target)) {
-                notifPanel.classList.remove('show');
+                notifPanel.classList.remove('fc-show');
             }
         });
     }
@@ -474,7 +475,7 @@ function initUI() {
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && deleteModal && deleteModal.classList.contains('show')) {
+        if (e.key === 'Escape' && deleteModal && deleteModal.classList.contains('fc-show')) {
             closeDeleteModal();
         }
     });
