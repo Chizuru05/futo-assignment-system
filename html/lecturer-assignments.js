@@ -468,10 +468,10 @@ function updateRubricTotal() {
     
     const assignmentTotal = parseInt(totalMarksInput.value) || 0;
     if (total === assignmentTotal && total > 0) {
-        totalMatchStatus.textContent = 'âœ“ Matches total marks';
+        totalMatchStatus.textContent = ' Matches total marks';
         totalMatchStatus.className = 'status-badge success';
     } else {
-        totalMatchStatus.textContent = `âš ï¸ Does not match total marks (${total}/${assignmentTotal})`;
+        totalMatchStatus.textContent = ` Does not match total marks (${total}/${assignmentTotal})`;
         totalMatchStatus.className = 'status-badge warning';
     }
 }
@@ -521,7 +521,7 @@ function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     const colors = { success: '#2a7a4b', danger: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
     toast.style.cssText = `background: white; border-radius: 8px; padding: 12px 20px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; border-left: 4px solid ${colors[type] || colors.success};`;
-    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">Ã—</button>`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span><button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;"></button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }

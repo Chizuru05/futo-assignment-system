@@ -276,7 +276,7 @@ function showToast(message, type = 'success', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icons = { success: 'fa-check-circle', danger: 'fa-exclamation-circle', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
-    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><div class="toast-content"><div class="toast-message">${message}</div></div><button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><div class="toast-content"><div class="toast-message">${message}</div></div><button class="toast-close" onclick="this.parentElement.remove()"></button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);
 }

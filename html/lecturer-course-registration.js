@@ -332,7 +332,7 @@ function showToast(message, type = 'success', duration = 3000) {
             <div class="toast-title">${type === 'success' ? 'Success' : type === 'danger' ? 'Error' : 'Info'}</div>
             <div class="toast-message">${escapeHtml(message)}</div>
         </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">Ã—</button>
+        <button class="toast-close" onclick="this.parentElement.remove()"></button>
     `;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);

@@ -57,6 +57,20 @@ const assignmentSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    // Lecturer-only answer guide for AI grading.
+    // `text` is hidden by default (select: false) so students can never receive it.
+    // To read it, use .select('+markingScheme.text')
+    markingScheme: {
+        text: { type: String, default: '', select: false },
+        fileName: { type: String, default: '' },
+        hasScript: { type: Boolean, default: false },
+        strictness: {
+            type: String,
+            enum: ['strict', 'balanced', 'flexible'],
+            default: 'balanced'
+        },
+        updatedAt: { type: Date }
+    },
     session: {
         type: String,
         default: '2025-2026'

@@ -437,13 +437,23 @@ exports.getPendingCount = async (req, res) => {
 };
 
 // Download submission file
+// Download / preview submission file
 exports.downloadFile = async (req, res) => {
     try {
         const { submissionId, fileIndex } = req.params;
 
+        if (!submissionId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(404).json({ success: false, message: 'Submission not found' });
+        }
+
         const submission = await Submission.findById(submissionId);
         if (!submission) {
             return res.status(404).json({ success: false, message: 'Submission not found' });
+        }
+
+        // Students can only open their own files
+        if (req.user.role === 'student' && submission.studentId.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
         }
 
         const file = submission.files[parseInt(fileIndex)];
@@ -451,8 +461,21 @@ exports.downloadFile = async (req, res) => {
             return res.status(404).json({ success: false, message: 'File not found' });
         }
 
-        // file.path is now a Cloudinary URL — redirect the browser straight to it
-        return res.redirect(file.path);
+        const url = file.path; // Cloudinary secure URL
+
+        // fl_attachment makes Cloudinary force a download instead of opening inline
+        const downloadUrl = url.includes('/upload/')
+            ? url.replace('/upload/', '/upload/fl_attachment/')
+            : url;
+
+        // Return JSON instead of redirecting, so the browser (not fetch) talks to Cloudinary
+        return res.status(200).json({
+            success: true,
+            url,
+            downloadUrl,
+            name: file.name,
+            mimetype: file.mimetype || ''
+        });
 
     } catch (error) {
         console.error('Download error:', error);

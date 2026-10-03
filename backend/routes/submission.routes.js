@@ -2,8 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
-const upload = require('../middleware/upload'); // <-- CHANGE THIS - use middleware/upload, not config/upload
+const upload = require('../middleware/upload');
 const submissionController = require('../controllers/submission.controller');
+const exportController = require('../controllers/export.controller');
 
 // All routes require authentication
 router.use(authMiddleware);
@@ -18,6 +19,9 @@ router.get('/pending-count', submissionController.getPendingCount);
 
 // Get all submissions for lecturer (with query params)
 router.get('/lecturer/all', submissionController.getAllSubmissionsForLecturer);
+
+// Lecturer: export course results as Excel
+router.get('/lecturer/export', exportController.exportCourseResults);
 
 // ============ ROUTES WITH PARAMETERS ============
 

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>    <script src="api-config.js"></script>
+<head>
+    <script src="api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUTO � Create Assignment</title>
+    <title>FUTO - Create Assignment</title>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -23,17 +24,17 @@
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             </div>
-            
+
             <div class="sidebar-profile">
                 <div class="profile-image">
                     <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=50" alt="profile">
                 </div>
                 <div class="profile-info">
                     <h4 id="lecturerName">Dr. Ifeanyi Okonkwo</h4>
-                    <p id="lecturerTitle">Senior Lecturer � CS Dept</p>
+                    <p id="lecturerTitle">Senior Lecturer &middot; CS Dept</p>
                 </div>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <a href="lecturer-dashboard.html" class="nav-item">
                     <i class="fa-solid fa-chart-pie"></i>
@@ -64,7 +65,7 @@
                     <span>Settings</span>
                 </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <a href="#" class="logout-link" id="logoutBtn">
                     <i class="fa-solid fa-sign-out-alt"></i>
@@ -83,13 +84,13 @@
                     </button>
                     <h2>Create Assignment</h2>
                 </div>
-                
+
                 <div class="header-right">
                     <div class="theme-toggle" id="themeToggle">
                         <i class="fa-regular fa-sun"></i>
                         <i class="fa-regular fa-moon"></i>
                     </div>
-                    
+
                     <div class="header-profile">
                         <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=40" alt="profile">
                     </div>
@@ -111,7 +112,7 @@
                         <h2><i class="fa-solid fa-pencil"></i> Create New Assignment</h2>
                         <p>Fill in the details to create a new assignment for your course</p>
                     </div>
-                    
+
                     <form id="assignmentForm">
                         <!-- Course Selection -->
                         <div class="form-group">
@@ -178,12 +179,12 @@
                                     <i class="fa-solid fa-plus"></i> Add Criterion
                                 </button>
                             </div>
-                            
+
                             <div class="rubric-info-message">
                                 <i class="fa-regular fa-circle-info"></i>
                                 <span>Set criteria and their maximum points. Total must equal the assignment marks above.</span>
                             </div>
-                            
+
                             <div class="rubric-list" id="rubricList">
                                 <div class="rubric-item">
                                     <div class="rubric-criterion">
@@ -222,13 +223,32 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="rubric-total">
                                 <span>Rubric Total:</span>
                                 <strong id="rubricTotal">100</strong>
                                 <span>points</span>
-                                <span id="totalMatchStatus" class="status-badge success">? Matches total marks</span>
+                                <span id="totalMatchStatus" class="status-badge success">Matches total marks</span>
                             </div>
+                        </div>
+
+                        <!-- Marking Script (lecturer only) -->
+                        <div class="form-group" id="markingScriptSection">
+                            <label>Marking Script (Optional)</label>
+                            <div class="rubric-info-message">
+                                <i class="fa-regular fa-circle-info"></i>
+                                <span>Type the key answers or upload them. AI uses this as a guide when grading. Students never see it.</span>
+                            </div>
+                            <textarea id="scriptText" rows="5" placeholder="e.g. Q1: TCP is connection-oriented, UDP is connectionless...&#10;Q2: 192.168.1.0/24 has 254 usable hosts..."></textarea>
+                            <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center; margin-top:0.6rem;">
+                                <input type="file" id="scriptFile" accept=".pdf,.docx,.txt">
+                                <select id="scriptStrictness" style="padding:0.5rem 0.8rem; border:1px solid #e2e8f0; border-radius:10px;">
+                                    <option value="strict">Strict - answers must match</option>
+                                    <option value="balanced" selected>Balanced - accept equivalent answers</option>
+                                    <option value="flexible">Flexible - rough guide only</option>
+                                </select>
+                            </div>
+                            <small class="input-hint" id="scriptCurrent"></small>
                         </div>
 
                         <!-- Attachment -->
@@ -236,7 +256,7 @@
                             <label>Attachment (Optional)</label>
                             <div class="upload-area" id="uploadArea">
                                 <i class="fa-solid fa-cloud-upload-alt"></i>
-                                <p>Drag & drop files or <span>browse</span></p>
+                                <p>Drag &amp; drop files or <span>browse</span></p>
                                 <small>PDF, DOC, DOCX, ZIP up to 50MB</small>
                                 <input type="file" id="fileInput" class="file-input" multiple>
                             </div>
