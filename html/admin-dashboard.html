@@ -1,12 +1,14 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-<head>    <script src="api-config.js"></script>
+<head>
+    <script src="api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FUTO Admin · Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="sidebar-fit.css">
 </head>
 <body>
     <div class="ad-app">
@@ -23,7 +25,7 @@
 
             <div class="ad-side-profile">
                 <div class="ad-avatar">
-                    <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=50" alt="admin">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=70" alt="admin">
                 </div>
                 <div class="ad-profile-text">
                     <h4 id="adAdminName">Administrator</h4>
@@ -53,6 +55,10 @@
                     <i class="fa-solid fa-user-clock"></i>
                     <span>Applications</span>
                     <span id="adPendingCount" class="ad-badge-nav" style="background:#ef4444">0</span>
+                </a>
+                <a href="admin-profile.html" class="ad-nav-link">
+                    <i class="fa-solid fa-user"></i>
+                    <span>My Profile</span>
                 </a>
                 <a href="admin-settings.html" class="ad-nav-link" data-page="settings">
                     <i class="fa-solid fa-gear"></i>
@@ -225,6 +231,7 @@
 
     <div class="ad-toast-wrap" id="adToastContainer"></div>
 
+    <script src="admin-avatar.js"></script>
     <script src="admin-dashboard.js"></script>
 </body>
 </html>

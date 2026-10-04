@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="api-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Admin · My Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="admin-profile.css">
+    <link rel="stylesheet" href="sidebar-fit.css">
+</head>
+<body>
+    <div class="ad-app">
+        <aside class="ad-side" id="adSidebar">
+            <div class="ad-side-head">
+                <div class="ad-brand">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO Admin</span>
+                </div>
+                <button class="ad-side-toggle" id="adSidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="ad-side-profile">
+                <div class="ad-avatar">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=70" alt="admin">
+                </div>
+                <div class="ad-profile-text">
+                    <h4 id="adAdminName">Administrator</h4>
+                    <p>System Admin</p>
+                    <span class="ad-badge-level">Admin</span>
+                </div>
+            </div>
+
+            <nav class="ad-side-nav">
+                <a href="admin-dashboard.html" class="ad-nav-link" data-go="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="admin-dashboard.html" class="ad-nav-link" data-go="courses">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Courses</span>
+                </a>
+                <a href="admin-dashboard.html" class="ad-nav-link" data-go="lecturers">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Lecturers</span>
+                </a>
+                <a href="admin-dashboard.html" class="ad-nav-link" data-go="students">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="admin-applications.html" class="ad-nav-link">
+                    <i class="fa-solid fa-user-clock"></i>
+                    <span>Applications</span>
+                </a>
+                <a href="admin-profile.html" class="ad-nav-link ad-nav-active">
+                    <i class="fa-solid fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="admin-settings.html" class="ad-nav-link">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="ad-side-foot">
+                <div class="ad-semester-box">
+                    <i class="fa-regular fa-calendar"></i>
+                    <div>
+                        <small>Current Session</small>
+                        <p id="adSidebarSession">2025-2026 Harmattan</p>
+                    </div>
+                </div>
+                <a href="#" id="adLogoutLink" class="ad-logout">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="ad-main">
+            <header class="ad-top">
+                <div class="ad-top-left">
+                    <button class="ad-burger" id="adMenuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2>My Profile</h2>
+                </div>
+                <div class="ad-top-right">
+                    <div class="ad-theme-toggle" id="adThemeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    <div class="ad-header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </div>
+                </div>
+            </header>
+
+            <div class="ad-content">
+                <div class="pf-grid">
+
+                    <!-- Left: photo + quick facts -->
+                    <aside class="ad-card pf-side-card">
+                        <div class="pf-avatar-wrap" id="pfAvatarWrap">
+                            <img id="pfAvatar" src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=200" alt="Profile photo">
+                            <button type="button" class="pf-avatar-edit" id="pfAvatarBtn" title="Change photo">
+                                <i class="fa-solid fa-camera"></i>
+                            </button>
+                            <input type="file" id="pfAvatarInput" accept="image/png,image/jpeg,image/webp" hidden>
+                        </div>
+
+                        <h3 id="pfDisplayName">Administrator</h3>
+                        <p class="pf-role">System Administrator</p>
+
+                        <div class="pf-photo-actions">
+                            <button type="button" class="ad-btn-primary" id="pfUploadBtn">
+                                <i class="fa-solid fa-upload"></i> Change photo
+                            </button>
+                            <button type="button" class="ad-btn-secondary" id="pfRemoveBtn">Remove</button>
+                        </div>
+                        <small class="pf-hint">JPG, PNG or WebP. Large photos are resized automatically.</small>
+
+                        <ul class="pf-facts">
+                            <li><i class="fa-regular fa-envelope"></i><span id="pfFactEmail">-</span></li>
+                            <li><i class="fa-solid fa-building-columns"></i><span id="pfFactDept">-</span></li>
+                            <li><i class="fa-regular fa-calendar-check"></i><span id="pfFactSince">-</span></li>
+                            <li><i class="fa-solid fa-shield-halved"></i><span id="pfFactStatus">-</span></li>
+                        </ul>
+                    </aside>
+
+                    <!-- Right: forms -->
+                    <section class="pf-main">
+
+                        <div class="ad-card">
+                            <div class="ad-card-head">
+                                <h3><i class="fa-solid fa-id-card"></i> Personal Information</h3>
+                            </div>
+                            <form id="pfProfileForm" class="pf-body" novalidate>
+                                <div class="ad-form-row">
+                                    <div class="ad-form-group">
+                                        <label for="pfFullName">Full Name <span class="ad-required">*</span></label>
+                                        <input type="text" id="pfFullName" maxlength="100" required>
+                                    </div>
+                                    <div class="ad-form-group">
+                                        <label for="pfEmail">Email (login)</label>
+                                        <input type="email" id="pfEmail" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="ad-form-row">
+                                    <div class="ad-form-group">
+                                        <label for="pfPhone">Phone</label>
+                                        <input type="tel" id="pfPhone" maxlength="20" placeholder="e.g., 08012345678">
+                                    </div>
+                                    <div class="ad-form-group">
+                                        <label for="pfAltEmail">Alternative Email</label>
+                                        <input type="email" id="pfAltEmail" maxlength="120" placeholder="Optional">
+                                    </div>
+                                </div>
+
+                                <div class="ad-form-row">
+                                    <div class="ad-form-group">
+                                        <label for="pfDepartment">Department</label>
+                                        <input type="text" id="pfDepartment" maxlength="100">
+                                    </div>
+                                    <div class="ad-form-group">
+                                        <label for="pfFaculty">Faculty</label>
+                                        <input type="text" id="pfFaculty" maxlength="100">
+                                    </div>
+                                </div>
+
+                                <div class="ad-form-row pf-row-3">
+                                    <div class="ad-form-group">
+                                        <label for="pfGender">Gender</label>
+                                        <select id="pfGender">
+                                            <option value="">Prefer not to say</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                    </div>
+                                    <div class="ad-form-group">
+                                        <label for="pfDob">Date of Birth</label>
+                                        <input type="date" id="pfDob">
+                                    </div>
+                                    <div class="ad-form-group">
+                                        <label for="pfNationality">Nationality</label>
+                                        <input type="text" id="pfNationality" maxlength="60">
+                                    </div>
+                                </div>
+
+                                <div class="ad-form-group">
+                                    <label for="pfBio">About</label>
+                                    <textarea id="pfBio" rows="4" maxlength="500" placeholder="A short note about yourself (optional)"></textarea>
+                                    <small class="pf-counter"><span id="pfBioCount">0</span>/500</small>
+                                </div>
+
+                                <div class="pf-form-actions">
+                                    <button type="button" class="ad-btn-secondary" id="pfResetBtn">Reset</button>
+                                    <button type="submit" class="ad-btn-primary" id="pfSaveBtn">
+                                        <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="ad-card">
+                            <div class="ad-card-head">
+                                <h3><i class="fa-solid fa-lock"></i> Change Password</h3>
+                            </div>
+                            <form id="pfPasswordForm" class="pf-body" novalidate>
+                                <div class="ad-form-group">
+                                    <label for="pfCurrentPassword">Current Password <span class="ad-required">*</span></label>
+                                    <div class="ad-password-wrap">
+                                        <input type="password" id="pfCurrentPassword" autocomplete="current-password">
+                                        <button type="button" class="ad-password-toggle" data-target="pfCurrentPassword"><i class="fa-regular fa-eye"></i></button>
+                                    </div>
+                                </div>
+                                <div class="ad-form-row">
+                                    <div class="ad-form-group">
+                                        <label for="pfNewPassword">New Password <span class="ad-required">*</span></label>
+                                        <div class="ad-password-wrap">
+                                            <input type="password" id="pfNewPassword" autocomplete="new-password">
+                                            <button type="button" class="ad-password-toggle" data-target="pfNewPassword"><i class="fa-regular fa-eye"></i></button>
+                                        </div>
+                                        <small>At least 8 characters with uppercase, lowercase and a number</small>
+                                    </div>
+                                    <div class="ad-form-group">
+                                        <label for="pfConfirmPassword">Confirm New Password <span class="ad-required">*</span></label>
+                                        <div class="ad-password-wrap">
+                                            <input type="password" id="pfConfirmPassword" autocomplete="new-password">
+                                            <button type="button" class="ad-password-toggle" data-target="pfConfirmPassword"><i class="fa-regular fa-eye"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pf-form-actions">
+                                    <button type="submit" class="ad-btn-primary" id="pfPasswordBtn">
+                                        <i class="fa-solid fa-key"></i> Update Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="ad-toast-wrap" id="adToastContainer"></div>
+
+    <script src="admin-avatar.js"></script>
+    <script src="admin-profile.js"></script>
+</body>
+</html>

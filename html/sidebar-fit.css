@@ -1,0 +1,124 @@
+/* sidebar-fit.css
+   Load this AFTER each page's own stylesheet.
+   Makes every sidebar (admin, lecturer, student) fit the window without a scrollbar
+   by tightening spacing as the window gets shorter. Normal-height screens are untouched. */
+
+/* ---------- Never show a scrollbar on the nav ---------- */
+/* (it can still scroll with the wheel or touch as a last resort on tiny windows) */
+:is(.ad-side-nav, .ld-side-nav, .sidebar-nav, .as-side-nav) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+:is(.ad-side-nav, .ld-side-nav, .sidebar-nav, .as-side-nav)::-webkit-scrollbar {
+    display: none;
+    width: 0;
+}
+
+/* ---------- Short windows (about 860px tall or less) ---------- */
+@media (max-height: 860px) {
+    :is(.ad-side-head, .ld-side-head, .sidebar-header, .as-side-head) {
+        padding: 0.7rem 1.1rem;
+    }
+
+    /* profile block */
+    :is(.ad-side-profile, .ld-side-profile, .sidebar-profile, .as-side-profile) {
+        padding: 0.8rem 1rem;
+    }
+    :is(.ad-avatar, .ld-avatar, .profile-image, .as-avatar) img {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 0.4rem;
+    }
+    :is(.ad-profile-text, .ld-profile-text, .profile-info, .as-profile-text) h4 {
+        font-size: 0.9rem;
+        margin-bottom: 0.1rem;
+    }
+    :is(.ad-profile-text, .ld-profile-text, .profile-info, .as-profile-text) p {
+        font-size: 0.7rem;
+        margin-bottom: 0.25rem;
+    }
+    :is(.ad-badge-level, .ld-badge-level, .badge-level, .as-badge-level) {
+        padding: 0.1rem 0.55rem;
+        font-size: 0.65rem;
+    }
+
+    /* nav */
+    :is(.ad-side-nav, .ld-side-nav, .sidebar-nav, .as-side-nav) {
+        padding: 0.4rem 0.6rem;
+        gap: 0.15rem;
+    }
+    :is(.ad-nav-link, .ld-nav-link, .nav-item, .as-nav-link) {
+        padding: 0.45rem 0.85rem;
+        min-height: 38px;
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+    :is(.ad-nav-link, .ld-nav-link, .nav-item, .as-nav-link) i {
+        font-size: 0.95rem;
+    }
+    /* keep icon-only (collapsed) mode compact too */
+    :is(.ad-side.ad-collapsed, .ld-side.ld-collapsed, .sidebar.collapsed, .as-side.as-collapsed)
+    :is(.ad-nav-link, .ld-nav-link, .nav-item, .as-nav-link) {
+        padding: 0.55rem;
+    }
+
+    /* footer: session box + logout */
+    :is(.ad-side-foot, .ld-side-foot, .sidebar-footer, .as-side-foot) {
+        padding: 0.6rem 1rem 0.8rem;
+    }
+    :is(.ad-semester-box, .ld-semester-box, .semester-info, .as-semester-box) {
+        padding: 0.5rem 0.7rem;
+        margin-bottom: 0.5rem;
+    }
+    :is(.ad-logout, .ld-logout, .logout-link, .as-logout) {
+        padding: 0.5rem 0.85rem;
+    }
+}
+
+/* ---------- Very short windows (about 680px tall or less) ---------- */
+@media (max-height: 680px) {
+    :is(.ad-side-profile, .ld-side-profile, .sidebar-profile, .as-side-profile) {
+        padding: 0.5rem 0.8rem;
+    }
+    :is(.ad-avatar, .ld-avatar, .profile-image, .as-avatar) img {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 0.25rem;
+    }
+    /* hide the role line under the name */
+    :is(.ad-profile-text, .ld-profile-text, .profile-info, .as-profile-text) p {
+        display: none;
+    }
+    :is(.ad-nav-link, .ld-nav-link, .nav-item, .as-nav-link) {
+        padding: 0.35rem 0.8rem;
+        min-height: 34px;
+        font-size: 0.85rem;
+    }
+    :is(.ad-semester-box, .ld-semester-box, .semester-info, .as-semester-box) small {
+        display: none;
+    }
+    :is(.ad-semester-box, .ld-semester-box, .semester-info, .as-semester-box) {
+        padding: 0.4rem 0.6rem;
+    }
+    :is(.ad-logout, .ld-logout, .logout-link, .as-logout) {
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+/* ---------- Tiny windows (about 560px tall or less) ---------- */
+@media (max-height: 560px) {
+    :is(.ad-profile-text, .ld-profile-text, .profile-info, .as-profile-text) {
+        display: none;
+    }
+    :is(.ad-semester-box, .ld-semester-box, .semester-info, .as-semester-box) {
+        display: none;
+    }
+    :is(.ad-avatar, .ld-avatar, .profile-image, .as-avatar) img {
+        width: 36px;
+        height: 36px;
+        margin-bottom: 0;
+    }
+    :is(.ad-nav-link, .ld-nav-link, .nav-item, .as-nav-link) {
+        min-height: 32px;
+    }
+}
