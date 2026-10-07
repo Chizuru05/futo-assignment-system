@@ -141,6 +141,11 @@ async function handleLogin(e) {
     const originalText = loginBtn.innerHTML;
     loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
 
+    const resetButton = () => {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = originalText;
+    };
+
     try {
         const response = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
@@ -151,17 +156,25 @@ async function handleLogin(e) {
         const data = await response.json();
 
         if (data.success) {
+            const role = data.user.role;
+
             // Block admin from logging in through this page
-            if (data.user.role === 'admin') {
+            if (role === 'admin') {
                 showToast('Admins must use the admin login portal.', 'danger');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = originalText;
+                resetButton();
                 return;
             }
 
+            // The selected tab must match the account's real role
+            if (role !== currentRole) {
+                showToast(`This is a ${role} account. Switch to the ${role === 'student' ? 'Student' : 'Lecturer'} tab to log in.`, 'danger', 4500);
+                resetButton();
+                return;
+            }
+
+            // Wipe any previous session (student/lecturer/admin) before saving the new one
             localStorage.clear();
 
-            const role = data.user.role;
             localStorage.setItem(`${role}_token`, data.token);
             localStorage.setItem('token', data.token);
             localStorage.setItem('userRole', role);
@@ -191,27 +204,13 @@ async function handleLogin(e) {
 
         } else {
             showToast(data.message || 'Login failed. Please check your credentials.', 'danger');
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = originalText;
+            resetButton();
         }
 
     } catch (error) {
         console.error('Login error:', error);
         showToast('Cannot connect to server. Make sure backend is running.', 'danger');
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = originalText;
-    }
-}
-
-function checkAlreadyLoggedIn() {
-    const userRole = localStorage.getItem('userRole');
-    if (userRole) {
-        const token = localStorage.getItem(`${userRole}_token`) || localStorage.getItem('token');
-        if (token) {
-            if (userRole === 'student') window.location.href = 'student-dashboard.html';
-            else if (userRole === 'lecturer') window.location.href = 'lecturer-dashboard.html';
-            else if (userRole === 'admin') window.location.href = 'admin-dashboard.html';
-        }
+        resetButton();
     }
 }
 
@@ -228,8 +227,8 @@ function loadRememberedCredentials() {
 
 if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
+// No auto-redirect here: the login page always asks for credentials.
 document.addEventListener('DOMContentLoaded', () => {
-    checkAlreadyLoggedIn();
     updateIdentifierField();
     loadRememberedCredentials();
 });

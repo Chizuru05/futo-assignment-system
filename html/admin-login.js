@@ -42,6 +42,8 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.remove(), 3000);
 }
 
+const LOGIN_BTN_HTML = '<span>Login as Admin</span> <i class="fa-regular fa-paper-plane"></i>';
+
 // Handle Login
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -84,11 +86,11 @@ loginForm.addEventListener('submit', async (e) => {
             if (data.user.role !== 'admin') {
                 showToast('This account is not an admin. Please use the correct login page.', 'danger');
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = '<span>Login as Admin</span> <i class="fa-regular fa-paper-plane"></i>';
+                loginBtn.innerHTML = LOGIN_BTN_HTML;
                 return;
             }
 
-            // Clear and store session
+            // Clear any previous session and store the admin session
             localStorage.clear();
             localStorage.setItem('admin_token', data.token);
             localStorage.setItem('token', data.token);
@@ -109,17 +111,17 @@ loginForm.addEventListener('submit', async (e) => {
         } else {
             showToast(data.message || 'Login failed. Please check your credentials.', 'danger');
             loginBtn.disabled = false;
-            loginBtn.innerHTML = '<span>Login as Admin</span> <i class="fa-regular fa-paper-plane"></i>';
+            loginBtn.innerHTML = LOGIN_BTN_HTML;
         }
     } catch (error) {
         console.error('Login error:', error);
         showToast('Cannot connect to server. Please try again.', 'danger');
         loginBtn.disabled = false;
-        loginBtn.innerHTML = '<span>Login as Admin</span> <i class="fa-regular fa-paper-plane"></i>';
+        loginBtn.innerHTML = LOGIN_BTN_HTML;
     }
 });
 
-// Load remembered credentials
+// Load remembered credentials (pre-fills the email only; the password is always required)
 const rememberedIdentifier = localStorage.getItem('rememberedIdentifier');
 const rememberedRole = localStorage.getItem('rememberedRole');
 if (rememberedIdentifier && rememberedRole === 'admin') {
@@ -127,11 +129,4 @@ if (rememberedIdentifier && rememberedRole === 'admin') {
     rememberMe.checked = true;
 }
 
-// Check if already logged in
-const userRole = localStorage.getItem('userRole');
-if (userRole === 'admin') {
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
-    if (token) {
-        window.location.href = 'admin-dashboard.html';
-    }
-}
+// No auto-redirect here: the admin login page always asks for credentials.

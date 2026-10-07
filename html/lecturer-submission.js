@@ -686,11 +686,25 @@ function showAISummary(submissionId, studentName, assignmentTitle, aiResult) {
     const modalBody = document.getElementById('aiSummaryModalBody');
     if (!modal || !modalBody) return;
 
+    // Max marks = sum of the rubric maximums the lecturer set (what the scores are really out of)
+    const maxScores = aiResult.maxScores || {};
+    let maxTotal = Object.values(maxScores).reduce((sum, m) => sum + (Number(m) || 0), 0);
+
+    // Fallback: use the assignment's total marks if maxScores is missing
+    if (maxTotal <= 0) {
+        const sub = submissionsData.find(s => s._id === submissionId);
+        const assignment = assignmentsData.find(a => a._id === sub?.assignmentId?._id);
+        maxTotal = Number(assignment?.totalMarks) || 100;
+    }
+
+    const totalScore = Number(aiResult.totalScore) || 0;
+    const percentage = maxTotal > 0 ? Math.round((totalScore / maxTotal) * 100) : 0;
+
     let rubricHtml = '';
     if (aiResult.scores && aiResult.criterionFeedback) {
         rubricHtml = '<table class="rubric-summary-table"><thead><tr><th>Criterion</th><th>Score</th><th>Max</th><th>Justification</th></tr></thead><tbody>';
         for (const [criterion, score] of Object.entries(aiResult.scores)) {
-            const max = aiResult.maxScores?.[criterion] || '?';
+            const max = maxScores[criterion] ?? '?';
             rubricHtml += `<tr><td>${escapeHtml(criterion)}</td><td><span class="score-badge">${score}</span></td><td>/${max}</td><td>${escapeHtml(aiResult.criterionFeedback?.[criterion] || '')}</td></tr>`;
         }
         rubricHtml += '</tbody></table>';
@@ -703,11 +717,11 @@ function showAISummary(submissionId, studentName, assignmentTitle, aiResult) {
         </div>
         <div class="ai-score-section">
             <div class="total-score-circle">
-                <span class="score">${aiResult.totalScore || 0}</span>
-                <span class="total">/100</span>
-                <span class="percentage">${Math.round((aiResult.totalScore || 0))}%</span>
+                <span class="score">${totalScore}</span>
+                <span class="total">/${maxTotal}</span>
+                <span class="percentage">${percentage}%</span>
             </div>
-            <div class="grade-letter">${getLetterGrade(aiResult.totalScore || 0)}</div>
+            <div class="grade-letter">${getLetterGrade(percentage)}</div>
         </div>
         <div class="ai-rubric-section">
             <h4>Rubric Breakdown</h4>
