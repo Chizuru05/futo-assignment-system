@@ -40,6 +40,7 @@ app.use('/api/ai-grade', aiGradingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/admin-profile', require('./backend/routes/adminProfile.routes'));
+app.use('/api/onboard', require('./backend/routes/studentOnboarding.routes'));
 
 // Root route
 app.get('/', (req, res) => {

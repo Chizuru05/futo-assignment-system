@@ -1,7 +1,30 @@
-﻿// login.js
+﻿// login.js - shared by login.html (student) and lecturer-login.html (lecturer)
+const ROLE = document.body.dataset.role; // 'student' or 'lecturer'
 
-const studentRoleBtn = document.getElementById('studentRoleBtn');
-const lecturerRoleBtn = document.getElementById('lecturerRoleBtn');
+const ROLE_SETTINGS = {
+    student: {
+        label: 'Matric Number / Email',
+        hint: 'Enter your matric number (e.g., 20211263362) or email',
+        placeholder: '20211263362 or student@gmail.com',
+        button: 'Login as Student',
+        dashboard: 'student-dashboard.html',
+        name: 'Student',
+        loginPage: 'login.html'
+    },
+    lecturer: {
+        label: 'Staff ID / Email',
+        hint: 'Enter your staff ID (e.g., STAFF/2024/001) or email',
+        placeholder: 'STAFF/2024/001 or lecturer@gmail.com',
+        button: 'Login as Lecturer',
+        dashboard: 'lecturer-dashboard.html',
+        name: 'Lecturer',
+        loginPage: 'lecturer-login.html'
+    }
+};
+
+const SETTINGS = ROLE_SETTINGS[ROLE];
+const REMEMBER_KEY = 'remembered_' + ROLE;
+
 const identifierInput = document.getElementById('identifier');
 const identifierLabel = document.getElementById('identifierLabel');
 const identifierHint = document.getElementById('identifierHint');
@@ -12,39 +35,11 @@ const passwordToggle = document.getElementById('passwordToggle');
 const passwordInput = document.getElementById('password');
 const rememberMeCheckbox = document.getElementById('rememberMe');
 
-let currentRole = 'student';
-
-function updateIdentifierField() {
-    if (currentRole === 'student') {
-        identifierLabel.textContent = 'Matric Number / Email';
-        identifierHint.textContent = 'Enter your matric number (e.g., 20211263362) or email';
-        identifierInput.placeholder = '20211263362 or student@gmail.com';
-        loginBtnText.textContent = 'Login as Student';
-    } else if (currentRole === 'lecturer') {
-        identifierLabel.textContent = 'Staff ID / Email';
-        identifierHint.textContent = 'Enter your staff ID (e.g., STAFF/2024/001) or email';
-        identifierInput.placeholder = 'STAFF/2024/001 or lecturer@gmail.com';
-        loginBtnText.textContent = 'Login as Lecturer';
-    }
-    clearErrors();
-}
-
-if (studentRoleBtn) {
-    studentRoleBtn.addEventListener('click', () => {
-        studentRoleBtn.classList.add('active');
-        lecturerRoleBtn.classList.remove('active');
-        currentRole = 'student';
-        updateIdentifierField();
-    });
-}
-
-if (lecturerRoleBtn) {
-    lecturerRoleBtn.addEventListener('click', () => {
-        lecturerRoleBtn.classList.add('active');
-        studentRoleBtn.classList.remove('active');
-        currentRole = 'lecturer';
-        updateIdentifierField();
-    });
+function setupLabels() {
+    identifierLabel.textContent = SETTINGS.label;
+    identifierHint.textContent = SETTINGS.hint;
+    identifierInput.placeholder = SETTINGS.placeholder;
+    loginBtnText.textContent = SETTINGS.button;
 }
 
 if (passwordToggle && passwordInput) {
@@ -65,8 +60,8 @@ function clearErrors() {
     const passwordError = document.getElementById('passwordError');
     if (identifierError) identifierError.textContent = '';
     if (passwordError) passwordError.textContent = '';
-    if (identifierInput) identifierInput.classList.remove('error');
-    if (passwordInput) passwordInput.classList.remove('error');
+    identifierInput.classList.remove('error');
+    passwordInput.classList.remove('error');
 }
 
 function showInputError(input, errorElementId, message) {
@@ -77,27 +72,19 @@ function showInputError(input, errorElementId, message) {
 
 function validateForm() {
     let isValid = true;
-    const identifier = identifierInput?.value.trim();
-    const password = passwordInput?.value;
+    const identifier = identifierInput.value.trim();
+    const password = passwordInput.value;
+
+    clearErrors();
 
     if (!identifier) {
-        showInputError(identifierInput, 'identifierError', `${identifierLabel.textContent} is required`);
+        showInputError(identifierInput, 'identifierError', `${SETTINGS.label} is required`);
         isValid = false;
-    } else {
-        if (identifierInput) identifierInput.classList.remove('error');
-        const el = document.getElementById('identifierError');
-        if (el) el.textContent = '';
     }
-
     if (!password) {
         showInputError(passwordInput, 'passwordError', 'Password is required');
         isValid = false;
-    } else {
-        if (passwordInput) passwordInput.classList.remove('error');
-        const el = document.getElementById('passwordError');
-        if (el) el.textContent = '';
     }
-
     return isValid;
 }
 
@@ -155,57 +142,63 @@ async function handleLogin(e) {
 
         const data = await response.json();
 
-        if (data.success) {
-            const role = data.user.role;
-
-            // Block admin from logging in through this page
-            if (role === 'admin') {
-                showToast('Admins must use the admin login portal.', 'danger');
-                resetButton();
-                return;
-            }
-
-            // The selected tab must match the account's real role
-            if (role !== currentRole) {
-                showToast(`This is a ${role} account. Switch to the ${role === 'student' ? 'Student' : 'Lecturer'} tab to log in.`, 'danger', 4500);
-                resetButton();
-                return;
-            }
-
-            // Wipe any previous session (student/lecturer/admin) before saving the new one
-            localStorage.clear();
-
-            localStorage.setItem(`${role}_token`, data.token);
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('userRole', role);
-            localStorage.setItem('userId', data.user._id);
-            localStorage.setItem('fullName', data.user.fullName);
-            localStorage.setItem('email', data.user.email);
-
-            if (data.user.matricNumber) localStorage.setItem('matricNumber', data.user.matricNumber);
-            if (data.user.staffId) localStorage.setItem('staffId', data.user.staffId);
-            if (data.user.level) localStorage.setItem('level', data.user.level);
-            if (data.user.rank) localStorage.setItem('rank', data.user.rank);
-
-            localStorage.setItem('currentSession', '2025-2026');
-            localStorage.setItem('currentSemester', 'Harmattan');
-
-            if (rememberMe) {
-                localStorage.setItem('rememberedIdentifier', identifier);
-                localStorage.setItem('rememberedRole', currentRole);
-            }
-
-            showToast(`Welcome back, ${data.user.fullName}!`, 'success');
-
-            setTimeout(() => {
-                if (role === 'student') window.location.href = 'student-dashboard.html';
-                else if (role === 'lecturer') window.location.href = 'lecturer-dashboard.html';
-            }, 1000);
-
-        } else {
+        if (!data.success) {
             showToast(data.message || 'Login failed. Please check your credentials.', 'danger');
             resetButton();
+            return;
         }
+
+        const role = data.user.role;
+
+        if (role === 'admin') {
+            showToast('Admins must use the admin login portal.', 'danger', 4500);
+            resetButton();
+            return;
+        }
+
+        // The account must belong to the page the user is on
+        if (role !== ROLE) {
+            const other = ROLE_SETTINGS[role];
+            const otherName = other ? other.name : role;
+            const otherPage = other ? other.loginPage : 'index.html';
+            showToast(`This is a ${otherName} account. Please use the ${otherName} login page.`, 'danger', 4500);
+            resetButton();
+            setTimeout(() => { window.location.href = otherPage; }, 2000);
+            return;
+        }
+
+        // Keep the "remember me" entries and theme preference across the wipe below
+        const keep = {};
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('remembered_') || key === 'futoTheme') keep[key] = localStorage.getItem(key);
+        });
+
+        localStorage.clear();
+        Object.entries(keep).forEach(([k, v]) => localStorage.setItem(k, v));
+
+        localStorage.setItem(`${role}_token`, data.token);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userId', data.user._id);
+        localStorage.setItem('fullName', data.user.fullName);
+        localStorage.setItem('email', data.user.email);
+
+        if (data.user.matricNumber) localStorage.setItem('matricNumber', data.user.matricNumber);
+        if (data.user.staffId) localStorage.setItem('staffId', data.user.staffId);
+        if (data.user.level) localStorage.setItem('level', data.user.level);
+        if (data.user.rank) localStorage.setItem('rank', data.user.rank);
+
+        localStorage.setItem('currentSession', '2025-2026');
+        localStorage.setItem('currentSemester', 'Harmattan');
+
+        if (rememberMe) {
+            localStorage.setItem(REMEMBER_KEY, identifier);
+        } else {
+            localStorage.removeItem(REMEMBER_KEY);
+        }
+
+        showToast(`Welcome back, ${data.user.fullName}!`, 'success');
+        setTimeout(() => { window.location.href = SETTINGS.dashboard; }, 1000);
 
     } catch (error) {
         console.error('Login error:', error);
@@ -215,21 +208,17 @@ async function handleLogin(e) {
 }
 
 function loadRememberedCredentials() {
-    const rememberedIdentifier = localStorage.getItem('rememberedIdentifier');
-    const rememberedRole = localStorage.getItem('rememberedRole');
-    if (rememberedIdentifier && rememberedRole) {
-        identifierInput.value = rememberedIdentifier;
-        if (rememberedRole === 'student' && studentRoleBtn) studentRoleBtn.click();
-        else if (rememberedRole === 'lecturer' && lecturerRoleBtn) lecturerRoleBtn.click();
-        if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
+    const remembered = localStorage.getItem(REMEMBER_KEY);
+    if (remembered) {
+        identifierInput.value = remembered;
+        rememberMeCheckbox.checked = true;
     }
 }
 
 if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
-// No auto-redirect here: the login page always asks for credentials.
 document.addEventListener('DOMContentLoaded', () => {
-    updateIdentifierField();
+    setupLabels();
     loadRememberedCredentials();
 });
 

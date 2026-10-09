@@ -221,27 +221,48 @@ exports.getStudentAssignments = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 assignments: [],
-                message: 'No courses enrolled for current session/semester'
+                count: 0,
+                message: 'No courses enrolled for current session/semester',
+                activeSession,
+                activeSemester
             });
         }
 
-        // Get assignments ONLY for active session/semester (never include the marking script)
+        // Get assignments for active session/semester.
+        // No .select() here: the schema already hides markingScheme.text,
+        // and we remove the rest of markingScheme below.
         const assignments = await Assignment.find({
             course: { $in: courseCodes },
             session: activeSession,
             semester: activeSemester
-        }).select('-markingScheme').sort({ dueDateISO: 1 });
+        }).sort({ dueDateISO: 1 });
 
         console.log(`Found ${assignments.length} assignments for student (${activeSession} ${activeSemester})`);
 
-        // Get student's submissions
-        const submissions = await Submission.find({ studentId: studentId });
-        const submittedIds = new Set(submissions.map(s => s.assignmentId.toString()));
+        // Get this student's submissions for the ACTIVE session/semester only
+        const submissions = await Submission.find({
+            studentId: studentId,
+            session: activeSession,
+            semester: activeSemester
+        }).select('assignmentId');
 
-        const assignmentsWithStatus = assignments.map(assignment => ({
-            ...assignment.toObject(),
-            submitted: submittedIds.has(assignment._id.toString())
-        }));
+        // Skip any submission with no assignmentId, so one bad record can't crash the request
+        const submittedIds = new Set(
+            submissions
+                .filter(s => s.assignmentId)
+                .map(s => s.assignmentId.toString())
+        );
+
+        // Build the response and remove the marking script info so students never see it
+        const assignmentsWithStatus = assignments.map(assignment => {
+            const obj = assignment.toObject();
+            delete obj.markingScheme;
+
+            return {
+                ...obj,
+                submitted: submittedIds.has(assignment._id.toString())
+            };
+        });
 
         res.status(200).json({
             success: true,

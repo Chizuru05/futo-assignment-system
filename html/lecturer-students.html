@@ -1,12 +1,11 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-<head>    <script src="api-config.js"></script>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUTO � Students</title>
-    <!-- Font Awesome 6 -->
+    <script src="api-config.js"></script>
+    <title>FUTO · Students</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="lecturer-students.css">
 </head>
@@ -23,17 +22,17 @@
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             </div>
-            
+
             <div class="sidebar-profile">
                 <div class="profile-image">
                     <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=50" alt="profile">
                 </div>
                 <div class="profile-info">
                     <h4 id="lecturerName">Dr. Ifeanyi Okonkwo</h4>
-                    <p>Senior Lecturer � CS Dept</p>
+                    <p>Senior Lecturer &middot; CS Dept</p>
                 </div>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <a href="lecturer-dashboard.html" class="nav-item">
                     <i class="fa-solid fa-chart-pie"></i>
@@ -64,7 +63,7 @@
                     <span>Settings</span>
                 </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <a href="#" class="logout-link" id="logoutBtn">
                     <i class="fa-solid fa-sign-out-alt"></i>
@@ -83,13 +82,13 @@
                     </button>
                     <h2>Students</h2>
                 </div>
-                
+
                 <div class="header-right">
                     <div class="theme-toggle" id="themeToggle">
                         <i class="fa-regular fa-sun"></i>
                         <i class="fa-regular fa-moon"></i>
                     </div>
-                    
+
                     <div class="header-profile">
                         <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=40" alt="profile">
                     </div>
@@ -109,7 +108,7 @@
                 <div class="page-header">
                     <div>
                         <h1 class="page-title">Students</h1>
-                        <p class="page-subtitle">View and manage students across your courses</p>
+                        <p class="page-subtitle">Students grouped by level. Filter by course to see who is enrolled in it.</p>
                     </div>
                     <div class="header-actions">
                         <span class="current-semester" id="semesterDisplay">
@@ -126,7 +125,7 @@
                         </div>
                         <div class="stat-content">
                             <div class="stat-value" id="totalStudents">0</div>
-                            <div class="stat-label">Total Students</div>
+                            <div class="stat-label">Students</div>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -152,26 +151,24 @@
                 <!-- Filter Bar -->
                 <div class="filter-bar">
                     <div class="filter-group">
-                        <i class="fa-solid fa-filter"></i>
+                        <i class="fa-solid fa-layer-group"></i>
+                        <select id="levelFilter">
+                            <option value="all">All Levels</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <i class="fa-solid fa-book"></i>
                         <select id="courseFilter">
                             <option value="all">All Courses</option>
                         </select>
                     </div>
-                    
-                    <div class="filter-group">
-                        <i class="fa-solid fa-arrow-up-wide-short"></i>
-                        <select id="sortFilter">
-                            <option value="name">Sort by Name</option>
-                            <option value="matric">Sort by Matric</option>
-                            <option value="submissions">Sort by Submissions</option>
-                        </select>
-                    </div>
-                    
+
                     <div class="search-box">
                         <i class="fa-solid fa-search"></i>
-                        <input type="text" placeholder="Search students..." id="searchInput">
+                        <input type="text" placeholder="Search by name, matric or email..." id="searchInput">
                     </div>
-                    
+
                     <button class="btn-refresh" id="refreshBtn">
                         <i class="fa-solid fa-rotate-right"></i> Refresh
                     </button>
@@ -187,23 +184,17 @@
                             <tr>
                                 <th>Student</th>
                                 <th>Matric Number</th>
-                                <th>Course</th>
-                                <th>Level</th>
+                                <th>Courses</th>
                                 <th>Submissions</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody">
                             <tr>
-                                <td colspan="7" class="text-center">Loading student data...</td>
+                                <td colspan="5" class="text-center">Loading student data...</td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="pagination" id="pagination">
-                    <!-- Pagination will be dynamically generated -->
                 </div>
             </div>
         </main>
@@ -216,14 +207,9 @@
                 <h3 id="studentModalTitle">Student Details</h3>
                 <button class="modal-close" onclick="closeStudentModal()">&times;</button>
             </div>
-            <div class="modal-body" id="studentModalBody">
-                <!-- Dynamic content -->
-            </div>
+            <div class="modal-body" id="studentModalBody"></div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeStudentModal()">Close</button>
-                <button class="btn-primary" id="messageStudentBtn">
-                    <i class="fa-regular fa-message"></i> Send Message
-                </button>
             </div>
         </div>
     </div>

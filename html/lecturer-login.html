@@ -1,15 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <script src="api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUTO · Student Login</title>
+    <title>FUTO · Lecturer Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="login.css">
 </head>
-<body data-role="student">
+<body data-role="lecturer">
     <div class="login-container">
         <div class="login-panel">
             <div class="login-wrapper">
@@ -23,7 +23,7 @@
                         <i class="fa-solid fa-graduation-cap"></i>
                         <span>FUTO</span>
                     </div>
-                    <h2>Student Login</h2>
+                    <h2>Lecturer Login</h2>
                     <p>Department of Information Technology</p>
                 </div>
 
@@ -31,11 +31,11 @@
                     <div class="input-field">
                         <label for="identifier">
                             <i class="fa-regular fa-id-card"></i>
-                            <span id="identifierLabel">Matric Number / Email</span>
+                            <span id="identifierLabel">Staff ID / Email</span>
                             <span class="required">*</span>
                         </label>
-                        <input type="text" id="identifier" placeholder="Enter your matric number / email" autocomplete="username">
-                        <div class="input-hint" id="identifierHint">Enter your matric number or email</div>
+                        <input type="text" id="identifier" placeholder="Enter your staff ID / email" autocomplete="username">
+                        <div class="input-hint" id="identifierHint">Enter your staff ID or email</div>
                         <div class="error-message" id="identifierError"></div>
                     </div>
 
@@ -63,13 +63,13 @@
                     </div>
 
                     <button type="submit" class="login-btn" id="loginBtn">
-                        <span id="loginBtnText">Login as Student</span>
+                        <span id="loginBtnText">Login as Lecturer</span>
                         <i class="fa-regular fa-paper-plane"></i>
                     </button>
                 </form>
 
                 <div class="signup-link">
-                    <p>Don't have login details? Contact your department admin.</p>
+                    <p>New lecturer? <a href="lecturer-apply.html">Apply for an account</a></p>
                 </div>
 
             </div>

@@ -137,8 +137,9 @@ function renderCourses() {
         filtered = filtered.filter(function(c) { return c.status === 'completed'; });
     }
 
+    // Compare as strings: Course.level is stored as "500", not 500
     if (levelValue !== 'all') {
-        filtered = filtered.filter(function(c) { return c.level === parseInt(levelValue); });
+        filtered = filtered.filter(function(c) { return String(c.level) === String(levelValue); });
     }
 
     if (searchQuery) {

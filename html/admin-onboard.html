@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="api-config.js"></script>
+    <title>FUTO Admin · Onboard Students</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-students.css">
+    <link rel="stylesheet" href="sidebar-fit.css">
+    <style>
+        .hidden { display: none !important; }
+
+        /* Tabs */
+        .ob-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-body);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .ob-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--text-light);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ob-tab:hover { color: var(--primary); }
+        .ob-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .ob-body { padding: 1.5rem; }
+
+        /* Form */
+        .ob-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem 1.25rem;
+        }
+        .ob-field label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.4rem;
+        }
+        .ob-field input,
+        .ob-field select,
+        .ob-field textarea {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .ob-field input:focus,
+        .ob-field select:focus,
+        .ob-field textarea:focus { border-color: var(--primary); }
+        .ob-field textarea {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            min-height: 180px;
+        }
+        .req { color: var(--danger); }
+        .muted { font-weight: 400; color: var(--text-light); }
+
+        .ob-note {
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-start;
+            margin-top: 1.1rem;
+            padding: 0.8rem 1rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .ob-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .ob-actions .btn-primary,
+        .ob-actions .btn-secondary { padding: 0.65rem 1.2rem; font-size: 0.9rem; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Messages */
+        .ob-msg {
+            margin-top: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+        .ob-msg.ok { background: #e8f5e9; color: #2a7a4b; }
+        .ob-msg.warn { background: #fff3e0; color: #b45309; }
+        .ob-msg.err { background: #fee2e2; color: #b91c1c; }
+
+        /* Import */
+        .ob-dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1.25rem;
+            transition: all 0.2s;
+        }
+        .ob-dropzone i {
+            display: block;
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .ob-dropzone.drag {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .ob-link {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .ob-format {
+            font-size: 0.82rem;
+            color: var(--text-light);
+            margin-top: 0.6rem;
+            line-height: 1.7;
+        }
+        .ob-chip {
+            display: inline-block;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+            font-weight: 500;
+            padding: 0.1rem 0.55rem;
+            border-radius: 6px;
+            margin-right: 0.3rem;
+        }
+
+        .ob-preview { margin-top: 1.5rem; }
+        .ob-preview-head {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.7rem;
+        }
+        .ob-scroll {
+            max-height: 360px;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .ob-scroll .data-table { min-width: 0; }
+        .ob-scroll .data-table th { position: sticky; top: 0; z-index: 1; }
+
+        .ob-pill {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .ob-pill.ok { background: #e8f5e9; color: #2a7a4b; }
+        .ob-pill.bad { background: #fee2e2; color: #b91c1c; }
+        .ob-pill.warn { background: #fff3e0; color: #b45309; }
+
+        .ob-summary {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.8rem;
+        }
+
+        @media (max-width: 700px) {
+            .ob-grid { grid-template-columns: 1fr; }
+            .ob-tabs { padding: 0.8rem 1rem; }
+            .ob-body { padding: 1rem; }
+            .ob-actions .btn-primary,
+            .ob-actions .btn-secondary { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>FUTO Admin</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-image">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=50" alt="admin">
+                </div>
+                <div class="profile-info">
+                    <h4 id="adminName">Administrator</h4>
+                    <p>System Admin</p>
+                    <span class="badge-level">Admin</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="admin-dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="admin-courses.html" class="nav-item">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Courses</span>
+                </a>
+                <a href="admin-lecturers.html" class="nav-item">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Lecturers</span>
+                </a>
+                <a href="admin-students.html" class="nav-item">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="admin-applications.html" class="nav-item">
+                    <i class="fa-solid fa-user-clock"></i>
+                    <span>Applications</span>
+                </a>
+                <a href="admin-profile.html" class="nav-item">
+                    <i class="fa-solid fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="admin-onboard.html" class="nav-item active"><i class="fa-solid fa-user-plus"></i> Onboard Students</a>
+                <a href="admin-settings.html" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="semester-info">
+                    <i class="fa-regular fa-calendar"></i>
+                    <div>
+                        <small>Current Session</small>
+                        <p id="sidebarSession">Loading...</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-link" id="logoutBtn">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-btn" id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2>Students</h2>
+                </div>
+                <div class="header-right">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fa-regular fa-sun"></i>
+                        <i class="fa-regular fa-moon"></i>
+                    </div>
+                    <div class="header-profile">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=2a7a4b&color=fff&size=40" alt="profile">
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Onboard Students</h1>
+                        <p class="page-subtitle">Create student accounts one at a time or import a whole list.</p>
+                    </div>
+                    <a href="admin-students.html" class="btn-secondary">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Students
+                    </a>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-list-ol"></i></div>
+                        <div class="stat-details">
+                            <h3 id="statDetected">0</h3>
+                            <p>Rows detected</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-circle-check" style="color:#2a7a4b;"></i></div>
+                        <div class="stat-details">
+                            <h3 id="statReady">0</h3>
+                            <p>Ready to create</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i></div>
+                        <div class="stat-details">
+                            <h3 id="statAttention">0</h3>
+                            <p>Need attention</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card -->
+                <div class="card">
+                    <div class="ob-tabs">
+                        <button class="ob-tab active" data-tab="one">
+                            <i class="fa-solid fa-user-plus"></i> Add one student
+                        </button>
+                        <button class="ob-tab" data-tab="list">
+                            <i class="fa-solid fa-file-import"></i> Import a list
+                        </button>
+                    </div>
+
+                    <!-- Add one -->
+                    <div class="ob-body" id="panelOne">
+                        <form id="oneForm" autocomplete="off">
+                            <div class="ob-grid">
+                                <div class="ob-field">
+                                    <label for="oneMatric">Matric number <span class="req">*</span></label>
+                                    <input id="oneMatric" type="text" required>
+                                </div>
+                                <div class="ob-field">
+                                    <label for="oneName">Full name <span class="req">*</span></label>
+                                    <input id="oneName" type="text" required>
+                                </div>
+                                <div class="ob-field">
+                                    <label for="oneLevel">Level <span class="req">*</span></label>
+                                    <select id="oneLevel" required>
+                                        <option value="">Choose level</option>
+                                        <option value="100">100 Level</option>
+                                        <option value="200">200 Level</option>
+                                        <option value="300">300 Level</option>
+                                        <option value="400">400 Level</option>
+                                        <option value="500">500 Level</option>
+                                    </select>
+                                </div>
+                                <div class="ob-field">
+                                    <label for="oneEmail">Email <span class="muted">(optional)</span></label>
+                                    <input id="oneEmail" type="email">
+                                </div>
+                            </div>
+
+                            <div class="ob-note">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <span>The matric number is the login and the default password. The student changes the password after the first login.</span>
+                            </div>
+
+                            <div id="oneMsg"></div>
+
+                            <div class="ob-actions">
+                                <button type="submit" class="btn-primary" id="oneBtn">
+                                    <i class="fa-solid fa-plus"></i> Create account
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Import list -->
+                    <div class="ob-body hidden" id="panelList">
+                        <div class="ob-dropzone" id="dropzone">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p>Drop a CSV or text file here, or <span class="ob-link" id="browseLink">browse</span></p>
+                            <input type="file" id="fileInput" accept=".csv,.txt,.tsv" hidden>
+                        </div>
+
+                        <div class="ob-field">
+                            <label for="listInput">Or paste the list</label>
+                            <textarea id="listInput" rows="8" spellcheck="false"></textarea>
+                        </div>
+
+                        <div class="ob-format">
+                            Columns, in order:
+                            <span class="ob-chip">Matric number</span>
+                            <span class="ob-chip">Full name</span>
+                            <span class="ob-chip">Level</span>
+                            <span class="ob-chip">Email (optional)</span>
+                            <br>
+                            One student per line. A header row is detected automatically. You can copy straight from Excel or a CSV file.
+                        </div>
+
+                        <div class="ob-actions">
+                            <button class="btn-secondary" id="previewBtn">
+                                <i class="fa-solid fa-eye"></i> Preview
+                            </button>
+                        </div>
+
+                        <div class="ob-preview hidden" id="previewWrap">
+                            <div class="ob-preview-head" id="previewSummary"></div>
+                            <div class="ob-scroll">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Matric</th>
+                                            <th>Full name</th>
+                                            <th>Level</th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="previewBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="ob-actions">
+                                <button class="btn-primary" id="importBtn">
+                                    <i class="fa-solid fa-file-import"></i>
+                                    Import <span id="importCount">0</span> students
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="importMsg"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="admin-onboard.js"></script>
+</body>
+</html>

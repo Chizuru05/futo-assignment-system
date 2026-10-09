@@ -641,3 +641,15 @@ body {
         justify-content: center;
     }
 }
+
+.roles-note {
+    text-align: center;
+    margin-top: 2.5rem;
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+.roles-note i {
+    color: var(--primary);
+    margin-right: 6px;
+}

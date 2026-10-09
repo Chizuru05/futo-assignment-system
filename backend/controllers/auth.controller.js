@@ -217,7 +217,9 @@ exports.login = async (req, res) => {
         console.log('✅ User found:', user.fullName, '| Role:', user.role);
 
         // Block unverified emails
-        if (!user.emailVerified) {
+       // Only block when a verification code is still pending.
+        // Admin-created accounts have no OTP, so they are not blocked.
+        if (!user.emailVerified && user.otp) {
             return res.status(401).json({
                 success: false,
                 message: 'Please verify your email before logging in.',
@@ -225,7 +227,6 @@ exports.login = async (req, res) => {
                 email: user.email
             });
         }
-
         if (user.role === 'lecturer') {
             if (!user.isApproved) {
                 return res.status(401).json({

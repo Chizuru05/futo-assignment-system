@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     fullName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['student', 'lecturer', 'admin'], required: true },
 
@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema({
         default: 'pending'
     },
     isActive: { type: Boolean, default: false },
+    mustChangePassword: { type: Boolean, default: false },
 
     // Email verification (NEW)
     emailVerified: { type: Boolean, default: false },

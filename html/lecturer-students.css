@@ -1088,3 +1088,53 @@ body {
         width: 280px !important;
     }
 }
+
+/* ===== Level groups ===== */
+.level-group-row td {
+    background: var(--primary-light);
+    padding: 0.7rem 1.5rem;
+    font-weight: 600;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border);
+}
+
+.level-group-row:hover td {
+    background: var(--primary-light);
+}
+
+.level-group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.level-group-head i {
+    margin-right: 0.5rem;
+}
+
+.level-count {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+/* ===== Course chips ===== */
+.course-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.course-chip {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.course-chip.chip-selected {
+    background: var(--primary);
+    color: #fff;
+}
