@@ -916,33 +916,42 @@ function setupFileUpload() {
     var uploadArea = document.getElementById('uploadArea');
     var fileInput = document.getElementById('submissionFiles');
     var fileListDiv = document.getElementById('submissionFileList');
+    var uploadBtn = document.getElementById('uploadBtn');
 
-    if (!uploadArea || !fileInput) return;
+    if (uploadArea && fileInput) {
+        uploadArea.addEventListener('click', function() { fileInput.click(); });
 
-    uploadArea.addEventListener('click', function() { fileInput.click(); });
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.style.background = 'rgba(42, 122, 75, 0.1)';
+            uploadArea.style.borderColor = '#2a7a4b';
+        });
 
-    uploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        uploadArea.style.background = 'rgba(42, 122, 75, 0.1)';
-        uploadArea.style.borderColor = '#2a7a4b';
-    });
+        uploadArea.addEventListener('dragleave', function() {
+            uploadArea.style.background = '';
+            uploadArea.style.borderColor = '';
+        });
 
-    uploadArea.addEventListener('dragleave', function() {
-        uploadArea.style.background = '';
-        uploadArea.style.borderColor = '';
-    });
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.style.background = '';
+            uploadArea.style.borderColor = '';
+            fileInput.files = e.dataTransfer.files;
+            updateFileList(fileInput.files, fileListDiv);
+        });
 
-    uploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        uploadArea.style.background = '';
-        uploadArea.style.borderColor = '';
-        fileInput.files = e.dataTransfer.files;
-        updateFileList(fileInput.files, fileListDiv);
-    });
+        fileInput.addEventListener('change', function() {
+            updateFileList(fileInput.files, fileListDiv);
+        });
+    }
 
-    fileInput.addEventListener('change', function() {
-        updateFileList(fileInput.files, fileListDiv);
-    });
+    // The fix: connect the Submit button to the upload function
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            uploadAssignment();
+        });
+    }
 }
 
 function updateFileList(files, fileListDiv) {
