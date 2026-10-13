@@ -116,69 +116,46 @@ async function fetchDashboardData() {
         });
     }, 6000);
 
+    const authOpts = { headers: { 'Authorization': `Bearer ${token}` } };
+
     try {
-        console.log('Fetching dashboard data for:', currentSession, currentSemester);
+        // Fetch all three lists at the same time
+        const [coursesRes, assignmentsRes, submissionsRes] = await Promise.allSettled([
+            fetchWithTimeout(`${API_URL}/api/lecturer/my-courses?session=${currentSession}&semester=${currentSemester}`, authOpts, 15000).then(r => r.json()),
+            fetchWithTimeout(`${API_URL}/api/assignments/lecturer`, authOpts, 15000).then(r => r.json()),
+            fetchWithTimeout(`${API_URL}/api/submissions/lecturer/all?session=${currentSession}&semester=${currentSemester}`, authOpts, 15000).then(r => r.json())
+        ]);
 
-        const coursesRes = await fetchWithTimeout(`${API_URL}/api/lecturer/my-courses?session=${currentSession}&semester=${currentSemester}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        }, 15000);
-        const coursesData = await coursesRes.json();
+        const val = (r) => (r.status === 'fulfilled' ? r.value : { success: false, error: r.reason });
 
-        if (coursesData.success) {
-            allCourses = coursesData.courses || [];
-            if (totalCoursesEl) totalCoursesEl.textContent = allCourses.length;
-            if (totalStudentsEl) totalStudentsEl.textContent = coursesData.uniqueStudentCount || 0;
-            renderMyCourses();
-        } else {
-            allCourses = [];
-            if (totalCoursesEl) totalCoursesEl.textContent = 0;
-            if (totalStudentsEl) totalStudentsEl.textContent = 0;
-            renderMyCourses();
-        }
+        // 1) Load all the data first
+        const coursesData = val(coursesRes);
+        allCourses = coursesData.success ? (coursesData.courses || []) : [];
+        if (totalCoursesEl) totalCoursesEl.textContent = allCourses.length;
+        if (totalStudentsEl) totalStudentsEl.textContent = coursesData.success ? (coursesData.uniqueStudentCount || 0) : 0;
 
-        const assignmentsRes = await fetchWithTimeout(`${API_URL}/api/assignments/lecturer`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        }, 15000);
-        const assignmentsData = await assignmentsRes.json();
+        const assignmentsData = val(assignmentsRes);
+        allAssignments = assignmentsData.success ? (assignmentsData.assignments || []) : [];
+        if (totalAssignmentsEl) totalAssignmentsEl.textContent = allAssignments.length;
 
-        if (assignmentsData.success) {
-            allAssignments = assignmentsData.assignments || [];
-            if (totalAssignmentsEl) totalAssignmentsEl.textContent = allAssignments.length;
-            renderActiveAssignments();
-            renderUpcomingDeadlines();
-        } else {
-            allAssignments = [];
-            if (totalAssignmentsEl) totalAssignmentsEl.textContent = 0;
-            renderActiveAssignments();
-            renderUpcomingDeadlines();
-        }
+        const submissionsData = val(submissionsRes);
+        allSubmissions = submissionsData.success ? (submissionsData.submissions || []) : [];
+        const pendingCount = allSubmissions.filter(s => s.status === 'pending').length;
+        if (pendingSubmissionsEl) pendingSubmissionsEl.textContent = pendingCount;
 
-        const submissionsRes = await fetchWithTimeout(`${API_URL}/api/submissions/lecturer/all?session=${currentSession}&semester=${currentSemester}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        }, 15000);
-        const submissionsData = await submissionsRes.json();
-
-        if (submissionsData.success) {
-            allSubmissions = submissionsData.submissions || [];
-            const pendingCount = allSubmissions.filter(s => s.status === 'pending').length;
-            if (pendingSubmissionsEl) pendingSubmissionsEl.textContent = pendingCount;
-            renderRecentSubmissions();
-        } else {
-            console.log('No submissions found or error:', submissionsData.message);
-            allSubmissions = [];
-            if (pendingSubmissionsEl) pendingSubmissionsEl.textContent = 0;
-            renderRecentSubmissions();
-        }
+        // 2) Render every panel only after all the data is in,
+        //    so the submission counts on the assignment cards are correct
+        renderMyCourses();
+        renderActiveAssignments();
+        renderUpcomingDeadlines();
+        renderRecentSubmissions();
 
         clearTimeout(slowNotice);
 
     } catch (error) {
         clearTimeout(slowNotice);
         console.error('Error fetching dashboard data:', error);
-        const isTimeout = error.name === 'AbortError';
-        const message = isTimeout
-            ? '<div class="ld-panel-empty">Server took too long to respond. It may be waking up &mdash; try refreshing shortly.</div>'
-            : '<div class="ld-panel-empty">Could not load this data. Please refresh the page.</div>';
+        const message = '<div class="ld-panel-empty">Could not load this data. Please refresh the page.</div>';
         [recentSubmissionsList, activeAssignmentsList, myCoursesList, upcomingDeadlinesList].forEach(el => {
             if (el) el.innerHTML = message;
         });

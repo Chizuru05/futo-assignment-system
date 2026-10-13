@@ -1698,3 +1698,190 @@ body {
         width: 280px !important;
     }
 }
+
+/* ===== GROUPING (level > course > assignment) ===== */
+        .group-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .level-group,
+        .course-group {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .course-group {
+            border-radius: 16px;
+            box-shadow: none;
+        }
+
+        .group-summary {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            list-style: none;
+            font-weight: 600;
+            color: var(--text-dark);
+            user-select: none;
+        }
+
+        .group-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .course-group > .group-summary {
+            padding: 0.85rem 1rem;
+            background: var(--secondary);
+            font-size: 0.95rem;
+        }
+
+        .group-summary:hover {
+            background: var(--primary-light);
+        }
+
+        .group-chevron {
+            color: var(--primary);
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+            width: 14px;
+            text-align: center;
+        }
+
+        details[open] > .group-summary .group-chevron {
+            transform: rotate(90deg);
+        }
+
+        .group-title {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .group-subtitle {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--text-light);
+        }
+
+        .group-pills {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            background: var(--secondary);
+            color: var(--text-light);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .pill.pending {
+            background: #fff3e0;
+            color: var(--warning);
+            border-color: transparent;
+        }
+
+        .pill.graded {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: transparent;
+        }
+
+        .group-body {
+            padding: 0.25rem 1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .course-group > .group-body {
+            padding: 0.75rem 1rem 1rem;
+        }
+
+        .assignment-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .assignment-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--primary-light);
+            border-radius: 12px;
+        }
+
+        .assignment-group-header h4 {
+            font-size: 0.95rem;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .assignment-group-header small {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .btn-ai-small {
+            background: var(--ai-gradient);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+
+        .btn-ai-small:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Filter bar needs room for four selects */
+        .filter-bar .filter-select {
+            min-width: 160px;
+        }
+
+        .filter-count {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 768px) {
+            .filter-count {
+                margin-left: 0;
+            }
+        }

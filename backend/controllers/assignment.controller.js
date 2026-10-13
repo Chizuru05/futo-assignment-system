@@ -139,7 +139,6 @@ exports.getLecturerAssignments = async (req, res) => {
     try {
         const lecturerId = req.user.id;
 
-        // Get active settings
         const activeSettings = await getActiveSettings();
         const activeSession = activeSettings.session;
         const activeSemester = activeSettings.semester;
@@ -149,7 +148,6 @@ exports.getLecturerAssignments = async (req, res) => {
         console.log('Active Session:', activeSession);
         console.log('Active Semester:', activeSemester);
 
-        // Get courses the lecturer is registered for in the ACTIVE session/semester
         const lecturerCourses = await LecturerCourse.find({
             lecturerId,
             session: activeSession,
@@ -158,26 +156,37 @@ exports.getLecturerAssignments = async (req, res) => {
         }).select('courseCode');
 
         const courseCodes = lecturerCourses.map(c => c.courseCode);
-        console.log('Course codes for active semester:', courseCodes);
 
         if (courseCodes.length === 0) {
             return res.status(200).json({ success: true, assignments: [] });
         }
 
-        // Get assignments ONLY for active session/semester
-        // (markingScheme.text is select:false, so only hasScript/fileName/strictness come back here)
         const assignments = await Assignment.find({
             course: { $in: courseCodes },
             session: activeSession,
             semester: activeSemester
         }).sort({ dueDateISO: 1 });
 
+        // Attach each course's level, read from the Course records for this semester
+        const courseDocs = await Course.find({
+            courseCode: { $in: courseCodes },
+            semester: activeSemester
+        }).select('courseCode level');
+
+        const levelByCode = new Map(courseDocs.map(c => [c.courseCode, c.level]));
+
+        const assignmentsWithLevel = assignments.map(a => {
+            const obj = a.toObject();
+            obj.level = levelByCode.get(a.course) || '';
+            return obj;
+        });
+
         console.log(`Found ${assignments.length} assignments for lecturer (${activeSession} ${activeSemester})`);
 
         res.status(200).json({
             success: true,
-            count: assignments.length,
-            assignments,
+            count: assignmentsWithLevel.length,
+            assignments: assignmentsWithLevel,
             activeSession,
             activeSemester
         });

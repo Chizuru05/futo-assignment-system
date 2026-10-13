@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>    <script src="api-config.js"></script>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUTO � AI Grade Submissions</title>
+    <title>FUTO – AI Grade Submissions</title>
+    <script src="api-config.js"></script>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -23,18 +24,18 @@
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             </div>
-            
+
             <div class="sidebar-profile">
                 <div class="profile-image">
                     <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=50" alt="profile">
                 </div>
                 <div class="profile-info">
                     <h4>Dr. Ifeanyi Okonkwo</h4>
-                    <p>Senior Lecturer � CS Dept</p>
+                    <p>Senior Lecturer – CS Dept</p>
                     <span class="badge-level">Staff ID: CS/0012</span>
                 </div>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <a href="lecturer-dashboard.html" class="nav-item">
                     <i class="fa-solid fa-chart-pie"></i>
@@ -65,7 +66,7 @@
                     <span>Settings</span>
                 </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <a href="logout.html" class="logout-link">
                     <i class="fa-solid fa-sign-out-alt"></i>
@@ -87,33 +88,21 @@
                         <input type="text" placeholder="Search students...">
                     </div>
                 </div>
-                
+
                 <div class="header-right">
                     <div class="theme-toggle" id="themeToggle">
                         <i class="fa-regular fa-sun"></i>
                         <i class="fa-regular fa-moon"></i>
                     </div>
-                    
+
                     <div class="notif-wrapper">
                         <button class="notif-btn" id="notifBtn">
                             <i class="fa-regular fa-bell"></i>
-                            <span class="notif-badge" id="notifCount">23</span>
+                            <span class="notif-badge" id="notifCount" style="display:none;">0</span>
                         </button>
-                        <div class="notif-panel" id="notifPanel">
-                            <div class="notif-header">
-                                <h4>Notifications</h4>
-                                <span>Mark all as read</span>
-                            </div>
-                            <div class="notif-item unread">
-                                <i class="fa-regular fa-file-pdf" style="color: #2a7a4b;"></i>
-                                <div>
-                                    <p><strong>5 new submissions</strong> � CSC 401</p>
-                                    <small>2 min ago</small>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="notif-panel" id="notifPanel"></div>
                     </div>
-                    
+
                     <a href="lecturer-profile.html" class="header-profile">
                         <img src="https://ui-avatars.com/api/?name=Ifeanyi+Okonkwo&background=2a7a4b&color=fff&size=40" alt="profile">
                     </a>
@@ -133,7 +122,7 @@
                 <div class="page-header">
                     <div>
                         <h1 class="page-title">AI Grade Submissions</h1>
-                        <p class="page-subtitle">Review and grade student submissions with AI assistance</p>
+                        <p class="page-subtitle">Review and grade student submissions, grouped by level and course</p>
                     </div>
                     <div class="header-actions">
                         <button class="btn-outline" onclick="downloadAllSubmissions()">
@@ -153,7 +142,7 @@
                             <p>Total Submissions</p>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card small">
                         <div class="stat-icon" style="background: #fff3e0;">
                             <i class="fa-regular fa-clock" style="color: #f59e0b;"></i>
@@ -163,7 +152,7 @@
                             <p>To Grade</p>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card small">
                         <div class="stat-icon" style="background: #e8f5e9;">
                             <i class="fa-solid fa-check-circle" style="color: #2a7a4b;"></i>
@@ -173,7 +162,7 @@
                             <p>Graded</p>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card small">
                         <div class="stat-icon" style="background: #e8f5e9;">
                             <i class="fa-solid fa-percent" style="color: #2a7a4b;"></i>
@@ -189,41 +178,54 @@
                 <div class="ai-action-bar">
                     <div class="ai-info">
                         <i class="fa-solid fa-robot"></i>
-                        <span>AI Grading uses Google Gemini to automatically evaluate submissions based on rubric criteria</span>
+                        <span>AI Grading uses Google Gemini to evaluate submissions shown below based on rubric criteria</span>
                     </div>
                     <button class="btn-ai" id="aiGradeAllBtn" onclick="aiGradeAllPending()">
-                        <i class="fa-solid fa-robot"></i> AI Grade All Pending
+                        <i class="fa-solid fa-robot"></i> AI Grade Pending (shown)
                     </button>
                 </div>
 
                 <!-- Filter Bar -->
                 <div class="filter-bar">
                     <div class="filter-group">
-                        <label for="assignmentFilter">Assignment:</label>
-                        <select id="assignmentFilter" class="filter-select">
-                            <option value="all">All Assignments</option>
+                        <label for="levelFilter">Level:</label>
+                        <select id="levelFilter" class="filter-select">
+                            <option value="all">All levels</option>
                         </select>
                     </div>
-                    
+
                     <div class="filter-group">
-                        <label for="gradeStatusFilter">Grade Status:</label>
+                        <label for="courseFilter">Course:</label>
+                        <select id="courseFilter" class="filter-select">
+                            <option value="all">All courses</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="assignmentFilter">Assignment:</label>
+                        <select id="assignmentFilter" class="filter-select">
+                            <option value="all">All assignments</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="gradeStatusFilter">Status:</label>
                         <select id="gradeStatusFilter" class="filter-select">
                             <option value="all">All</option>
-                            <option value="pending">Pending Grading</option>
+                            <option value="pending">Pending grading</option>
                             <option value="graded">Graded</option>
                         </select>
                     </div>
-                    
-                    <button class="filter-btn" onclick="applyFilters()">
-                        <i class="fa-solid fa-filter"></i> Apply Filters
-                    </button>
+
                     <button class="filter-btn clear" onclick="clearFilters()">
                         <i class="fa-solid fa-times"></i> Clear
                     </button>
+
+                    <span class="filter-count" id="filterCount"></span>
                 </div>
 
-                <!-- Submissions Container -->
-                <div id="submissionsContainer" class="submissions-list">
+                <!-- Grouped Submissions -->
+                <div id="submissionsContainer" class="group-list">
                     <div class="loading-message">Loading submissions...</div>
                 </div>
             </div>
